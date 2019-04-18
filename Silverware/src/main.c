@@ -173,14 +173,7 @@ clk_init();
 	pwm_set( MOTOR_FR , 0); 
 	pwm_set( MOTOR_BR , 0); 
     delay(1000);
-//    pwm_set( MOTOR_BL , 0.1);
-//        pwm_set( MOTOR_FL , 0.1);	 
-//        pwm_set( MOTOR_FR , 0.1); 
-//        pwm_set( MOTOR_BR , 0.1); 
-//    while(1)
-//    {
-// 
-//    }    
+   
 	sixaxis_init();
 
 	if ( sixaxis_check() ) 
