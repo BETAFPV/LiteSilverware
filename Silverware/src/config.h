@@ -50,9 +50,9 @@
 // *************select only one
 //#define RX_SBUS
 //#define RX_DSMX_2048
-//#define RX_DSM2_1024
+#define RX_DSM2_1024
 //#define RX_NRF24_BAYANG_TELEMETRY
-#define RX_BAYANG_PROTOCOL_BLE_BEACON
+//#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 
 // *************Transmitter Type Selection
