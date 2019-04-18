@@ -9,7 +9,7 @@
 #include "drv_fmc.h"
 
 
-#ifdef RX_DSMX_2048
+
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 
 #ifndef BUZZER_ENABLE 																									// use the convenience macros from buzzer.c for bind pulses
@@ -156,6 +156,46 @@ void dsm_init(void)
     NVIC_Init(&NVIC_InitStructure);
 // set setup complete flag
  framestarted = 0;
+}
+
+// Initialize the binding button
+void lite_2S_BINDKEY_init(void)
+{
+		GPIO_InitTypeDef    GPIO_InitStructure;
+	
+ 	    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);
+	
+        GPIO_InitStructure.GPIO_Pin = LED1PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+        GPIO_Init(LED1PORT, &GPIO_InitStructure); 
+	
+		GPIO_SetBits(LED1PORT,LED1PIN);
+}
+
+// Send Spektrum bind pulses
+void lite_2S_rx_spektrum_bind(void)
+{
+        GPIO_InitTypeDef    GPIO_InitStructure;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+        
+        // RX line, set high
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+        // Bind window is around 20-140ms after powerup
+        delay(60000);
+
+        for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
+                // RX line, drive low for 120us
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+            
+                // RX line, drive high for 120us
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+		}
 }
 
 // Send Spektrum bind pulses to a GPIO e.g. TX1
@@ -305,7 +345,6 @@ if ( framestarted == 1){
 	}
 }	
 #endif
-#endif	
 	
 	
 	
