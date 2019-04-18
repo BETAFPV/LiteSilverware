@@ -150,17 +150,27 @@ int main(void)
 clk_init();
 #endif
 	
+	
+#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
+	
+	lite_2S_BINDKEY_init();            // Initialize the binding key
+
+	delay(1000);
+	if(GPIO_ReadInputDataBit(LED1PORT,LED1PIN) == 0)   //Read key value
+	{
+		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
+	}
+	delay(50000);
+#endif
+	
+	
+	
   gpio_init();	
   ledon(255);									//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
   time_init();
 	osd_spi_init();
-
-#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
-		rx_spektrum_bind(); 
-#endif
-	
 	
 	delay(100000);
 		
