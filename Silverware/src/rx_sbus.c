@@ -20,7 +20,7 @@
 // sbus is normally inverted
 #define SBUS_INVERT 1
 // channel order,Enable is AETR, 
-//#define AETR 
+#define AETR 
 
 // global use rx variables
 extern float rx[4];
