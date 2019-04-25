@@ -560,7 +560,7 @@ static uint8 i;
         break; /* 可选的 */
         case 1  :OSD_Data_Send(2,aux[0]);  //transmit ARMING state	
         break; /* 可选的 */
-        case 2  :OSD_Data_Send(3,1);//transmit vbattfilt
+        case 2  :OSD_Data_Send(3,aux[8]);//transmit vbattfilt
         break; /* 可选的 */
         default : break;
     }
