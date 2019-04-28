@@ -560,12 +560,14 @@ static uint8 i;
         break; /* 可选的 */
         case 1  :OSD_Data_Send(2,aux[0]);  //transmit ARMING state	
         break; /* 可选的 */
-        case 2  :OSD_Data_Send(3,aux[8]);//transmit vbattfilt
+        case 2  :OSD_Data_Send(3,aux[7]);//hori mode
+        break; /* 可选的 */
+		case 3  :OSD_Data_Send(4,aux[8]);//race mode
         break; /* 可选的 */
         default : break;
     }
 i++;
-if(i>2)
+if(i>4)
 {
 	i=0;
 }

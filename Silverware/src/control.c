@@ -937,21 +937,20 @@ float  motor_kalman( float in , int x)
 {    
 
 
-    
-        //do a prediction 
-       float x_temp_est = x_est_last[x]; 
-       float P_temp = P_last[x] + Q; 
 
-       float K = P_temp * (1.0f/(P_temp + R));
-       float x_est = x_temp_est + K * (in - x_temp_est);  
-       float P = (1- K) * P_temp; 
-       
-        //update our last's 
-        P_last[x] = P; 
-        x_est_last[x] = x_est; 
-//
+	//do a prediction 
+   float x_temp_est = x_est_last[x]; 
+   float P_temp = P_last[x] + Q; 
 
-return x_est;
+   float K = P_temp * (1.0f/(P_temp + R));
+   float x_est = x_temp_est + K * (in - x_temp_est);  
+   float P = (1- K) * P_temp; 
+   
+	//update our last's 
+	P_last[x] = P; 
+	x_est_last[x] = x_est; 
+
+	return x_est;
 }	
 	
 	
