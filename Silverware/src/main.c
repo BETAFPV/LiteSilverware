@@ -112,6 +112,12 @@ char lastaux[AUXNUMBER];
 // if an aux channel has just changed
 char auxchange[AUXNUMBER];
 
+
+extern float pidkp[PIDNUMBER];  
+extern float pidki[PIDNUMBER];	
+extern float pidkd[PIDNUMBER];
+
+
 // bind / normal rx mode
 extern int rxmode;
 // failsafe on / off
@@ -166,7 +172,7 @@ clk_init();
 	
 	
   gpio_init();	
-  ledon(255);									//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
+  ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
   time_init();
@@ -553,7 +559,7 @@ checkrx();
 
 /*osd data transmit*/
 while ( (gettime() - time) < LOOPTIME );	
-static uint8 i;
+static uint8 i,j;
     switch(i)
     {
         case 0  :OSD_Data_Send(1,(int)(vbattfilt*100));//transmit vbattfil 
@@ -564,10 +570,32 @@ static uint8 i;
         break; /* 可选的 */
 		case 3  :OSD_Data_Send(4,aux[8]);//race mode
         break; /* 可选的 */
+		case 4  :
+				for(j=0;j<3;j++){
+					delay(100);
+					OSD_Data_Send(5+j,100*pidkp[j]);//pid
+					delay(100);
+					}
+        break; /* 可选的 */
+		case 5  :for(j=0;j<3;j++){
+					delay(100);
+					OSD_Data_Send(8+j,100*pidki[j]);//pid
+					delay(100);
+					}
+        break; /* 可选的 */
+
+		case 6  :for(j=0;j<3;j++){
+					delay(100);
+					OSD_Data_Send(11+j,100*pidkd[j]);//pid
+					delay(100);
+					}
+        break; /* 可选的 */
+
+
         default : break;
     }
 i++;
-if(i>4)
+if(i>6)
 {
 	i=0;
 }
