@@ -11,13 +11,12 @@ extern float accelcal[];
 extern float * pids_array[3];
 
 extern float hardcoded_pid_identifier;
-
+extern int save_motor_dir[4];
 
 #define FMC_HEADER 0x12AA0001
 
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
-
 
 float flash_get_hard_coded_pid_identifier( void) {
 	float result = 0;
@@ -120,6 +119,12 @@ if (flash_feature_3)
 }else{
 	fmc_write_float (55,0);	
 }
+
+writeword(57,save_motor_dir[0]);
+writeword(58,save_motor_dir[1]);
+writeword(59,save_motor_dir[2]);
+writeword(60,save_motor_dir[3]);
+
 #endif
 
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
@@ -145,19 +150,19 @@ void flash_load( void) {
     if (FMC_HEADER == fmc_read(addresscount++)&& FMC_HEADER == fmc_read(255))
     {
 
-     saved_pid_identifier = fmc_read_float(addresscount++);
+     saved_pid_identifier = fmc_read_float(addresscount++);                  
 // load pids from flash if pid.c values are still the same       
-     if (  saved_pid_identifier == initial_pid_identifier )
-     {
+//     if (  (int)saved_pid_identifier == (int)initial_pid_identifier )
+//     {
          for (int i=0;  i<3 ; i++) {
             for (int j=0; j<3 ; j++) {
                 pids_array[i][j] = fmc_read_float(addresscount++);
             }
         }
-     }
-     else{
-         addresscount+=9; 
-     }    
+//     }
+//     else{
+//         addresscount+=9; 
+//     }    
 
     accelcal[0] = fmc_read_float(addresscount++ );
     accelcal[1] = fmc_read_float(addresscount++ );
@@ -218,6 +223,11 @@ extern int rx_bind_enable;
 	extern int flash_feature_3;
 	flash_feature_3 = fmc_read_float(55);
 #endif
+
+save_motor_dir[0] = fmc_read(57);
+save_motor_dir[1] = fmc_read(58);
+save_motor_dir[2] = fmc_read(59);
+save_motor_dir[3] = fmc_read(60);
 
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 	extern int rx_bind_enable;

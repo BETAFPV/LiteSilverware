@@ -307,7 +307,7 @@ if (aux[LEVELMODE]&&!acro_override){
 		setpoint[2] = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
           
 		for ( int i = 0; i < 3; i++ ) {
-			error[i] = setpoint[i] - gyro[i];
+			error[i] = setpoint[i] - gyro[i];          //Calculate Angle error                      
 		}
 }
 

@@ -53,6 +53,9 @@ THE SOFTWARE.
 #include "gestures.h"
 #include "binary.h"
 #include "drv_osd.h"
+#include "menu.h"
+#include "drv_dshot.h" 
+#include "drv_fmc.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -76,6 +79,24 @@ debug_type debug;
 #endif
 
 
+#define Roll     0   
+#define Pitch    1   
+#define Yaw      2   
+#define Throttle 3   
+#define menu_max_item 3
+ 
+ 
+char down_flag = 0;
+char up_flag = 0;
+char right_flag = 0;
+char left_flag = 0;
+char menu_flag = 0;
+char PID_parameter_tuning_flag = 0;
+
+Menu_List main_menu,main_menu_head;
+Menu_List PID_menu,PID_menu_head;
+Menu_List Motor_menu,Motor_menu_head;
+Menu_List Menu_pointer;
 
 unsigned char OSD_DATA[20] = {0x01,0x02,0x03,0x04};
 
@@ -83,8 +104,10 @@ unsigned char OSD_DATA[20] = {0x01,0x02,0x03,0x04};
 void clk_init(void);
 void imu_init(void);
 extern void flash_load( void);
+extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
-
+extern void motor_dir(uint8_t number, uint16_t value);
+extern int save_motor_dir[4];
 
 // looptime in seconds
 float looptime;
@@ -170,7 +193,16 @@ clk_init();
 #endif
 	
 	
+	main_menu = CreateDbCcLinkList(3,0);     //长度为3  0：主菜单
+	main_menu_head = main_menu;   					 //记录主菜单的头
 	
+	PID_menu = CreateDbCcLinkList(9,1);
+	PID_menu_head = PID_menu;                //记录PID调试菜单链表的头
+	
+	Motor_menu = CreateDbCcLinkList(4,2);
+	Motor_menu_head = Motor_menu;
+	
+	Menu_pointer = main_menu;
   gpio_init();	
   ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
@@ -297,7 +329,7 @@ if ( liberror )
 		looptime = ((uint32_t)( time - lastlooptime));
 		if ( looptime <= 0 ) looptime = 1;
 		looptime = looptime * 1e-6f;
-		if ( looptime > 0.02f ) // max loop 20ms
+		if ( looptime > 0.03f ) // max loop 20ms
 		{
 			failloop( 6);	
 			//endless loop			
@@ -443,6 +475,12 @@ if ( LED_NUMBER > 0)
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
+	//				DSHOT_CMD_ROTATE_NORMAL = 20
+//       DSHOT_CMD_ROTATE_REVERSE = 21
+						motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
+						motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
+					  motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
+						motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -559,6 +597,176 @@ checkrx();
 
 /*osd data transmit*/
 while ( (gettime() - time) < LOOPTIME );	
+
+/*******************************************************************************************************************/
+if(((float)-0.7 > rx[Yaw]) && ((float)0.3 < rx[Throttle]) && ((float)0.7 > rx[Throttle]) && ((float)0.7 < rx[Pitch]) && ((float)-0.1 < rx[Roll]) && ((float)0.1 > rx[Roll]) && (float)0 == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
+{
+		int a;
+		menu_flag = 1;
+		for(a=0;a<3;a++)
+		{
+				PID_menu->PID_value = (pidkp[a]*100.0f);
+				PID_menu = PID_menu->next;
+		}
+		
+		for(a=0;a<3;a++)
+		{
+				PID_menu->PID_value = (pidki[a]*100.0f);
+				PID_menu = PID_menu->next;
+		}
+		
+		for(a=0;a<3;a++)
+		{
+				PID_menu->PID_value = (pidkd[a]*100.0f);
+				PID_menu = PID_menu->next;
+		}
+		PID_menu = PID_menu_head;
+}
+
+if(1 == menu_flag)
+{
+		if((rx[Pitch] < (float)-0.6) && (down_flag == 1))
+		{
+			  Menu_pointer = Menu_pointer->next;
+				down_flag = 0;
+		}		
+		
+		if((rx[Pitch] > (float)0.6) && (up_flag == 1))
+		{
+			  Menu_pointer = Menu_pointer->prior;
+				up_flag = 0;
+		}
+		
+		if((rx[Pitch]) < (float)0.6 && (rx[Pitch] > (float)-0.6))
+		{
+				up_flag = 1;
+				down_flag = 1;
+		}
+		
+		/******************************************************************/
+		if((rx[Roll] > (float)0.6) && right_flag == 1)     //右打杆操作
+		{
+				if(0 == Menu_pointer->menu_class && 0 == Menu_pointer->menu_index)    //PID parameter tuning
+				{
+						Menu_pointer = PID_menu_head;
+				}		
+				else if(1 == Menu_pointer->menu_class)    //PID值 操作
+				{
+						Menu_pointer->PID_value ++;
+						if(Menu_pointer->PID_value >= 100.0f)
+						{
+								Menu_pointer->PID_value = 100.0f;
+						}
+				}
+				
+				if(1 == Menu_pointer->menu_class && 9 == Menu_pointer->menu_index) //返回上一级菜单
+				{
+						int a;
+						Menu_pointer = main_menu_head;
+					  //退出PID调试  更新PID值
+						for(a=0;a<3;a++)
+						{
+								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidki[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						PID_menu = PID_menu_head;
+				}
+				//进入电机转向调试
+				if(0 == Menu_pointer->menu_class  && 1 == Menu_pointer->menu_index)    //Motor direction
+				{
+					  Menu_pointer = Motor_menu_head;
+				}
+				else if(2 == Menu_pointer->menu_class)
+				{
+						Menu_pointer->dir ++;
+						if(Menu_pointer->dir > 1)
+						{
+								Menu_pointer->dir = 1;
+						}
+				}
+				
+				if(2 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index)     //退出电机转向菜单
+				{
+						int i;
+						Menu_pointer = main_menu_head;
+						for(i=0;i<4;i++)
+						{
+								save_motor_dir[i] = Motor_menu_head->dir;
+								Motor_menu_head = Motor_menu_head->next;
+						}
+				}
+				
+				if(2 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index) //返回上一级菜单
+				{
+						Menu_pointer = main_menu_head;
+				}
+				
+				if(0 == Menu_pointer->menu_class && 2 == Menu_pointer->menu_index)    //save parameter
+				{
+						 #ifdef FLASH_SAVE1
+								flash_hard_coded_pid_identifier();
+								flash_save( );
+                //flash_load( );
+                // reset flash numbers
+                extern int number_of_increments[3][3];
+                for( int i = 0 ; i < 3 ; i++)
+                    for( int j = 0 ; j < 3 ; j++)
+                        number_of_increments[i][j] = 0; 
+              #endif
+				}
+				
+				if(0 == Menu_pointer->menu_class && 3 == Menu_pointer->menu_index)   //menu exit
+				{
+						//init main menu index paramenter
+						menu_flag = 0;
+						down_flag = 0;
+						up_flag = 0;
+						menu_flag = 0;
+				}
+				right_flag = 0;
+		}
+		
+		if((rx[Roll] < (float)-0.6) && left_flag == 1)     //左打杆操作
+		{
+				if(1 == Menu_pointer->menu_class)       //PID值 操作
+				{
+						Menu_pointer->PID_value --;
+						if(Menu_pointer->PID_value == 0xFF)
+						{
+								Menu_pointer->PID_value = 0;
+						}
+				}
+				
+				if(2 == Menu_pointer->menu_class)
+				{
+						Menu_pointer->dir --;
+						if(Menu_pointer->dir > 0xF0)
+						{
+								Menu_pointer->dir = 0;
+						}
+				}
+				left_flag = 0;
+		}
+		
+		if((rx[Roll]) < (float)0.6 && (rx[Roll] > (float)-0.6))
+		{
+				right_flag = 1;
+			  left_flag = 1;
+		}
+}
+
 static uint8 i,j;
     switch(i)
     {
@@ -618,6 +826,7 @@ if(i>6)
 void failloop( int val)
 {
 	for ( int i = 0 ; i <= 3 ; i++)
+
 	{
 		pwm_set( i ,0 );
 	}	

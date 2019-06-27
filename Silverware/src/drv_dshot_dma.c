@@ -106,6 +106,7 @@ extern int failsafe;
 extern int onground;
 
 int pwmdir = 0;
+unsigned int save_motor_dir[4];              //flash save motor dir
 static unsigned long pwm_failsafe_time = 1;
 
 volatile int dshot_dma_phase = 0;									// 1:portA  2:portB	 0:idle
@@ -553,6 +554,14 @@ void DMA1_Channel4_5_IRQHandler(void)
 	rgb_dma_phase = 0;
 #endif
 
+}
+
+//value :DSHOT_CMD_ROTATE_NORMAL = 20
+//       DSHOT_CMD_ROTATE_REVERSE = 21
+void motor_dir(uint8_t number, uint16_t value)
+{
+		make_packet(number,value,true);
+		dshot_dma_start();
 }
 #endif
 

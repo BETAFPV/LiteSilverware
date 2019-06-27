@@ -613,7 +613,7 @@ static int decodepacket( void)
 			rx[1] = packettodata( &rxdata[6] );
 			rx[2] = packettodata( &rxdata[10] );
 		// throttle		
-			rx[3] = ( (rxdata[8]&0x0003) * 256 + rxdata[9] ) * 0.000976562;
+			rx[3] = ( (rxdata[8]&0x0003) * 256 + rxdata[9] ) * 0.000976562;     //throttle
 		
 
 		if  (rxdata[1] != 0xfa) 
@@ -630,6 +630,7 @@ static int decodepacket( void)
 					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
 												
 					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;						
+		
 							
 			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
 
@@ -716,7 +717,7 @@ void checkrx(void)
 	  {
 		  if (rxmode == RXMODE_BIND)
 		    {		// rx startup , bind mode
-			    xn_readpayload(rxdata, 15);
+			    xn_readpayload(rxdata, 15);     //Read 15 bytes
 
 			    if (rxdata[0] == 164)
 			      {	// bind packet
