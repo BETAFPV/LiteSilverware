@@ -98,7 +98,12 @@ Menu_List PID_menu,PID_menu_head;
 Menu_List Motor_menu,Motor_menu_head;
 Menu_List Menu_pointer;
 
-unsigned char OSD_DATA[20] = {0x01,0x02,0x03,0x04};
+unsigned char OSD_DATA[4
+] = {0x01,0x02,0x03,0x04};
+
+unsigned char show_pidkp[3];
+unsigned char show_pidki[3];
+unsigned char show_pidkd[3];
 
 // hal
 void clk_init(void);
@@ -249,6 +254,8 @@ aux[CH_AUX1] = 1;
 
 // load flash saved variables
     flash_load( );
+	
+
 #endif
 
 
@@ -321,7 +328,22 @@ if ( liberror )
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 	setup_4way_external_interrupt();
 #endif  
-
+//将要显示的PID值扩大10倍
+{
+		int i=0;
+		for(i=0;i<3;i++)
+		{
+				show_pidkp[i] = pidkp[i]*100;
+		}
+		for(i=0;i<3;i++)
+		{
+				show_pidki[i] = pidki[i]*100;
+		}
+		for(i=0;i<3;i++)
+		{
+				show_pidkd[i] = pidkd[i]*100;
+		}
+}	
 	while(1)
 	{ 
 		// gettime() needs to be called at least once per second 
@@ -652,17 +674,39 @@ if(1 == menu_flag)
 				}		
 				else if(1 == Menu_pointer->menu_class)    //PID值 操作
 				{
+						int a;
 						Menu_pointer->PID_value ++;
 						if(Menu_pointer->PID_value >= 100.0f)
 						{
 								Menu_pointer->PID_value = 100.0f;
 						}
+						PID_menu = PID_menu_head;
+					  //更新PID值
+						for(a=0;a<3;a++)
+						{
+								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidki[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						PID_menu = PID_menu_head;
 				}
 				
 				if(1 == Menu_pointer->menu_class && 9 == Menu_pointer->menu_index) //返回上一级菜单
 				{
 						int a;
 						Menu_pointer = main_menu_head;
+					  PID_menu = PID_menu_head;
 					  //退出PID调试  更新PID值
 						for(a=0;a<3;a++)
 						{
@@ -742,11 +786,32 @@ if(1 == menu_flag)
 		{
 				if(1 == Menu_pointer->menu_class)       //PID值 操作
 				{
+						int a;
 						Menu_pointer->PID_value --;
 						if(Menu_pointer->PID_value == 0xFF)
 						{
 								Menu_pointer->PID_value = 0;
 						}
+						PID_menu = PID_menu_head;
+					  //退出PID调试  更新PID值
+						for(a=0;a<3;a++)
+						{
+								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidki[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						
+						for(a=0;a<3;a++)
+						{
+								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
+								PID_menu = PID_menu->next;
+						}
+						PID_menu = PID_menu_head;
 				}
 				
 				if(2 == Menu_pointer->menu_class)
@@ -781,20 +846,20 @@ static uint8 i,j;
 		case 4  :
 				for(j=0;j<3;j++){
 					delay(100);
-					OSD_Data_Send(5+j,100*pidkp[j]);//pid
+					OSD_Data_Send(5+j,show_pidkp[j]);//pid
 					delay(100);
 					}
         break; /* 可选的 */
 		case 5  :for(j=0;j<3;j++){
 					delay(100);
-					OSD_Data_Send(8+j,100*pidki[j]);//pid
+					OSD_Data_Send(8+j,show_pidki[j]);//pid
 					delay(100);
 					}
         break; /* 可选的 */
 
 		case 6  :for(j=0;j<3;j++){
 					delay(100);
-					OSD_Data_Send(11+j,100*pidkd[j]);//pid
+					OSD_Data_Send(11+j,show_pidkd[j]);//pid
 					delay(100);
 					}
         break; /* 可选的 */
