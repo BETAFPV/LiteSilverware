@@ -1,5 +1,7 @@
 #include "drv_osd.h"
 #include "drv_time.h"
+#include "math.h"
+extern char motor_sta;
 /*********************************************
 * Function name: osd_spi_cson
 * Effect: OSD cs set low
@@ -8,7 +10,7 @@
 **********************************************/
 void osd_spi_cson( )
 {
-	OSD_SPI_CSN_PORT->BRR = OSD_SPI_CSN_PIN;
+	OSD_SPI_CSN_PORT->BRR = OSD_SPI_CSN_PIN;    //jiang yinjiao la di 
 }
 
 /*********************************************
@@ -19,7 +21,7 @@ void osd_spi_cson( )
 **********************************************/
 void osd_spi_csoff( )
 {
-	OSD_SPI_CSN_PORT->BSRR = OSD_SPI_CSN_PIN;
+	OSD_SPI_CSN_PORT->BSRR = OSD_SPI_CSN_PIN;    // jiang yinjiao la gao 
 }
 
 /*********************************************
@@ -58,7 +60,7 @@ void OSD_Tx_Data(uint8_t *OSD_Data ,uint8_t length)
 	{
 		spi_sendbyte(OSD_Data[index]);
 		index++;
-	}	
+	}
 	osd_spi_csoff();
 }
 
@@ -71,7 +73,7 @@ void OSD_Tx_Data(uint8_t *OSD_Data ,uint8_t length)
 uint8_t OSD_checksum(uint8_t OSD_DATA[])
 {
     unsigned char sum = OSD_DATA[0];
-    for (uint8_t i = 1; i < 3; i++)
+    for (uint8_t i = 1; i < pack_len-1; i++)
     sum += OSD_DATA[i];
     return sum;
 }
@@ -84,12 +86,43 @@ uint8_t OSD_checksum(uint8_t OSD_DATA[])
 **********************************************/
 void OSD_Data_Send(uint8_t Package_Type,uint16_t data)
 {
-    uint8_t osd_data[4];
+    uint8_t osd_data[15];
     osd_data[0] = Package_Type;           // Package Type
     osd_data[1] = data >> 8;
     osd_data[2] = data & 0xFF;
-    osd_data[3] = OSD_checksum(osd_data);
-    OSD_Tx_Data(osd_data,4);
+    osd_data[14] = OSD_checksum(osd_data);
+    OSD_Tx_Data(osd_data,14);
 }
 
 
+
+void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],float kd[],unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index)
+{
+			data[0] = 0x88;
+			data[1] = VOL >> 8;
+	    data[2] = VOL & 0xFF;
+			data[3] = round(kp[0]*100);
+			data[4] = round(kp[1]*100);
+			data[5] = round(kp[2]*100);
+			data[6] = round(ki[0]*100);
+			data[7] = round(ki[1]*100);
+			data[8] = round(ki[2]*100);
+			data[9] = round(kd[0]*100);
+			data[10] = round(kd[1]*100);
+			data[11] = round(kd[2]*100);
+			if(1 == menu_flag)
+			{
+					data[12] |= 0x10;
+			}
+			else
+			{
+					data[12] &= ~0x10;
+			}
+			data[12] &= 0xF0;
+			data[12] |= motor_sta;
+			
+			data[13] = menu_class;
+			data[14] = menu_index;
+			data[15] = 0;
+	    data[16] = OSD_checksum(data);
+}

@@ -29,7 +29,7 @@
 
 // Enable this for 3D. The 'Motor Direction' setting in BLHeliSuite must
 // be set to 'Bidirectional' (or 'Bidirectional Rev.') accordingly:
-//#define BIDIRECTIONAL
+#define BIDIRECTIONAL
 
 // Select Dshot150 or Dshot300. Dshot150 consumes quite some main loop time.
 // DShot300 may require removing the input filter cap on the ESC:
@@ -106,7 +106,6 @@ extern int failsafe;
 extern int onground;
 
 int pwmdir = 0;
-unsigned int save_motor_dir[4];              //flash save motor dir
 static unsigned long pwm_failsafe_time = 1;
 
 volatile int dshot_dma_phase = 0;									// 1:portA  2:portB	 0:idle
@@ -120,7 +119,8 @@ volatile uint16_t dshot_portB[1] = { 0 };					// sum of all motor pins at portB
 
 typedef enum { false, true } bool;
 void make_packet( uint8_t number, uint16_t value, bool telemetry );
-
+void dshot_dma_start(void);
+void motorbeep(void);
 #ifndef FORWARD
 #define FORWARD 0
 #define REVERSE 1
@@ -265,7 +265,8 @@ void pwm_init()
 
 	// set failsafetime so signal is off at start
 	pwm_failsafe_time = gettime() - 100000;
-	pwmdir = FORWARD;
+	pwmdir = REVERSE;    //1
+	
 }
 
 void dshot_dma_portA()
@@ -322,7 +323,7 @@ void dshot_dma_portB()
 	TIM_Cmd( TIM1, ENABLE );
 }
 
-// make dshot packet
+// make dshot packet  
 void make_packet( uint8_t number, uint16_t value, bool telemetry )
 {
 	uint16_t packet = ( value << 1 ) | ( telemetry ? 1 : 0 ); // Here goes telemetry bit
@@ -368,22 +369,31 @@ void dshot_dma_start()
 #endif
 
 		// generate dshot dma packet
-	for ( uint8_t i = 0; i < 16; i++ ) {
+	for ( uint8_t i = 0; i < 16; i++ ) 
+	{
 		motor_data_portA[ i ] = 0;
 		motor_data_portB[ i ] = 0;
 
 	  if ( !( dshot_packet[0] & 0x8000 ) ) {
-			if( DSHOT_PORT_0 == GPIOA )	motor_data_portA[ i ] |= DSHOT_PIN_0;
-			else 												motor_data_portB[ i ] |= DSHOT_PIN_0; }
+			if( DSHOT_PORT_0 == GPIOA )	
+					motor_data_portA[ i ] |= DSHOT_PIN_0;
+			else 												
+					motor_data_portB[ i ] |= DSHOT_PIN_0; }
 	  if ( !( dshot_packet[1] & 0x8000 ) ) {
-			if( DSHOT_PORT_1 == GPIOA )	motor_data_portA[ i ] |= DSHOT_PIN_1;
-			else 												motor_data_portB[ i ] |= DSHOT_PIN_1; }
+			if( DSHOT_PORT_1 == GPIOA )	
+					motor_data_portA[ i ] |= DSHOT_PIN_1;
+			else 												
+					motor_data_portB[ i ] |= DSHOT_PIN_1; }
 	  if ( !( dshot_packet[2] & 0x8000 ) ) {
-			if( DSHOT_PORT_2 == GPIOA )	motor_data_portA[ i ] |= DSHOT_PIN_2;
-			else 												motor_data_portB[ i ] |= DSHOT_PIN_2; }
+			if( DSHOT_PORT_2 == GPIOA )	
+					motor_data_portA[ i ] |= DSHOT_PIN_2;
+			else 												
+					motor_data_portB[ i ] |= DSHOT_PIN_2; }
 	  if ( !( dshot_packet[3] & 0x8000 ) ) {
-			if( DSHOT_PORT_3 == GPIOA )	motor_data_portA[ i ] |= DSHOT_PIN_3;
-			else 												motor_data_portB[ i ] |= DSHOT_PIN_3; }
+			if( DSHOT_PORT_3 == GPIOA )	
+					motor_data_portA[ i ] |= DSHOT_PIN_3;
+			else 												
+					motor_data_portB[ i ] |= DSHOT_PIN_3; }
 
 	  dshot_packet[0] <<= 1;
 	  dshot_packet[1] <<= 1;
@@ -417,7 +427,8 @@ void pwm_set( uint8_t number, float pwm )
     
 	uint16_t value = 0;
 
-#ifdef BIDIRECTIONAL
+
+#ifdef BIDIRECTIONAL             
 
 	if ( pwmdir == FORWARD ) {
 		// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET .. 1047
@@ -462,7 +473,6 @@ void pwm_set( uint8_t number, float pwm )
 	}
 
 	make_packet( number, value, false );
-
 	if ( number == 3 ) {
 			dshot_dma_start();
 	}
@@ -510,6 +520,7 @@ void motorbeep()
 	} else {
 		motor_beep_time = 0;
 	}
+	
 }
 
 
@@ -556,9 +567,7 @@ void DMA1_Channel4_5_IRQHandler(void)
 
 }
 
-//value :DSHOT_CMD_ROTATE_NORMAL = 20
-//       DSHOT_CMD_ROTATE_REVERSE = 21
-void motor_dir(uint8_t number, uint16_t value)
+void motor_dir(unsigned char  number, unsigned char value)
 {
 		make_packet(number,value,true);
 		dshot_dma_start();

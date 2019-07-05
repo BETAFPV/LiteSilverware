@@ -54,8 +54,7 @@ THE SOFTWARE.
 #include "binary.h"
 #include "drv_osd.h"
 #include "menu.h"
-#include "drv_dshot.h" 
-#include "drv_fmc.h"
+#include "drv_dshot.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -84,35 +83,27 @@ debug_type debug;
 #define Yaw      2   
 #define Throttle 3   
 #define menu_max_item 3
- 
- 
+
 char down_flag = 0;
 char up_flag = 0;
 char right_flag = 0;
 char left_flag = 0;
 char menu_flag = 0;
 char PID_parameter_tuning_flag = 0;
-
+char motor_sta = 0x00;
 Menu_List main_menu,main_menu_head;
 Menu_List PID_menu,PID_menu_head;
 Menu_List Motor_menu,Motor_menu_head;
 Menu_List Menu_pointer;
 
-unsigned char OSD_DATA[4
-] = {0x01,0x02,0x03,0x04};
-
-unsigned char show_pidkp[3];
-unsigned char show_pidki[3];
-unsigned char show_pidkd[3];
-
+unsigned char OSD_DATA[17] = {0x00};
+unsigned char save_motor_dir[4] = {1,0,0,1};              //flash save motor dir
 // hal
 void clk_init(void);
 void imu_init(void);
 extern void flash_load( void);
 extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
-extern void motor_dir(uint8_t number, uint16_t value);
-extern int save_motor_dir[4];
 
 // looptime in seconds
 float looptime;
@@ -145,6 +136,7 @@ extern float pidkp[PIDNUMBER];
 extern float pidki[PIDNUMBER];	
 extern float pidkd[PIDNUMBER];
 
+float *pid_p_i_d[] = {pidkp,pidki,pidkd};
 
 // bind / normal rx mode
 extern int rxmode;
@@ -253,9 +245,7 @@ aux[CH_AUX1] = 1;
     flash_hard_coded_pid_identifier();
 
 // load flash saved variables
-    flash_load( );
-	
-
+    flash_load();               //加载PID
 #endif
 
 
@@ -278,6 +268,7 @@ while ( count < 64 )
 #endif
  vbattfilt = vbattfilt/64;	
 // startvref = startvref/64;
+
 
 	
 #ifdef STOP_LOWBATTERY
@@ -328,22 +319,7 @@ if ( liberror )
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 	setup_4way_external_interrupt();
 #endif  
-//将要显示的PID值扩大10倍
-{
-		int i=0;
-		for(i=0;i<3;i++)
-		{
-				show_pidkp[i] = pidkp[i]*100;
-		}
-		for(i=0;i<3;i++)
-		{
-				show_pidki[i] = pidki[i]*100;
-		}
-		for(i=0;i<3;i++)
-		{
-				show_pidkd[i] = pidkd[i]*100;
-		}
-}	
+
 	while(1)
 	{ 
 		// gettime() needs to be called at least once per second 
@@ -353,7 +329,7 @@ if ( liberror )
 		looptime = looptime * 1e-6f;
 		if ( looptime > 0.03f ) // max loop 20ms
 		{
-			failloop( 6);	
+			failloop(6);	
 			//endless loop			
 		}
 	
@@ -491,18 +467,21 @@ if( thrfilt > 0.1f )
 if ( LED_NUMBER > 0)
 {
 // led flash logic	
+	
     if ( lowbatt )
         ledflash ( 500000 , 8);
     else
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
-	//				DSHOT_CMD_ROTATE_NORMAL = 20
-//       DSHOT_CMD_ROTATE_REVERSE = 21
-						motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
-						motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
-					  motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
-						motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
+						motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+						motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+					  motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+						motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+//							motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
+//							motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
+//							motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
+//							motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -615,6 +594,7 @@ rgb_dma_start();
 #endif
 
 // receiver function
+
 checkrx();
 
 /*osd data transmit*/
@@ -627,22 +607,37 @@ if(((float)-0.7 > rx[Yaw]) && ((float)0.3 < rx[Throttle]) && ((float)0.7 > rx[Th
 		menu_flag = 1;
 		for(a=0;a<3;a++)
 		{
-				PID_menu->PID_value = (pidkp[a]*100.0f);
+				PID_menu->PID_value = pidkp[a];
 				PID_menu = PID_menu->next;
 		}
 		
 		for(a=0;a<3;a++)
 		{
-				PID_menu->PID_value = (pidki[a]*100.0f);
+				PID_menu->PID_value = pidki[a];
 				PID_menu = PID_menu->next;
 		}
 		
 		for(a=0;a<3;a++)
 		{
-				PID_menu->PID_value = (pidkd[a]*100.0f);
+				PID_menu->PID_value = pidkd[a];
 				PID_menu = PID_menu->next;
 		}
-		PID_menu = PID_menu_head;
+    PID_menu = PID_menu_head;
+		int i;
+		for(i=0;i<4;i++)
+		{
+				if( save_motor_dir[i] == 0x00)
+				{
+						motor_sta &= ~(0x01<<i);
+				}
+				else if(save_motor_dir[i] == 0x01)
+				{
+						motor_sta |= (0x01<<i);
+				}
+				Motor_menu->dir = save_motor_dir[i];
+				Motor_menu = Motor_menu->next;
+		}
+		Motor_menu = Motor_menu_head;	
 }
 
 if(1 == menu_flag)
@@ -674,70 +669,58 @@ if(1 == menu_flag)
 				}		
 				else if(1 == Menu_pointer->menu_class)    //PID值 操作
 				{
-						int a;
-						Menu_pointer->PID_value ++;
-						if(Menu_pointer->PID_value >= 100.0f)
-						{
-								Menu_pointer->PID_value = 100.0f;
-						}
+					  int a;
+						Menu_pointer->PID_value += 0.01f;
 						PID_menu = PID_menu_head;
-					  //更新PID值
+//					  //更新PID值
 						for(a=0;a<3;a++)
 						{
-								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
+								pidkp[a] = (PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidki[a] = ((float)PID_menu->PID_value/100.0f);
+								pidki[a] = (PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
+								pidkd[a] = (PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
-						PID_menu = PID_menu_head;
 				}
 				
 				if(1 == Menu_pointer->menu_class && 9 == Menu_pointer->menu_index) //返回上一级菜单
 				{
-						int a;
 						Menu_pointer = main_menu_head;
-					  PID_menu = PID_menu_head;
 					  //退出PID调试  更新PID值
-						for(a=0;a<3;a++)
-						{
-								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidki[a] = ((float)PID_menu->PID_value/100.0f);
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
-								PID_menu = PID_menu->next;
-						}
-						PID_menu = PID_menu_head;
 				}
-				//进入电机转向调试
 				if(0 == Menu_pointer->menu_class  && 1 == Menu_pointer->menu_index)    //Motor direction
 				{
 					  Menu_pointer = Motor_menu_head;
 				}
 				else if(2 == Menu_pointer->menu_class)
 				{
+					  int i;
 						Menu_pointer->dir ++;
 						if(Menu_pointer->dir > 1)
 						{
 								Menu_pointer->dir = 1;
+						}
+						Motor_menu = Motor_menu_head;
+						for(i=0;i<4;i++)
+						{
+								if(Motor_menu->dir == 0)
+								{
+										motor_sta &= ~(0x01<<i);
+								}
+								else
+								{
+										motor_sta |= (0x01<<i);
+								}
+								Motor_menu = Motor_menu->next;
 						}
 				}
 				
@@ -745,30 +728,32 @@ if(1 == menu_flag)
 				{
 						int i;
 						Menu_pointer = main_menu_head;
+					  Motor_menu = Motor_menu_head;
 						for(i=0;i<4;i++)
 						{
-								save_motor_dir[i] = Motor_menu_head->dir;
-								Motor_menu_head = Motor_menu_head->next;
+								save_motor_dir[i] = Motor_menu->dir;
+								Motor_menu = Motor_menu->next;
 						}
 				}
 				
-				if(2 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index) //返回上一级菜单
-				{
-						Menu_pointer = main_menu_head;
-				}
 				
 				if(0 == Menu_pointer->menu_class && 2 == Menu_pointer->menu_index)    //save parameter
 				{
 						 #ifdef FLASH_SAVE1
+								//extern void flash_save( void);
+                //extern void flash_load( void);
 								flash_hard_coded_pid_identifier();
 								flash_save( );
-                //flash_load( );
+                flash_load( );
                 // reset flash numbers
                 extern int number_of_increments[3][3];
+					
                 for( int i = 0 ; i < 3 ; i++)
                     for( int j = 0 ; j < 3 ; j++)
                         number_of_increments[i][j] = 0; 
               #endif
+					   delay(1000);
+					   NVIC_SystemReset();
 				}
 				
 				if(0 == Menu_pointer->menu_class && 3 == Menu_pointer->menu_index)   //menu exit
@@ -778,48 +763,62 @@ if(1 == menu_flag)
 						down_flag = 0;
 						up_flag = 0;
 						menu_flag = 0;
+						Menu_pointer = main_menu_head;
 				}
 				right_flag = 0;
 		}
 		
 		if((rx[Roll] < (float)-0.6) && left_flag == 1)     //左打杆操作
 		{
+				int a;
 				if(1 == Menu_pointer->menu_class)       //PID值 操作
 				{
-						int a;
-						Menu_pointer->PID_value --;
-						if(Menu_pointer->PID_value == 0xFF)
+						Menu_pointer->PID_value -= 0.01f;
+						if(Menu_pointer->PID_value < 0.0f)
 						{
-								Menu_pointer->PID_value = 0;
+								Menu_pointer->PID_value = 0.0f;
 						}
-						PID_menu = PID_menu_head;
-					  //退出PID调试  更新PID值
+								PID_menu = PID_menu_head;
+//					  //更新PID值
 						for(a=0;a<3;a++)
 						{
-								pidkp[a] = ((float)PID_menu->PID_value/100.0f);
+								pidkp[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidki[a] = ((float)PID_menu->PID_value/100.0f);
+								pidki[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidkd[a] = ((float)PID_menu->PID_value/100.0f);
+								pidkd[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
-						PID_menu = PID_menu_head;
 				}
 				
 				if(2 == Menu_pointer->menu_class)
 				{
+					 // int z;
 						Menu_pointer->dir --;
-						if(Menu_pointer->dir > 0xF0)
+						if((Menu_pointer->dir - 0xf) > 0)
 						{
 								Menu_pointer->dir = 0;
+						}
+						Motor_menu = Motor_menu_head;
+						for(z=0;z<4;z++)
+						{
+								if(Motor_menu->dir == 0x00)
+								{
+										motor_sta &= (~(0x01<<z));
+								}
+								else if(Motor_menu->dir == 0x01)
+								{
+										motor_sta |= (0x01<<z);
+								}
+								Motor_menu = Motor_menu->next;
 						}
 				}
 				left_flag = 0;
@@ -832,48 +831,8 @@ if(1 == menu_flag)
 		}
 }
 
-static uint8 i,j;
-    switch(i)
-    {
-        case 0  :OSD_Data_Send(1,(int)(vbattfilt*100));//transmit vbattfil 
-        break; /* 可选的 */
-        case 1  :OSD_Data_Send(2,aux[0]);  //transmit ARMING state	
-        break; /* 可选的 */
-        case 2  :OSD_Data_Send(3,aux[7]);//hori mode
-        break; /* 可选的 */
-		case 3  :OSD_Data_Send(4,aux[8]);//race mode
-        break; /* 可选的 */
-		case 4  :
-				for(j=0;j<3;j++){
-					delay(100);
-					OSD_Data_Send(5+j,show_pidkp[j]);//pid
-					delay(100);
-					}
-        break; /* 可选的 */
-		case 5  :for(j=0;j<3;j++){
-					delay(100);
-					OSD_Data_Send(8+j,show_pidki[j]);//pid
-					delay(100);
-					}
-        break; /* 可选的 */
-
-		case 6  :for(j=0;j<3;j++){
-					delay(100);
-					OSD_Data_Send(11+j,show_pidkd[j]);//pid
-					delay(100);
-					}
-        break; /* 可选的 */
-
-
-        default : break;
-    }
-i++;
-if(i>6)
-{
-	i=0;
-}
-
-
+make_vol_pack(OSD_DATA,(int)(vbattfilt*100),pidkp,pidki,pidkd,menu_flag,Menu_pointer->menu_class,Menu_pointer->menu_index);
+OSD_Tx_Data(OSD_DATA,pack_len);
 	}// end loop
 	
 

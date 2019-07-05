@@ -2,21 +2,22 @@
 #include "project.h"
 #include "drv_fmc.h"
 #include "config.h"
-
+int moto_temp = 0;
 extern int fmc_erase( void );
 extern void fmc_unlock(void);
 extern void fmc_lock(void);
-
+extern unsigned char save_motor_dir[4];
 extern float accelcal[];
 extern float * pids_array[3];
 
 extern float hardcoded_pid_identifier;
-extern int save_motor_dir[4];
+
 
 #define FMC_HEADER 0x12AA0001
 
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
+
 
 float flash_get_hard_coded_pid_identifier( void) {
 	float result = 0;
@@ -40,14 +41,17 @@ void flash_hard_coded_pid_identifier( void)
 
 void flash_save( void) {
 
-    fmc_unlock();
+  fmc_unlock();
 	fmc_erase();
 	
 	unsigned long addresscount = 0;
 
-    writeword(addresscount++, FMC_HEADER);
+  writeword(addresscount++, FMC_HEADER);         
    
 	fmc_write_float(addresscount++, initial_pid_identifier );
+	
+	
+	
 	
 	for (int i=0;  i<3 ; i++) {
 		for (int j=0; j<3 ; j++) {
@@ -59,7 +63,8 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
-
+	
+		writeword(20,save_motor_dir[0] | (save_motor_dir[1]<<8) | (save_motor_dir[2]<<16) | (save_motor_dir[3]<<24));
    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
@@ -119,13 +124,9 @@ if (flash_feature_3)
 }else{
 	fmc_write_float (55,0);	
 }
-
-writeword(57,save_motor_dir[0]);
-writeword(58,save_motor_dir[1]);
-writeword(59,save_motor_dir[2]);
-writeword(60,save_motor_dir[3]);
-
 #endif
+
+
 
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 extern int rx_bind_enable;
@@ -150,25 +151,34 @@ void flash_load( void) {
     if (FMC_HEADER == fmc_read(addresscount++)&& FMC_HEADER == fmc_read(255))
     {
 
-     saved_pid_identifier = fmc_read_float(addresscount++);                  
+     saved_pid_identifier = fmc_read_float(addresscount++);
 // load pids from flash if pid.c values are still the same       
-//     if (  (int)saved_pid_identifier == (int)initial_pid_identifier )
-//     {
+  //   if (saved_pid_identifier == initial_pid_identifier )
+    // {
          for (int i=0;  i<3 ; i++) {
             for (int j=0; j<3 ; j++) {
                 pids_array[i][j] = fmc_read_float(addresscount++);
             }
         }
-//     }
-//     else{
-//         addresscount+=9; 
-//     }    
+  //   }
+  //   else
+	//	 {
+   //     addresscount+=9; 
+   //  }    
 
     accelcal[0] = fmc_read_float(addresscount++ );
     accelcal[1] = fmc_read_float(addresscount++ );
     accelcal[2] = fmc_read_float(addresscount++ );  
-
-       
+				
+		moto_temp = fmc_read(20);
+//		if(moto_temp != 0)
+//		{
+			for ( int i = 0 ; i < 4; i++)
+			{
+					save_motor_dir[i] =  moto_temp>>(i*8);        
+			}
+//		}
+	 
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
 extern char rxaddress[5];
@@ -223,12 +233,6 @@ extern int rx_bind_enable;
 	extern int flash_feature_3;
 	flash_feature_3 = fmc_read_float(55);
 #endif
-
-save_motor_dir[0] = fmc_read(57);
-save_motor_dir[1] = fmc_read(58);
-save_motor_dir[2] = fmc_read(59);
-save_motor_dir[3] = fmc_read(60);
-
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 	extern int rx_bind_enable;
 	rx_bind_enable = fmc_read_float(56);

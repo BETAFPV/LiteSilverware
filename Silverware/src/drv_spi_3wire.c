@@ -110,9 +110,9 @@ void spi_sendbyte ( int data)
 		}
 	
 		SCKHIGH;
-		delay(3);
+		delay(5);
 		SCKLOW;
-		delay(3);
+		delay(5);
 	}
 }
 
