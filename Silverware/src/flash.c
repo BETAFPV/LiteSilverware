@@ -2,14 +2,16 @@
 #include "project.h"
 #include "drv_fmc.h"
 #include "config.h"
+#include "math.h"
 int moto_temp = 0;
+float re;
 extern int fmc_erase( void );
 extern void fmc_unlock(void);
 extern void fmc_lock(void);
 extern char save_motor_dir[4];
 extern float accelcal[];
 extern float * pids_array[3];
-
+float save_pid[3][3] = {0};
 extern float hardcoded_pid_identifier;
 
 
@@ -150,21 +152,51 @@ void flash_load( void) {
 // check if saved data is present
     if (FMC_HEADER == fmc_read(addresscount++)&& FMC_HEADER == fmc_read(255))
     {
-
      saved_pid_identifier = fmc_read_float(addresscount++);
+		 /************************2019 7 9************************/
+			for (int i=0;  i<3 ; i++) 
+			{
+					for(int j=0; j<3 ; j++)
+					{
+                save_pid[i][j] = fmc_read_float(addresscount++);
+          }
+      }
+			
+			for (int i=0;  i<3 ; i++)
+			{
+					for (int j=0; j<3 ; j++) 
+					{
+							re += save_pid[i][j] * (i+1) * (j+1) * 0.932f;
+					}
+	    }
+			if(fabs(re - saved_pid_identifier) < 1.0)
+			{
+					for (int i=0;  i<3 ; i++) 
+					{
+							for(int j=0; j<3 ; j++)
+							{
+									pids_array[i][j] = save_pid[i][j];
+							}
+					}
+			}
+			else
+			{
+					addresscount+=9; 
+			}
+		 /********************************************************/
 // load pids from flash if pid.c values are still the same       
-  //   if (saved_pid_identifier == initial_pid_identifier )
-    // {
-         for (int i=0;  i<3 ; i++) {
-            for (int j=0; j<3 ; j++) {
-                pids_array[i][j] = fmc_read_float(addresscount++);
-            }
-        }
-  //   }
-  //   else
-	//	 {
-   //     addresscount+=9; 
-   //  }    
+//     if (saved_pid_identifier == initial_pid_identifier )
+//     {
+//         for (int i=0;  i<3 ; i++) {
+//            for (int j=0; j<3 ; j++) {
+//                pids_array[i][j] = fmc_read_float(addresscount++);
+//            }
+//        }
+//     }
+//     else
+//		 {
+//        addresscount+=9; 
+//     }    
 
     accelcal[0] = fmc_read_float(addresscount++ );
     accelcal[1] = fmc_read_float(addresscount++ );

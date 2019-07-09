@@ -131,15 +131,15 @@ void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],f
 					data[12] &= ~0x20;
 			}
 			
-//			if(aux[7] == 1)
-//			{		data[12] &= ~0xC0;
-//					data[12] |= 0x40;
-//			}
-//			if(aux[8] == 1)
-//			{
-//					data[12] &= ~0xC0;
-//				  data[12] |= 0x80;
-//			}
+			if(aux[8] == 1)
+			{		data[12] &= ~0xC0;
+					data[12] |= 0x40;
+			}
+			else
+			{
+				data[12] &= ~0xC0;
+					data[12] |= 0x80;
+			}
 			data[12] &= 0xF0;
 			data[12] |= motor_sta;
 			data[13] = menu_class;

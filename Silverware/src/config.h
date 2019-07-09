@@ -34,9 +34,9 @@
 
 // *************EXPO from 0.00 to 1.00 , 0 = no exp
 // *************positive = less sensitive near center 
-#define ACRO_EXPO_ROLL 0.80
-#define ACRO_EXPO_PITCH 0.80
-#define ACRO_EXPO_YAW 0.60
+#define ACRO_EXPO_ROLL 1.00   //0.8
+#define ACRO_EXPO_PITCH 1.00   //0.8
+#define ACRO_EXPO_YAW 0.90     //0.6
 
 #define ANGLE_EXPO_ROLL 0.55
 #define ANGLE_EXPO_PITCH 0.0
@@ -77,9 +77,12 @@
 #define ARMING CHAN_5
 #define IDLE_UP CHAN_5
 #define IDLE_THR 0.05f                   //This designates an idle throttle of 5%
-#define LEVELMODE CHAN_5
-#define RACEMODE  CHAN_7
-#define HORIZON   CHAN_8
+//#define LEVELMODE CHAN_5 
+#define LEVELMODE 8
+//#define RACEMODE  CHAN_7
+#define RACEMODE 2
+//#define HORIZON   CHAN_8
+#define HORIZON 7
 #define PIDPROFILE CHAN_9                //For switching stickAccelerator & stickTransition profiles on pid.c page
 #define RATES CHAN_ON
 #define LEDS_ON CHAN_10

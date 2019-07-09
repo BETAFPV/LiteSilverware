@@ -246,10 +246,11 @@ aux[CH_AUX1] = 1;
     
  #ifdef FLASH_SAVE1
 // read pid identifier for values in file pid.c
-    flash_hard_coded_pid_identifier();
-
+    
+	//	flash_hard_coded_pid_identifier();
 // load flash saved variables
     flash_load( );               //加载PID
+	  
 #endif
 
 
@@ -477,10 +478,14 @@ if ( LED_NUMBER > 0)
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
-						motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-            motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-            motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-            motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+						int i;
+					  for(i=2;i>0;i--)
+						{
+								motor_dir(0,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+								motor_dir(1,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+								motor_dir(2,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+								motor_dir(3,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+						}
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -745,7 +750,7 @@ if(1 == menu_flag)
 						 #ifdef FLASH_SAVE1
 								//extern void flash_save( void);
                 //extern void flash_load( void);
-								flash_hard_coded_pid_identifier();
+								flash_hard_coded_pid_identifier();					
 								flash_save( );
                 flash_load( );
                 // reset flash numbers
