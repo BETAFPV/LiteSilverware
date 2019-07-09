@@ -1,3 +1,5 @@
+
+
 /*
 The MIT License (MIT)
 
@@ -122,6 +124,7 @@ float stickTransitionProfileB[3]  = { 0.3 , 0.3 , 0.0};           //keep values 
 
 //8 75»ú¼Ü
 //                         ROLL   PITCH  YAW
+
 
 float pidkp[PIDNUMBER] = { 0.1  , 0.1  , 0.4   };  
 float pidki[PIDNUMBER] = { 0.3  , 0.3  , 0.2   };	

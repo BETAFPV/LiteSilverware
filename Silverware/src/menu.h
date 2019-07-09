@@ -1,5 +1,5 @@
 typedef struct Menu{
-		int dir;
+		char dir;
 		float PID_value;
 		char menu_class;      //0:main_menu   1:PID_menu   2:motor_menu
 		char menu_index;

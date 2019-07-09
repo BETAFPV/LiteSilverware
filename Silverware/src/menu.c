@@ -34,3 +34,4 @@ Menu_List CreateDbCcLinkList(char length,char list_class)
 		}
 		return pHead;
 }
+

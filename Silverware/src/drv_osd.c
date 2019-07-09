@@ -1,7 +1,10 @@
 #include "drv_osd.h"
 #include "drv_time.h"
 #include "math.h"
+#include "defines.h"
+#include "config.h"
 extern char motor_sta;
+extern char aux[AUXNUMBER];
 /*********************************************
 * Function name: osd_spi_cson
 * Effect: OSD cs set low
@@ -84,21 +87,22 @@ uint8_t OSD_checksum(uint8_t OSD_DATA[])
 *         data : Package Type Corresponding data
 * Output: void
 **********************************************/
-void OSD_Data_Send(uint8_t Package_Type,uint16_t data)
-{
-    uint8_t osd_data[15];
-    osd_data[0] = Package_Type;           // Package Type
-    osd_data[1] = data >> 8;
-    osd_data[2] = data & 0xFF;
-    osd_data[14] = OSD_checksum(osd_data);
-    OSD_Tx_Data(osd_data,14);
-}
+//void OSD_Data_Send(uint8_t Package_Type,uint16_t data)
+//{
+//    uint8_t osd_data[15];
+//    osd_data[0] = Package_Type;           // Package Type
+//    osd_data[1] = data >> 8;
+//    osd_data[2] = data & 0xFF;
+//    osd_data[14] = OSD_checksum(osd_data);
+//    OSD_Tx_Data(osd_data,14);
+//}
 
 
 
 void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],float kd[],unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index)
 {
 			data[0] = 0x88;
+	
 			data[1] = VOL >> 8;
 	    data[2] = VOL & 0xFF;
 			data[3] = round(kp[0]*100);
@@ -118,11 +122,75 @@ void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],f
 			{
 					data[12] &= ~0x10;
 			}
+			if(aux[0] == 1)
+			{
+					data[12] |= 0x20;
+			}
+			else
+			{
+					data[12] &= ~0x20;
+			}
+			
+//			if(aux[7] == 1)
+//			{		data[12] &= ~0xC0;
+//					data[12] |= 0x40;
+//			}
+//			if(aux[8] == 1)
+//			{
+//					data[12] &= ~0xC0;
+//				  data[12] |= 0x80;
+//			}
 			data[12] &= 0xF0;
 			data[12] |= motor_sta;
-			
 			data[13] = menu_class;
 			data[14] = menu_index;
-			data[15] = 0;
-	    data[16] = OSD_checksum(data);
+			//data[15] = 0;
+	    data[15] = OSD_checksum(data);
 }
+
+//void make_vol_pack_pid(unsigned char data[],float kp[],float ki[],float kd[])
+//{
+//		data[0] = 0x77;
+//		data[1] = round(kp[0]*100);
+//		data[2] = round(kp[1]*100);
+//		data[3] = round(kp[2]*100);
+//		data[4] = round(ki[0]*100);
+//		data[5] = round(ki[1]*100);
+//		data[6] = round(ki[2]*100);
+//		data[7] = round(kd[0]*100);
+//		data[8] = round(kd[1]*100);
+//		data[9] = round(kd[2]*100);
+//		data[10] = OSD_checksum(data);
+//}
+
+//void make_vol_pack_com(unsigned char data[],unsigned int VOL,unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index)
+//{
+//		data[0] = 0x89;
+//		data[1] = VOL >> 8;
+//	  data[2] = VOL & 0xFF;
+//		if(1 == menu_flag)
+//			{
+//					data[3] |= 0x10;
+//			}
+//			else
+//			{
+//					data[3] &= ~0x10;
+//			}
+//			if(aux[0] == 1)
+//			{
+//					data[3] |= 0x20;
+//			}
+//			else
+//			{
+//					data[3] &= ~0x20;
+//			}
+//			data[3] &= 0xF0;
+//			data[3] |= motor_sta;
+//			data[4] = menu_class;
+//			data[5] = menu_index;
+//			data[6] = 0x00;
+//			data[7] = 0x00;
+//			data[8] = 0x00;
+//			data[9] = 0x00;
+//	    data[10] = OSD_checksum(data);
+//}

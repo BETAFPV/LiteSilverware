@@ -97,7 +97,7 @@ Menu_List Motor_menu,Motor_menu_head;
 Menu_List Menu_pointer;
 
 unsigned char OSD_DATA[17] = {0x00};
-unsigned char save_motor_dir[4] = {1,0,0,1};              //flash save motor dir
+unsigned int save_motor_dir[4] = {0,1,1,0};              //flash save motor dir
 // hal
 void clk_init(void);
 void imu_init(void);
@@ -167,6 +167,10 @@ static void setup_4way_external_interrupt(void);
 int random_seed = 0;
 
 int main(void)
+
+
+
+
 {
 	
 	delay(1000);
@@ -245,7 +249,7 @@ aux[CH_AUX1] = 1;
     flash_hard_coded_pid_identifier();
 
 // load flash saved variables
-    flash_load();               //加载PID
+    flash_load( );               //加载PID
 #endif
 
 
@@ -467,21 +471,16 @@ if( thrfilt > 0.1f )
 if ( LED_NUMBER > 0)
 {
 // led flash logic	
-	
     if ( lowbatt )
         ledflash ( 500000 , 8);
     else
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
-						motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-						motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-					  motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-						motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-//							motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
-//							motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
-//							motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
-//							motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
+						motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
+						motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
+					  motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
+						motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -671,23 +670,27 @@ if(1 == menu_flag)
 				{
 					  int a;
 						Menu_pointer->PID_value += 0.01f;
+//						if(Menu_pointer->PID_value >= 100)
+//						{
+//								Menu_pointer->PID_value = 100;
+//						}
 						PID_menu = PID_menu_head;
 //					  //更新PID值
 						for(a=0;a<3;a++)
 						{
-								pidkp[a] = (PID_menu->PID_value);
+								pidkp[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidki[a] = (PID_menu->PID_value);
+								pidki[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidkd[a] = (PID_menu->PID_value);
+								pidkd[a] = ((float)PID_menu->PID_value);
 								PID_menu = PID_menu->next;
 						}
 				}
@@ -774,9 +777,9 @@ if(1 == menu_flag)
 				if(1 == Menu_pointer->menu_class)       //PID值 操作
 				{
 						Menu_pointer->PID_value -= 0.01f;
-						if(Menu_pointer->PID_value < 0.0f)
+						if(Menu_pointer->PID_value <= 0)
 						{
-								Menu_pointer->PID_value = 0.0f;
+								Menu_pointer->PID_value = 0;
 						}
 								PID_menu = PID_menu_head;
 //					  //更新PID值

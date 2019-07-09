@@ -245,7 +245,7 @@
 //#define FLASH_SAVE2
 
 // *************enable inverted flight code ( brushless only )
-//#define INVERTED_ENABLE
+#define INVERTED_ENABLE
 #define FN_INVERTED CH_OFF //for brushless only
 
 // *************SPECIAL TEST MODE TO CHECK TRANSMITTER STICK THROWS

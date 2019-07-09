@@ -625,38 +625,47 @@ static int decodepacket( void)
 		}
 
 //
-					aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag
+					aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan
 						
-					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
+					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
 												
-					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;						
+					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan				
 		
 							
-			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
+			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
 
-			    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;
+			    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
 
-			    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;
+			    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
 
-			    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel
+			    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
 					
-							if (aux[LEVELMODE]){
-								if (aux[RACEMODE] && !aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+							if (aux[LEVELMODE])
+							{
+									if (aux[RACEMODE] && !aux[HORIZON])
+									{
+											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+									}
+									else if (aux[HORIZON])
+									{
+											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+									}
+									else
+									{
+											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+											if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+									}
+							}
+							else
+							{
+									if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else if (aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else{
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
-							}else{
-								if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-								if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+									if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
 							}		
 
 			for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
@@ -716,9 +725,9 @@ void checkrx(void)
 	if (packetreceived)
 	  {
 		  if (rxmode == RXMODE_BIND)
-		    {		// rx startup , bind mode
+		    {		// rx startup , bind mode	
 			    xn_readpayload(rxdata, 15);     //Read 15 bytes
-
+					
 			    if (rxdata[0] == 164)
 			      {	// bind packet
 				      rfchannel[0] = rxdata[6];
