@@ -575,7 +575,7 @@ extern float throttlehpf( float in );
 if (pwmdir == REVERSE)
 		{
 			// inverted flight
-		throttle = throttle * 2.0f;
+		throttle = throttle * 3.0f;
 		mix[MOTOR_FR] = throttle + pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle - pidoutput[ROLL] + pidoutput[PITCH] + pidoutput[YAW];		// FL	
 		mix[MOTOR_BR] = throttle + pidoutput[ROLL] - pidoutput[PITCH] + pidoutput[YAW];		// BR

@@ -97,7 +97,7 @@ Menu_List Motor_menu,Motor_menu_head;
 Menu_List Menu_pointer;
 
 unsigned char OSD_DATA[17] = {0x00};
-unsigned int save_motor_dir[4] = {0,1,1,0};              //flash save motor dir
+char save_motor_dir[4] = {0,1,1,0};              //flash save motor dir
 // hal
 void clk_init(void);
 void imu_init(void);
@@ -232,7 +232,7 @@ clk_init();
 	else 
 	{
         //gyro not found   
-		failloop(4);
+	//	failloop(4);
 	}
 	
 	adc_init();
@@ -477,10 +477,10 @@ if ( LED_NUMBER > 0)
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
-						motor_dir(0,DSHOT_CMD_ROTATE_REVERSE);
-						motor_dir(1,DSHOT_CMD_ROTATE_NORMAL);
-					  motor_dir(2,DSHOT_CMD_ROTATE_NORMAL);
-						motor_dir(3,DSHOT_CMD_ROTATE_REVERSE);
+						motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+            motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+            motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+            motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
             ledflash ( 100000, 12);
         }else
         {// non bind

@@ -6,7 +6,7 @@ int moto_temp = 0;
 extern int fmc_erase( void );
 extern void fmc_unlock(void);
 extern void fmc_lock(void);
-extern unsigned char save_motor_dir[4];
+extern char save_motor_dir[4];
 extern float accelcal[];
 extern float * pids_array[3];
 
@@ -171,13 +171,11 @@ void flash_load( void) {
     accelcal[2] = fmc_read_float(addresscount++ );  
 				
 		moto_temp = fmc_read(20);
-//		if(moto_temp != 0)
-//		{
-			for ( int i = 0 ; i < 4; i++)
-			{
-					save_motor_dir[i] =  moto_temp>>(i*8);        
-			}
-//		}
+		for ( int i = 0 ; i < 4; i++)
+		{
+				save_motor_dir[i] =  moto_temp>>(i*8);        
+		}
+
 	 
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
