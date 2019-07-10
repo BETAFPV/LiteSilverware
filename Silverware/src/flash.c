@@ -20,6 +20,9 @@ extern float hardcoded_pid_identifier;
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
 
+int save_motor_dir_identifier;
+int initial_motor_dir_identifier;
+char save_motor_dir_temp[4] = {0};
 
 float flash_get_hard_coded_pid_identifier( void) {
 	float result = 0;
@@ -67,6 +70,8 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[2]);
 	
 		writeword(20,save_motor_dir[0] | (save_motor_dir[1]<<8) | (save_motor_dir[2]<<16) | (save_motor_dir[3]<<24));
+	  //motor dir identifier 
+		writeword(21,(save_motor_dir[0]|save_motor_dir[1]|save_motor_dir[2]|save_motor_dir[3]));
    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
@@ -201,13 +206,24 @@ void flash_load( void) {
     accelcal[0] = fmc_read_float(addresscount++ );
     accelcal[1] = fmc_read_float(addresscount++ );
     accelcal[2] = fmc_read_float(addresscount++ );  
-				
+	  save_motor_dir_identifier =  fmc_read(21);
 		moto_temp = fmc_read(20);
 		for ( int i = 0 ; i < 4; i++)
+		
 		{
-				save_motor_dir[i] =  moto_temp>>(i*8);        
+				save_motor_dir_temp[i] =  moto_temp>>(i*8);        
 		}
-
+		if(save_motor_dir_temp[0]|save_motor_dir_temp[1]|save_motor_dir_temp[2]|save_motor_dir_temp[3] == save_motor_dir_identifier)
+		{
+				for(int i = 0 ; i < 4; i++)
+				{
+						save_motor_dir[i] = save_motor_dir_temp[i];
+				}
+		}
+		else
+		{
+				//*****
+		}
 	 
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];

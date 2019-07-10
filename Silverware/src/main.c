@@ -770,7 +770,6 @@ if(1 == menu_flag)
 						menu_flag = 0;
 						down_flag = 0;
 						up_flag = 0;
-						menu_flag = 0;
 						Menu_pointer = main_menu_head;
 				}
 				right_flag = 0;
