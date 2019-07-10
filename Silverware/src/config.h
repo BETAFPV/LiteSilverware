@@ -52,7 +52,9 @@
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
 //#define RX_NRF24_BAYANG_TELEMETRY
-#define RX_BAYANG_PROTOCOL_BLE_BEACON
+
+//#define RX_BAYANG_PROTOCOL_BLE_BEACON
+#define RX_SBUS_DSMX_BAYANG_SWITCH
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 
 // *************Transmitter Type Selection
@@ -459,6 +461,8 @@
 #define MOTOR3_PIN_PA7 // motor 3 front-right
 #endif
 
+
+
 #ifdef E011
 //LEDS
 #define LED_NUMBER 2
@@ -610,7 +614,7 @@
 #define  SENSOR_FLIP_180
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_SBUS_DSMX_BAYANG_SWITCH)
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_2
 #define SERIAL_RX_SPEKBIND_RX_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_3
@@ -627,6 +631,7 @@
 #define SPI_SS_PORT GPIOF
 #define RADIO_CHECK
 #define SOFTSPI_3WIRE
+#define RADIO_XN297L
 #else
 #define SOFTSPI_3WIRE
 #define SPI_MOSI_PIN GPIO_Pin_0

@@ -105,6 +105,8 @@ extern void flash_load( void);
 extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
 
+char rx_switch = 1;
+
 // looptime in seconds
 float looptime;
 // filtered battery in volts
@@ -254,10 +256,18 @@ aux[CH_AUX1] = 1;
 #endif
 
 
-	
+#ifdef RX_SBUS_DSMX_BAYANG_SWITCH
+if(rx_switch == 0)
+{
 	rx_init();
-
-	
+}
+else if(rx_switch == 1)
+{
+	sbus_rx_init();
+}
+#else
+	rx_init();
+#endif
 int count = 0;
 	
 while ( count < 64 )
@@ -598,8 +608,19 @@ rgb_dma_start();
 #endif
 
 // receiver function
-
+#ifdef RX_SBUS_DSMX_BAYANG_SWITCH
+if(rx_switch == 0)
+{
+	checkrx();
+}
+else if(rx_switch == 1)
+{
+	sbus_checkrx();
+}
+#else
 checkrx();
+#endif
+
 
 /*osd data transmit*/
 while ( (gettime() - time) < LOOPTIME );	

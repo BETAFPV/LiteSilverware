@@ -561,11 +561,6 @@
               <FilePath>.\src\angle_pid.c</FilePath>
             </File>
             <File>
-              <FileName>pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\pid.c</FilePath>
-            </File>
-            <File>
               <FileName>defines.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\defines.h</FilePath>
@@ -601,6 +596,11 @@
               <FilePath>.\src\serial_4way_stk500v2.c</FilePath>
             </File>
             <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\pid.c</FilePath>
+            </File>
+            <File>
               <FileName>serial_4way_avrootloader.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\serial_4way_avrootloader.c</FilePath>
@@ -619,6 +619,11 @@
               <FileName>menu.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>rx_sbus_dsmx_bayang_switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\rx_sbus_dsmx_bayang_switch.c</FilePath>
             </File>
           </Files>
         </Group>
