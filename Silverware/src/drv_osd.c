@@ -5,6 +5,7 @@
 #include "config.h"
 extern char motor_sta;
 extern char aux[AUXNUMBER];
+extern int rx_switch;
 /*********************************************
 * Function name: osd_spi_cson
 * Effect: OSD cs set low
@@ -143,6 +144,7 @@ void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],f
 			data[12] &= 0xF0;
 			data[12] |= motor_sta;
 			data[13] = menu_class;
+			data[13] |= rx_switch << 4;
 			data[14] = menu_index;
 			//data[15] = 0;
 	    data[15] = OSD_checksum(data);
