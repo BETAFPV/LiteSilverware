@@ -105,7 +105,7 @@ extern void flash_load( void);
 extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
 
-char rx_switch = 1;
+char rx_switch = 2;
 
 // looptime in seconds
 float looptime;
@@ -183,7 +183,7 @@ clk_init();
 #endif
 	
 	
-#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
+#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_SBUS_DSMX_BAYANG_SWITCH)   
 	
 	lite_2S_BINDKEY_init();            // Initialize the binding key
 
@@ -259,11 +259,15 @@ aux[CH_AUX1] = 1;
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
 if(rx_switch == 0)
 {
-	rx_init();
+		rx_init();
 }
 else if(rx_switch == 1)
 {
-	sbus_rx_init();
+		sbus_rx_init();
+}
+else if(rx_switch == 2)    //DSMX 2048
+{
+		dsmx_rx_init();
 }
 #else
 	rx_init();
@@ -616,6 +620,10 @@ if(rx_switch == 0)
 else if(rx_switch == 1)
 {
 	sbus_checkrx();
+}
+else if(rx_switch == 2)
+{
+	dsmx_checkrx();
 }
 #else
 checkrx();

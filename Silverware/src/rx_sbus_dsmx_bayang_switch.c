@@ -40,7 +40,67 @@ THE SOFTWARE.
 #include "defines.h"
 #include "util.h"
 #include "rx_sbus_dsmx_bayang_switch.h"
+
+#include "stm32f0xx_usart.h"
+#include <stdio.h>
+#include "drv_serial.h"
+#include "drv_fmc.h"
+
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
+
+// global use rx variables
+extern float rx[4];
+extern char aux[AUXNUMBER];
+extern char lastaux[AUXNUMBER];
+extern char auxchange[AUXNUMBER];
+int failsafe = 0;
+int rxmode = 0;
+int rx_ready = 0;
+int bind_safety = 0;
+int rx_bind_enable = 0;
+int sbus_dsmx_flag = 0;     
+
+// internal dsm variables
+
+#define DSMX_SERIAL_BAUDRATE 115200
+#define SPEK_FRAME_SIZE 16   
+#define SPEKTRUM_NEEDED_FRAME_INTERVAL  5000
+#define SPEKTRUM_MAX_FADE_PER_SEC       40
+#define SPEKTRUM_FADE_REPORTS_PER_SEC   2
+#define SPEKTRUM_MAX_SUPPORTED_CHANNEL_COUNT 12
+#define SPEKTRUM_2048_CHANNEL_COUNT     12
+#define SPEKTRUM_1024_CHANNEL_COUNT     7
+
+#define RX_DSMX_2048
+
+#ifdef RX_DSMX_2048
+	#define CHANNEL_COUNT 10
+	#define BIND_PULSES 9
+	// 11 bit frames
+	static uint8_t spek_chan_shift = 3;
+	static uint8_t spek_chan_mask = 0x07;  	
+#endif
+
+#ifdef RX_DSM2_1024
+	#define CHANNEL_COUNT 7
+	#define BIND_PULSES 3
+	// 10 bit frames
+	static uint8_t spek_chan_shift = 2;
+	static uint8_t spek_chan_mask = 0x03;
+#endif
+
+
+static uint32_t dsmx_channels[CHANNEL_COUNT];
+static int rcFrameComplete = 0;
+int framestarted = -1;
+int rx_frame_pending;
+int rx_frame_pending_last;
+uint32_t flagged_time;
+static volatile uint8_t spekFrame[SPEK_FRAME_SIZE];
+
+
+
+
 
 
 #define SERIAL_BAUDRATE 100000
@@ -56,9 +116,9 @@ extern float rx[4];
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
-int failsafe = 0;
-int rxmode = 0;
-int rx_ready = 0;
+//int failsafe = 0;
+//int rxmode = 0;
+//int rx_ready = 0;
 
 
 // internal sbus variables
@@ -68,7 +128,7 @@ uint8_t rx_start = 0;
 uint8_t rx_end = 0;
 uint16_t rx_time[RX_BUFF_SIZE];			//????
 
-int framestarted = -1;
+//int framestarted = -1;
 uint8_t framestart = 0;
 
 
@@ -79,9 +139,9 @@ int last_byte = 0;
 unsigned long time_lastframe;
 int frame_received = 0;
 int rx_state = 0;
-int bind_safety = 0;
+//int bind_safety = 0;
 uint8_t data[25];
-int channels[9];
+int sbus_channels[9];
 
 int failsafe_sbus_failsafe = 0;   
 int failsafe_siglost = 0; 
@@ -98,6 +158,8 @@ int stat_garbage;
 int stat_frames_accepted = 0;
 int stat_frames_second;
 int stat_overflow;
+
+
 
 
 // compatibility with older version hardware.h
@@ -909,38 +971,38 @@ unsigned long temptime = gettime();
 }
 
 
-/***************************************************************************************************************************************************/
-void USART1_IRQHandler(void)
-{
-    rx_buffer[rx_end] = USART_ReceiveData(USART1);
-    // calculate timing since last rx
-    unsigned long  maxticks = SysTick->LOAD;	
-    unsigned long ticks = SysTick->VAL;	
-    unsigned long elapsedticks;	
-    static unsigned long lastticks;
-    if (ticks < lastticks) 
-        elapsedticks = lastticks - ticks;	
-    else
-        {// overflow ( underflow really)
-        elapsedticks = lastticks + ( maxticks - ticks);	
-        }
+/****************************************************************************SBUS***********************************************************************/
+//void USART1_IRQHandler(void)
+//{
+//    rx_buffer[rx_end] = USART_ReceiveData(USART1);
+//    // calculate timing since last rx
+//    unsigned long  maxticks = SysTick->LOAD;	
+//    unsigned long ticks = SysTick->VAL;	
+//    unsigned long elapsedticks;	
+//    static unsigned long lastticks;
+//    if (ticks < lastticks) 
+//        elapsedticks = lastticks - ticks;	
+//    else
+//        {// overflow ( underflow really)
+//        elapsedticks = lastticks + ( maxticks - ticks);	
+//        }
 
-    if ( elapsedticks < 65536 ) rx_time[rx_end] = elapsedticks; //
-    else rx_time[rx_end] = 65535;  //ffff
+//    if ( elapsedticks < 65536 ) rx_time[rx_end] = elapsedticks; //
+//    else rx_time[rx_end] = 65535;  //ffff
 
-    lastticks = ticks;
-       
-    if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) )
-    {
-      // overflow means something was lost 
-      rx_time[rx_end]= 0xFFFe;
-      USART_ClearFlag( USART1 , USART_FLAG_ORE );
-      if ( sbus_stats ) stat_overflow++;
-    }    
-        
-    rx_end++;
-    rx_end%=(RX_BUFF_SIZE);
-}
+//    lastticks = ticks;
+//       
+//    if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) )
+//    {
+//      // overflow means something was lost 
+//      rx_time[rx_end]= 0xFFFe;
+//      USART_ClearFlag( USART1 , USART_FLAG_ORE );
+//      if ( sbus_stats ) stat_overflow++;
+//    }    
+//        
+//    rx_end++;
+//    rx_end%=(RX_BUFF_SIZE);
+//}
 
 
 
@@ -1096,27 +1158,27 @@ else
       
 if ( frame_received )
 {
-//   int channels[9];
+//   int sbus_channels[9];
    //decode frame   Forcibly change TAER to AETR,XM and XM+ 
 #ifdef  AETR
-   channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
-   channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-   channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
+   sbus_channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
+   sbus_channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
+   sbus_channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
 #else
-   channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
-   channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
+   sbus_channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
+   sbus_channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
    channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
 #endif    
-   channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
-   channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
-   channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
-   channels[6]  = ((data[9]>>2|data[10]<<6) & 0x07FF);
-   channels[7]  = ((data[10]>>5|data[11]<<3) & 0x07FF);
-   channels[8]  = ((data[12]|data[13]<< 8) & 0x07FF);
-    Tempch[0] = channels[0];
-    Tempch[1] = channels[1];
-    Tempch[2] = channels[2];
-    Tempch[3] = channels[3];
+   sbus_channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
+   sbus_channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
+   sbus_channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
+   sbus_channels[6]  = ((data[9]>>2|data[10]<<6) & 0x07FF);
+   sbus_channels[7]  = ((data[10]>>5|data[11]<<3) & 0x07FF);
+   sbus_channels[8]  = ((data[12]|data[13]<< 8) & 0x07FF);
+    Tempch[0] = sbus_channels[0];
+    Tempch[1] = sbus_channels[1];
+    Tempch[2] = sbus_channels[2];
+    Tempch[3] = sbus_channels[3];
     if ( rx_state == 0)
     {
      // wait for valid sbus signal
@@ -1124,7 +1186,7 @@ if ( frame_received )
      failsafe = 1;
      rxmode = RXMODE_BIND; 
      // if throttle < 10%   
-     if (  channels[2] < 336 ) frame_count++;
+     if (  sbus_channels[2] < 336 ) frame_count++;
      if (frame_count  > 130 )
      {
          if( stat_frames_second > 30 )
@@ -1145,48 +1207,48 @@ if ( frame_received )
       // normal rx mode
         
       // AETR channel order
-        channels[0] -= 993;           
-        channels[1] -= 993;
-        channels[3] -= 993;      
+        sbus_channels[0] -= 993;           
+        sbus_channels[1] -= 993;
+        sbus_channels[3] -= 993;      
         
-        rx[0] = channels[0];  
-        rx[1] = channels[1]; 
-        rx[2] = channels[3];  
+        rx[0] = sbus_channels[0];  
+        rx[1] = sbus_channels[1]; 
+        rx[2] = sbus_channels[3];  
       
         for ( int i = 0 ; i < 3 ; i++)
         {
          rx[i] *= 0.00122026f;             
         }
         
-        channels[2]-= 173; 
-        rx[3] = 0.000610128f * channels[2]; 
+        sbus_channels[2]-= 173; 
+        rx[3] = 0.000610128f * sbus_channels[2]; 
         
         if ( rx[3] > 1 ) rx[3] = 1;
 				
 							if (aux[LEVELMODE]){
-								if (aux[RACEMODE] && !aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else if (aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else{
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
+//								if (aux[RACEMODE] && !aux[HORIZON]){
+//									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+//									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+//									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+//								}else if (aux[HORIZON]){
+//									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+//									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+//									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+//								}else{
+//									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+//									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+//									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
 							}else{
 								if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 								if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
 							}
 							
-			aux[CHAN_5] = (channels[4] > 993) ? 1 : 0;
-		    aux[CHAN_6] = (channels[5] > 993) ? 1 : 0;
-		    aux[CHAN_7] = (channels[6] > 993) ? 1 : 0;
-		    aux[CHAN_8] = (channels[7] > 993) ? 1 : 0;
-			aux[CHAN_9] = (channels[8] > 993) ? 1 : 0;
+			aux[CHAN_5] = (sbus_channels[4] > 993) ? 1 : 0;
+		    aux[CHAN_6] = (sbus_channels[5] > 993) ? 1 : 0;
+		    aux[CHAN_7] = (sbus_channels[6] > 993) ? 1 : 0;
+		    aux[CHAN_8] = (sbus_channels[7] > 993) ? 1 : 0;
+			aux[CHAN_9] = (sbus_channels[8] > 993) ? 1 : 0;
         
         time_lastframe = gettime(); 
         if (sbus_stats) stat_frames_accepted++;
@@ -1221,6 +1283,324 @@ if ( gettime() - time_lastframe > 1000000 )
     failsafe = failsafe_noframes || failsafe_siglost || failsafe_sbus_failsafe;
 
 }
+
+
+
+/**************************************************************DSMX**************************************************************************/
+#ifndef BUZZER_ENABLE 																									// use the convenience macros from buzzer.c for bind pulses
+#define PIN_OFF( port , pin ) GPIO_ResetBits( port , pin)
+#define PIN_ON( port , pin ) GPIO_SetBits( port , pin)
+#endif
+
+ //Receive ISR callback
+void USART1_IRQHandler(void)
+{ 
+    static uint8_t spekFramePosition = 0;
+    unsigned long  maxticks = SysTick->LOAD;	
+    unsigned long ticks = SysTick->VAL;	
+    unsigned long spekTimeInterval;	
+    static unsigned long lastticks;	
+	  if(sbus_dsmx_flag == 0)    //DSMX
+		{
+				if (ticks < lastticks) 
+						spekTimeInterval = lastticks - ticks;	
+				else
+						{// overflow ( underflow really)
+						spekTimeInterval = lastticks + ( maxticks - ticks);	
+						}
+				lastticks = ticks;
+			
+				if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) ){
+					// overflow means something was lost 
+					USART_ClearFlag( USART1 , USART_FLAG_ORE );
+				}    	
+				if (spekTimeInterval > SPEKTRUM_NEEDED_FRAME_INTERVAL) {
+						spekFramePosition = 0;
+				}
+				if (spekFramePosition < SPEK_FRAME_SIZE) {	
+					 spekFrame[spekFramePosition++] = USART_ReceiveData(USART1);		
+					 if (spekFramePosition < SPEK_FRAME_SIZE) {
+							 rcFrameComplete = 0;
+					 }else{
+							 rcFrameComplete = 1;
+					 }
+				}
+				spekFramePosition%=(SPEK_FRAME_SIZE);
+	}
+	else
+	{
+		rx_buffer[rx_end] = USART_ReceiveData(USART1);
+    // calculate timing since last rx
+    unsigned long elapsedticks;	
+
+    if (ticks < lastticks) 
+        elapsedticks = lastticks - ticks;	
+    else
+        {// overflow ( underflow really)
+        elapsedticks = lastticks + ( maxticks - ticks);	
+        }
+
+    if ( elapsedticks < 65536 ) rx_time[rx_end] = elapsedticks; //
+    else rx_time[rx_end] = 65535;  //ffff
+
+    lastticks = ticks;
+       
+    if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) )
+    {
+      // overflow means something was lost 
+      rx_time[rx_end]= 0xFFFe;
+      USART_ClearFlag( USART1 , USART_FLAG_ORE );
+      if ( sbus_stats ) stat_overflow++;
+    }    
+        
+    rx_end++;
+    rx_end%=(RX_BUFF_SIZE);
+	}
+} 
+
+
+
+void spektrumFrameStatus(void)
+{
+    if (rcFrameComplete == 0) {
+			rx_frame_pending = 1;															//flags when last time through we had a frame and this time we dont
+    }else{
+			rcFrameComplete = 0;															//isr callback triggers alert of fresh data in buffer
+
+			for (int b = 3; b < SPEK_FRAME_SIZE; b += 2) {                                  //stick data in channels buckets
+        const uint8_t spekChannel = 0x0F & (spekFrame[b - 1] >> spek_chan_shift);
+        if (spekChannel < CHANNEL_COUNT && spekChannel < SPEKTRUM_MAX_SUPPORTED_CHANNEL_COUNT) {
+                dsmx_channels[spekChannel] = ((uint32_t)(spekFrame[b - 1] & spek_chan_mask) << 8) + spekFrame[b];
+						  	framestarted = 1;											
+								rx_frame_pending = 0;                   //flags when last time through we didn't have a frame and this time we do	
+				        bind_safety++;                          // incriments up as good frames come in till we pass a safe point where aux channels are updated 
+								
+        }
+			}     
+		}		
+}
+
+
+void dsm_init(void)
+{
+    // make sure there is some time to program the board
+    if ( gettime() < 2000000 ) return;    
+    GPIO_InitTypeDef  GPIO_InitStructure;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;   
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;   
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;   
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;  
+    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
+    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE , SERIAL_RX_CHANNEL);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    USART_InitTypeDef USART_InitStructure;
+    USART_InitStructure.USART_BaudRate = DSMX_SERIAL_BAUDRATE;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;  
+    USART_InitStructure.USART_Parity = USART_Parity_No;    //sbus is even parity
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(USART1, &USART_InitStructure);
+// swap rx/tx pins
+#ifndef Alienwhoop_ZERO
+    USART_SWAPPinCmd( USART1, ENABLE);
+#endif
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    USART_Cmd(USART1, ENABLE);
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+// set setup complete flag
+ framestarted = 0;
+}
+
+// Initialize the binding button
+void lite_2S_BINDKEY_init(void)
+{
+		GPIO_InitTypeDef    GPIO_InitStructure;
+	
+ 	    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);
+	
+        GPIO_InitStructure.GPIO_Pin = LED1PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+        GPIO_Init(LED1PORT, &GPIO_InitStructure); 
+	
+		GPIO_SetBits(LED1PORT,LED1PIN);
+}
+
+ //Send Spektrum bind pulses
+void lite_2S_rx_spektrum_bind(void)
+{
+        GPIO_InitTypeDef    GPIO_InitStructure;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+        
+        // RX line, set high
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+        // Bind window is around 20-140ms after powerup
+        delay(60000);
+
+        for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
+                // RX line, drive low for 120us
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+            
+                // RX line, drive high for 120us
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+		}
+}
+
+ //Send Spektrum bind pulses to a GPIO e.g. TX1
+void rx_spektrum_bind(void)
+{
+#ifdef SERIAL_RX_SPEKBIND_RX_PIN
+	rx_bind_enable = fmc_read_float(56);
+	if (rx_bind_enable == 0){
+        GPIO_InitTypeDef    GPIO_InitStructure;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+        
+        // RX line, set high
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+        // Bind window is around 20-140ms after powerup
+        delay(60000);
+
+        for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
+                // RX line, drive low for 120us
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+            
+                // RX line, drive high for 120us
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                delay(120);
+        }
+	}
+#endif
+        GPIO_InitTypeDef    GPIO_InitStructure;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_BINDTOOL_PIN;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+        GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+        
+        // RX line, set high
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_BINDTOOL_PIN);
+        // Bind window is around 20-140ms after powerup
+        delay(60000);
+
+        for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
+                // RX line, drive low for 120us
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_BINDTOOL_PIN);
+                delay(120);
+            
+                // RX line, drive high for 120us
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_BINDTOOL_PIN);
+                delay(120);
+        }	
+}
+
+void dsmx_rx_init(void)
+{
+    
+}
+
+void dsmx_checkrx()
+{
+if ( framestarted < 0){									
+			failsafe = 1;																														//kill motors while initializing usart (maybe not necessary)		  
+      dsm_init();																															// toggles "framestarted = 0;" after initializing
+			rxmode = !RXMODE_BIND; 																									// put LEDS in normal signal status
+}   																													
+
+if ( framestarted == 0){ 																											// this is the failsafe condition
+		failsafe = 1;																															//keeps motors off while waiting for first frame and if no new frame for more than 1s
+} 
+ 
+
+rx_frame_pending_last = rx_frame_pending;
+spektrumFrameStatus();		
+if (rx_frame_pending != rx_frame_pending_last) flagged_time = gettime();  		//updates flag to current time only on changes of losing a frame or getting one back
+if (gettime() - flagged_time > FAILSAFETIME) framestarted = 0;            		//watchdog if more than 1 sec passes without a frame causes failsafe
+		
+         
+if ( framestarted == 1){
+				if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;																								// normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
+		   
+      // AETR channel order
+	#ifdef RX_DSMX_2048
+        rx[0] = (dsmx_channels[1]*0.000998005f)-1.02195767f;  
+        rx[1] = (dsmx_channels[2]*0.000998005f)-1.02195767f; 
+        rx[2] = (dsmx_channels[3]*0.000998005f)-1.02195767f;
+        rx[3] = (dsmx_channels[0]*0.0004990025f)-0.0109780552f;
+				if ( rx[3] > 1 ) rx[3] = 1;	
+				if ( rx[3] < 0 ) rx[3] = 0;
+	#endif
+
+	#ifdef RX_DSM2_1024
+        rx[0] = (dsmx_channels[1]*0.00199601f)-1.02195767f;  
+        rx[1] = (dsmx_channels[2]*0.00199601f)-1.02195767f; 
+        rx[2] = (dsmx_channels[3]*0.00199601f)-1.02195767f;
+        rx[3] = (dsmx_channels[0]*0.000998005f)-0.0109780552f;
+				if ( rx[3] > 1 ) rx[3] = 1;	
+				if ( rx[3] < 0 ) rx[3] = 0;
+	#endif
+				
+				if (aux[LEVELMODE]){
+							if (aux[RACEMODE] && !aux[HORIZON]){
+									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+							}else if (aux[HORIZON]){
+									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+							}else{
+									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
+				}else{
+						if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+						if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+						if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+				}
+							
+	#ifdef RX_DSMX_2048		
+				aux[CHAN_5] = (dsmx_channels[4] > 1100) ? 1 : 0;													//1100 cutoff intentionally selected to force aux channels low if 
+				aux[CHAN_6] = (dsmx_channels[5] > 1100) ? 1 : 0;													//being controlled by a transmitter using a 3 pos switch in center state
+				aux[CHAN_7] = (dsmx_channels[6] > 1100) ? 1 : 0;
+				aux[CHAN_8] = (dsmx_channels[7] > 1100) ? 1 : 0;
+				aux[CHAN_9] = (dsmx_channels[8] > 1100) ? 1 : 0;
+				aux[CHAN_10] = (dsmx_channels[9] > 1100) ? 1 : 0;							
+	#endif
+
+	#ifdef RX_DSM2_1024		
+				aux[CHAN_5] = (dsmx_channels[4] > 550) ? 1 : 0;													//550 cutoff intentionally selected to force aux channels low if 
+				aux[CHAN_6] = (dsmx_channels[5] > 550) ? 1 : 0;													//being controlled by a transmitter using a 3 pos switch in center state
+				aux[CHAN_7] = (dsmx_channels[6] > 550) ? 1 : 0;						
+	#endif
+
+
+				if (bind_safety > 900){								//requires 10 good frames to come in before rx_ready safety can be toggled to 1.  900 is about 2 seconds of good data
+					rx_ready = 1;												// because aux channels initialize low and clear the binding while armed flag before aux updates high
+					failsafe = 0;												// turn off failsafe delayed a bit to emmulate led behavior of sbus protocol - optional either here or just above here
+					rxmode = !RXMODE_BIND;							// restores normal led operation
+					bind_safety = 901;									// reset counter so it doesnt wrap
+				}
+
+
+						
+	}
+}	
 #endif
 
 
