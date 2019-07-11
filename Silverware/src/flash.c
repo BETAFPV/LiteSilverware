@@ -13,7 +13,7 @@ extern float accelcal[];
 extern float * pids_array[3];
 float save_pid[3][3] = {0};
 extern float hardcoded_pid_identifier;
-
+extern int rx_switch;
 
 #define FMC_HEADER 0x12AA0001
 
@@ -72,7 +72,7 @@ void flash_save( void) {
 		writeword(20,save_motor_dir[0] | (save_motor_dir[1]<<8) | (save_motor_dir[2]<<16) | (save_motor_dir[3]<<24));
 	  //motor dir identifier 
 		writeword(21,(save_motor_dir[0]|save_motor_dir[1]|save_motor_dir[2]|save_motor_dir[3]));
-   
+		writeword(22,rx_switch);
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
 extern char rfchannel[4];
@@ -224,7 +224,7 @@ void flash_load( void) {
 		{
 				//*****
 		}
-	 
+	  rx_switch = fmc_read(22);
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
 extern char rxaddress[5];

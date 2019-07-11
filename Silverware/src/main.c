@@ -59,6 +59,7 @@ THE SOFTWARE.
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
+#include "rx_sbus_dsmx_bayang_switch.h"
 
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 #include "drv_softserial.h"
@@ -104,9 +105,10 @@ void imu_init(void);
 extern void flash_load( void);
 extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
-
-char rx_switch = 2;
-
+#if defined(RX_SBUS_DSMX_BAYANG_SWITCH)
+extern int sbus_dsmx_flag;
+int rx_switch = 0;
+#endif
 // looptime in seconds
 float looptime;
 // filtered battery in volts
@@ -169,10 +171,6 @@ static void setup_4way_external_interrupt(void);
 int random_seed = 0;
 
 int main(void)
-
-
-
-
 {
 	
 	delay(1000);
@@ -183,7 +181,7 @@ clk_init();
 #endif
 	
 	
-#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_SBUS_DSMX_BAYANG_SWITCH)   
+#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 	
 	lite_2S_BINDKEY_init();            // Initialize the binding key
 
@@ -194,8 +192,37 @@ clk_init();
 	}
 	delay(50000);
 #endif
+
+#if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
+//按键上电 不做任何操作 等待4秒  为bayang协议 
+//按键上电 再按一次	为Sbus Frsky 协议 
+//按键上电 再按两次 为DSMX协议
+//默认出厂bayang协议
+switch_key();
+if(KEY == 0)
+{
+		delay(1000);
+		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
+		delay(50000);
 	
-	
+		rx_switch = 0;
+		unsigned long time=0;
+		while(time < 4000000)       
+		{
+				if(key_scan() == 1)    //按键按下
+				{
+						rx_switch++;
+				}
+				if(rx_switch >= 3)
+				{
+						rx_switch = 3;
+				}
+				time++;
+		}
+		flash_save();
+}
+#endif
+
 	main_menu = CreateDbCcLinkList(3,0);     //长度为3  0：主菜单
 	main_menu_head = main_menu;   					 //记录主菜单的头
 	
@@ -257,17 +284,19 @@ aux[CH_AUX1] = 1;
 
 
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-if(rx_switch == 0)
+if(rx_switch == 1)
 {
 		rx_init();
 }
-else if(rx_switch == 1)
+else if(rx_switch == 2)
 {
 		sbus_rx_init();
+		sbus_dsmx_flag = 1;
 }
-else if(rx_switch == 2)    //DSMX 2048
+else if(rx_switch == 3)    //DSMX 2048
 {
 		dsmx_rx_init();
+		sbus_dsmx_flag = 0;
 }
 #else
 	rx_init();
@@ -613,15 +642,15 @@ rgb_dma_start();
 
 // receiver function
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-if(rx_switch == 0)
+if(rx_switch == 1)
 {
 	checkrx();
 }
-else if(rx_switch == 1)
+else if(rx_switch == 2)
 {
 	sbus_checkrx();
 }
-else if(rx_switch == 2)
+else if(rx_switch == 3)
 {
 	dsmx_checkrx();
 }

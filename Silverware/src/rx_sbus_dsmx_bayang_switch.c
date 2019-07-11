@@ -182,7 +182,28 @@ extern char auxchange[AUXNUMBER];
 	int rf_chan = 0;
 //  int rx_ready = 0;
 //	int bind_safety = 0;
-	
+
+
+unsigned char key_scan(void)
+{
+		static unsigned char key_up = 1;
+		if(key_up && (KEY == 0))
+		{
+				delay(10);
+				key_up = 0;
+				if(KEY == 0)
+				{
+						return 1;
+				}
+		}
+		else if(KEY == 1)
+		{
+				key_up = 1;
+		}
+		return 0;
+}
+
+
 void bleinit( void);
 
 void writeregs ( uint8_t data[] , uint8_t size )
@@ -1417,18 +1438,23 @@ void dsm_init(void)
  framestarted = 0;
 }
 
+
 // Initialize the binding button
 void lite_2S_BINDKEY_init(void)
 {
-		GPIO_InitTypeDef    GPIO_InitStructure;
-	
+			GPIO_InitTypeDef    GPIO_InitStructure;
  	    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);
 	
-        GPIO_InitStructure.GPIO_Pin = LED1PIN;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-        GPIO_Init(LED1PORT, &GPIO_InitStructure); 
+      GPIO_InitStructure.GPIO_Pin = LED1PIN;
+      GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+      GPIO_Init(LED1PORT, &GPIO_InitStructure); 
 	
-		GPIO_SetBits(LED1PORT,LED1PIN);
+			GPIO_SetBits(LED1PORT,LED1PIN);
+}
+
+void switch_key(void)
+{
+		lite_2S_BINDKEY_init();
 }
 
  //Send Spektrum bind pulses
