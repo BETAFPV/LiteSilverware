@@ -15,7 +15,7 @@
 //#define E011
 //#define H8mini_blue_board
 #define Alienwhoop_ZERO  // requires defining RX_SBUS radio protocol
-#define ENABLE_OVERCLOCK
+//#define ENABLE_OVERCLOCK
 
 
 //**********************************************************************************************************************
@@ -208,7 +208,7 @@
 // *************mix increase throttle increases the authority of the pid controller at lowest throttle values like airmode when combined with idle up
 // *************mix3 has a stronger effect and works better with brushless
 #define MIX_LOWER_THROTTLE
-#define MIX_THROTTLE_REDUCTION_PERCENT 10
+#define MIX_THROTTLE_REDUCTION_PERCENT 30
 //#define MIX_INCREASE_THROTTLE
 
 //#define MIX_LOWER_THROTTLE_3

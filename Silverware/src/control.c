@@ -571,7 +571,6 @@ extern float throttlehpf( float in );
 		pidoutput[2] = -pidoutput[2];
 	#endif
 #endif
-	
 #ifdef INVERTED_ENABLE
 if (pwmdir == REVERSE)
 		{
@@ -588,7 +587,7 @@ else
 #endif    
 {
     // normal mixer
-//    throttle = throttle;
+    throttle = throttle*3.0f;
 		mix[MOTOR_FR] = throttle - pidoutput[ROLL] - pidoutput[PITCH] + pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle + pidoutput[ROLL] - pidoutput[PITCH] - pidoutput[YAW];		// FL	
 		mix[MOTOR_BR] = throttle - pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// BR

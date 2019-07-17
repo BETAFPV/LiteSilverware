@@ -663,7 +663,7 @@ checkrx();
 while ( (gettime() - time) < LOOPTIME );	
 
 /*******************************************************************************************************************/
-if(((float)-0.7 > rx[Yaw]) && ((float)0.3 < rx[Throttle]) && ((float)0.7 > rx[Throttle]) && ((float)0.7 < rx[Pitch]) && ((float)-0.1 < rx[Roll]) && ((float)0.1 > rx[Roll]) && (float)0 == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
+if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f < rx[Pitch]) && (-0.1f < rx[Roll]) && (0.2f > rx[Roll]) && 0.0f == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
 {
 		int a;
 		menu_flag = 1;

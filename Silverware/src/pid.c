@@ -126,9 +126,13 @@ float stickTransitionProfileB[3]  = { 0.3 , 0.3 , 0.0};           //keep values 
 //                         ROLL   PITCH  YAW
 
 
-float pidkp[PIDNUMBER] = { 0.1  , 0.1  , 0.4   };  
-float pidki[PIDNUMBER] = { 0.3  , 0.3  , 0.2   };	
-float pidkd[PIDNUMBER] = { 0.5  , 0.5  , 0.55  };
+//float pidkp[PIDNUMBER] = { 0.1  , 0.1  , 0.4   };  
+//float pidki[PIDNUMBER] = { 0.3  , 0.3  , 0.2   };	
+//float pidkd[PIDNUMBER] = { 0.5  , 0.5  , 0.55  };
+
+float pidkp[PIDNUMBER] =  {5.00e-2,5.00e-2,2.5e-1};
+float pidki[PIDNUMBER] =  { 1.20e-1,1.20e-1,1.2e-1};	
+float pidkd[PIDNUMBER] =  {2.00e-1,2.00e-1,0e-1}; 
 
 //float pidkp[PIDNUMBER] = { 0.12 , 0.12 , 0.1  };  
 //float pidki[PIDNUMBER] = { 0.5  , 0.5  , 0.3  };	
@@ -177,14 +181,15 @@ float pidkd[PIDNUMBER] = { 0.5  , 0.5  , 0.55  };
 #define ENABLE_SETPOINT_WEIGHTING
 //            Roll   Pitch   Yaw
 //float b[3] = { 0.97 , 0.98 , 0.95};   //RACE
-float b[3] = { 0.93 , 0.93 , 0.9};      //FREESTYLE
-
+//float b[3] = { 0.93 , 0.93 , 0.9};      //FREESTYLE
+//float b[3] = { 0.6 , 0.6 , 0.3}; 
+float b[3] = { 1.0, 1.0 , 1.0};
 /// output limit			
+//const float outlimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
 const float outlimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
-
 // limit of integral term (abs)
+//const float integrallimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
 const float integrallimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
-
 //#define RECTANGULAR_RULE_INTEGRAL
 //#define MIDPOINT_RULE_INTEGRAL
 #define SIMPSON_RULE_INTEGRAL

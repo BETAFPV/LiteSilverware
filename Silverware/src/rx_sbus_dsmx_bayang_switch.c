@@ -993,40 +993,6 @@ unsigned long temptime = gettime();
 
 
 /****************************************************************************SBUS***********************************************************************/
-//void USART1_IRQHandler(void)
-//{
-//    rx_buffer[rx_end] = USART_ReceiveData(USART1);
-//    // calculate timing since last rx
-//    unsigned long  maxticks = SysTick->LOAD;	
-//    unsigned long ticks = SysTick->VAL;	
-//    unsigned long elapsedticks;	
-//    static unsigned long lastticks;
-//    if (ticks < lastticks) 
-//        elapsedticks = lastticks - ticks;	
-//    else
-//        {// overflow ( underflow really)
-//        elapsedticks = lastticks + ( maxticks - ticks);	
-//        }
-
-//    if ( elapsedticks < 65536 ) rx_time[rx_end] = elapsedticks; //
-//    else rx_time[rx_end] = 65535;  //ffff
-
-//    lastticks = ticks;
-//       
-//    if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) )
-//    {
-//      // overflow means something was lost 
-//      rx_time[rx_end]= 0xFFFe;
-//      USART_ClearFlag( USART1 , USART_FLAG_ORE );
-//      if ( sbus_stats ) stat_overflow++;
-//    }    
-//        
-//    rx_end++;
-//    rx_end%=(RX_BUFF_SIZE);
-//}
-
-
-
 void sbus_init(void)
 {
     // make sure there is some time to program the board
