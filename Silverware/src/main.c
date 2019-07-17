@@ -704,26 +704,26 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 
 if(1 == menu_flag)
 {
-		if((rx[Pitch] < (float)-0.6) && (down_flag == 1))
+		if((rx[Pitch] < -0.6f) && (down_flag == 1))
 		{
 			  Menu_pointer = Menu_pointer->next;
 				down_flag = 0;
 		}		
 		
-		if((rx[Pitch] > (float)0.6) && (up_flag == 1))
+		if((rx[Pitch] > 0.6f) && (up_flag == 1))
 		{
 			  Menu_pointer = Menu_pointer->prior;
 				up_flag = 0;
 		}
 		
-		if((rx[Pitch]) < (float)0.6 && (rx[Pitch] > (float)-0.6))
+		if((rx[Pitch]) < 0.6f && (rx[Pitch] > -0.6f))
 		{
 				up_flag = 1;
 				down_flag = 1;
 		}
 		
 		/******************************************************************/
-		if((rx[Roll] > (float)0.6) && right_flag == 1)     //右打杆操作
+		if((rx[Roll] > 0.6f) && right_flag == 1)     //右打杆操作
 		{
 				if(0 == Menu_pointer->menu_class && 0 == Menu_pointer->menu_index)    //PID parameter tuning
 				{
@@ -741,19 +741,19 @@ if(1 == menu_flag)
 //					  //更新PID值
 						for(a=0;a<3;a++)
 						{
-								pidkp[a] = ((float)PID_menu->PID_value);
+								pidkp[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidki[a] = ((float)PID_menu->PID_value);
+								pidki[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidkd[a] = ((float)PID_menu->PID_value);
+								pidkd[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 				}
@@ -833,7 +833,7 @@ if(1 == menu_flag)
 				right_flag = 0;
 		}
 		
-		if((rx[Roll] < (float)-0.6) && left_flag == 1)     //左打杆操作
+		if((rx[Roll] < -0.6f) && left_flag == 1)     //左打杆操作
 		{
 				int a;
 				if(1 == Menu_pointer->menu_class)       //PID值 操作
@@ -847,19 +847,19 @@ if(1 == menu_flag)
 //					  //更新PID值
 						for(a=0;a<3;a++)
 						{
-								pidkp[a] = ((float)PID_menu->PID_value);
+								pidkp[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidki[a] = ((float)PID_menu->PID_value);
+								pidki[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 						
 						for(a=0;a<3;a++)
 						{
-								pidkd[a] = ((float)PID_menu->PID_value);
+								pidkd[a] = PID_menu->PID_value;
 								PID_menu = PID_menu->next;
 						}
 				}
@@ -889,7 +889,7 @@ if(1 == menu_flag)
 				left_flag = 0;
 		}
 		
-		if((rx[Roll]) < (float)0.6 && (rx[Roll] > (float)-0.6))
+		if((rx[Roll]) < 0.6f && (rx[Roll] > -0.6f))
 		{
 				right_flag = 1;
 			  left_flag = 1;
@@ -936,19 +936,47 @@ void failloop( int val)
 
 void HardFault_Handler(void)
 {
-	failloop(5);
+	if(menu_flag == 1)
+	{
+	
+	}
+	else
+	{
+		failloop(5);
+	}
 }
 void MemManage_Handler(void) 
 {
-	failloop(5);
+	if(menu_flag == 1)
+	{
+	
+	}
+	else
+	{
+		failloop(5);
+	}
 }
 void BusFault_Handler(void) 
 {
-	failloop(5);
+	if(menu_flag == 1)
+	{
+	
+	}
+	else
+	{
+		failloop(5);
+	}
 }
 void UsageFault_Handler(void) 
 {
-	failloop(5);
+	if(menu_flag == 1)
+	{
+	
+	}
+	else
+	{
+		failloop(5);
+	}
 }
 
 

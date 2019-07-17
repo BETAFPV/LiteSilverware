@@ -15,7 +15,7 @@
 //#define E011
 //#define H8mini_blue_board
 #define Alienwhoop_ZERO  // requires defining RX_SBUS radio protocol
-//#define ENABLE_OVERCLOCK
+#define ENABLE_OVERCLOCK
 
 
 //**********************************************************************************************************************
