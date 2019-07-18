@@ -185,11 +185,12 @@ float pidkd[PIDNUMBER] =  {2.00e-1,2.00e-1,0e-1};
 //float b[3] = { 0.6 , 0.6 , 0.3}; 
 float b[3] = { 1.0, 1.0 , 1.0};
 /// output limit			
-//const float outlimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
-const float outlimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
+//const float outlimit[PIDNUMBER] = { 0.8 , 0.8 , 0.5 };
+const float outlimit[PIDNUMBER] = { 0.8 , 0.8 , 0.5 };
 // limit of integral term (abs)
 //const float integrallimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
-const float integrallimit[PIDNUMBER] = { 1.7 , 1.7 , 0.5 };
+const float integrallimit[PIDNUMBER] = { 0.8 , 0.8
+ , 0.5 };
 //#define RECTANGULAR_RULE_INTEGRAL
 //#define MIDPOINT_RULE_INTEGRAL
 #define SIMPSON_RULE_INTEGRAL

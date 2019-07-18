@@ -300,7 +300,8 @@ if (aux[LEVELMODE]&&!acro_override){
       // yaw
 			error[2] = yawerror[2]  - gyro[2];
 		} 
-}else{	// rate mode
+}
+else{	// rate mode
     FlyingMode=1;
     setpoint[0] = rxcopy[0] * (float) MAX_RATE * DEGTORAD;
 		setpoint[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD;
@@ -574,7 +575,6 @@ extern float throttlehpf( float in );
 #ifdef INVERTED_ENABLE
 if (pwmdir == REVERSE)
 		{
-			// inverted flight
 
 		mix[MOTOR_FR] = throttle + pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle - pidoutput[ROLL] + pidoutput[PITCH] + pidoutput[YAW];		// FL	
@@ -586,8 +586,7 @@ if (pwmdir == REVERSE)
 else
 #endif    
 {
-    // normal mixer
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ;
 		mix[MOTOR_FR] = throttle - pidoutput[ROLL] - pidoutput[PITCH] + pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle + pidoutput[ROLL] - pidoutput[PITCH] - pidoutput[YAW];		// FL	
 		mix[MOTOR_BR] = throttle - pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// BR

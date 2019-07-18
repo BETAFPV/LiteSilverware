@@ -6,6 +6,7 @@
 extern char motor_sta;
 extern char aux[AUXNUMBER];
 extern int rx_switch;
+extern int flightmode;
 /*********************************************
 * Function name: osd_spi_cson
 * Effect: OSD cs set low
@@ -132,14 +133,24 @@ void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],f
 					data[12] &= ~0x20;
 			}
 			
-			if(aux[8] == 1)
+			if(flightmode == 0)       //LEVELMODE
 			{		data[12] &= ~0xC0;
-					data[12] |= 0x40;
+					data[12] |= 0x00;
 			}
-			else
+			else if(flightmode == 1)  //ACROMODE
 			{
-				data[12] &= ~0xC0;
+				  data[12] &= ~0xC0;
+				  data[12] |= 0x40;
+			}
+			else if(flightmode == 2)  //RACEMODE
+			{
+					data[12] &= ~0xC0;
 					data[12] |= 0x80;
+			}
+			else if(flightmode == 3)  //HORIZON
+			{
+					data[12] &= ~0xC0;
+					data[12] |= 0xC0;
 			}
 			data[12] &= 0xF0;
 			data[12] |= motor_sta;

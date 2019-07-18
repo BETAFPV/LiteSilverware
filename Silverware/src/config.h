@@ -27,16 +27,16 @@
 #define MAX_RATEYAW 500.0
 
 // *************max angle for level mode
-#define LEVEL_MAX_ANGLE 65.0f
+#define LEVEL_MAX_ANGLE 75.0f   //65
 
 // ************* low rates multiplier if rates are assigned to a channel
 #define LOW_RATES_MULTI 0.5f
 
 // *************EXPO from 0.00 to 1.00 , 0 = no exp
 // *************positive = less sensitive near center 
-#define ACRO_EXPO_ROLL 1.00   //0.8
-#define ACRO_EXPO_PITCH 1.00   //0.8
-#define ACRO_EXPO_YAW 0.90     //0.6
+#define ACRO_EXPO_ROLL 0.95  //0.8
+#define ACRO_EXPO_PITCH 0.80//0.8
+#define ACRO_EXPO_YAW 0.5     //0.6
 
 #define ANGLE_EXPO_ROLL 0.55
 #define ANGLE_EXPO_PITCH 0.0
@@ -82,7 +82,7 @@
 //#define LEVELMODE CHAN_5 
 #define LEVELMODE 8
 //#define RACEMODE  CHAN_7
-#define RACEMODE 2
+#define RACEMODE 3
 //#define HORIZON   CHAN_8
 #define HORIZON 7
 #define PIDPROFILE CHAN_9                //For switching stickAccelerator & stickTransition profiles on pid.c page
@@ -300,7 +300,7 @@
 #endif
 
 #ifdef ALIENWHOOP_ZERO_FILTERING
-#define SOFT_KALMAN_GYRO KAL1_HZ_90
+#define SOFT_KALMAN_GYRO KAL1_HZ_10
 #define  DTERM_LPF_2ND_HZ 100
 #define MOTOR_FILTER2_ALPHA MFILT1_HZ_50
 #define SWITCHABLE_MOTOR_FILTER2_ALPHA MFILT1_HZ_90
