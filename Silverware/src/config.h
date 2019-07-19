@@ -56,7 +56,7 @@
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 #define RX_SBUS_DSMX_BAYANG_SWITCH
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
-
+#define RX_Default 2 //1:BAYANG;  2:SBUS;  3:DSMX
 // *************Transmitter Type Selection
 //#define USE_STOCK_TX
 //#define USE_DEVO
@@ -132,7 +132,7 @@
 #define STOP_LOWBATTERY
 
 // *************voltage to start warning led blinking
-#define VBATTLOW 6.2
+#define VBATTLOW 6.4
 
 // *************voltage hysteresis in volts
 #define HYST 0.10

@@ -195,29 +195,38 @@ clk_init();
 
 #if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
 //按键上电 不做任何操作 等待4秒  为bayang协议 
-//按键上电 再按一次	为Sbus Frsky 协议 
+//按键上电 再按一次	为Sbus Frsky协议 
 //按键上电 再按两次 为DSMX协议
-//默认出厂bayang协议
-switch_key();
+//默认出厂有RX_Default中的值确定
+switch_key();           //初始化按键
+#ifdef FLASH_SAVE1
+// read pid identifier for values in file pid.c
+    
+	//	flash_hard_coded_pid_identifier();
+// load flash saved variables
+//    flash_load( );               //加载PID
+	  
+#endif
+rx_switch = RX_Default; //设置为默认接收类型
+flash_save();   
 if(KEY == 0)
 {
-		delay(1000);
-		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
-		delay(50000);
-	
-		rx_switch = 0;
+        lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
+        rx_switch = 1;                 //bayang
+        while(KEY == 0);    //等待松手
 		unsigned long time=0;
 		while(time < 4000000)       
 		{
-				if(key_scan() == 1)    //按键按下
-				{
-						rx_switch++;
-				}
-				if(rx_switch >= 3)
-				{
-						rx_switch = 3;
-				}
-				time++;
+            if(KEY == 0)
+            {
+                rx_switch++;
+                while(KEY == 0);    //等待松手
+            }
+            if(rx_switch >= 3)
+            {
+                rx_switch = 3;
+            }
+            time++;
 		}
 		flash_save();
 }
@@ -233,11 +242,11 @@ if(KEY == 0)
 	Motor_menu_head = Motor_menu;
 	
 	Menu_pointer = main_menu;
-  gpio_init();	
-  ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
+    gpio_init();	
+    ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
-  time_init();
+    time_init();
 	osd_spi_init();
 	
 	delay(100000);
@@ -265,20 +274,20 @@ if(KEY == 0)
 	}
 	
 	adc_init();
-//set always on channel to on
-aux[CH_ON] = 1;	
+    //set always on channel to on
+    aux[CH_ON] = 1;	
 	
 #ifdef AUX1_START_ON
 aux[CH_AUX1] = 1;
 #endif
     
     
- #ifdef FLASH_SAVE1
+#ifdef FLASH_SAVE1
 // read pid identifier for values in file pid.c
     
 	//	flash_hard_coded_pid_identifier();
 // load flash saved variables
-    flash_load( );               //加载PID
+//    flash_load( );               //加载PID
 	  
 #endif
 

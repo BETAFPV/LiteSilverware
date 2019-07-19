@@ -184,25 +184,6 @@ extern char auxchange[AUXNUMBER];
 //	int bind_safety = 0;
 
 
-unsigned char key_scan(void)
-{
-		static unsigned char key_up = 1;
-		if(key_up && (KEY == 0))
-		{
-				delay(10);
-				key_up = 0;
-				if(KEY == 0)
-				{
-						return 1;
-				}
-		}
-		else if(KEY == 1)
-		{
-				key_up = 1;
-		}
-		return 0;
-}
-
 
 void bleinit( void);
 
