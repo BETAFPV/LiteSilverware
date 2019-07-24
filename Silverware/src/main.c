@@ -182,7 +182,7 @@ int main(void)
 {
 
 	delay(1000);
-
+    rx_switch = RX_Default; //设置为默认接收类型
 
 #ifdef ENABLE_OVERCLOCK
 clk_init();
@@ -208,15 +208,11 @@ clk_init();
 //默认出厂有RX_Default中的值确定
 switch_key();           //初始化按键
 #ifdef FLASH_SAVE1
-// read pid identifier for values in file pid.c
-    
-	//	flash_hard_coded_pid_identifier();
-// load flash saved variables
-//    flash_load( );               //加载PID
+
+    flash_load( );               //加载PID
 	  
 #endif
-rx_switch = RX_Default; //设置为默认接收类型
-flash_save();   
+
 if(KEY == 0)
 {
         lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
@@ -239,7 +235,20 @@ if(KEY == 0)
 		flash_save();
 }
 #else 
+#ifdef RX_BAYANG_PROTOCOL_BLE_BEACON
+rx_switch = 1 ;
+#endif
+#ifdef RX_SBUS
+rx_switch = 2 ;
+#endif
 
+#ifdef RX_DSMX_2048
+rx_switch = 3;
+#endif
+
+#ifdef RX_DSMX_1024
+rx_switch = 4;
+#endif
 #endif
 #ifdef Lite_OSD
 	main_menu = CreateDbCcLinkList(3,0);     //长度为3  0：主菜单
@@ -711,10 +720,7 @@ checkrx();
 
 #endif
 #ifdef  Lite_OSD  
-
 /*osd data transmit*/
-while ( (gettime() - time) < LOOPTIME );	
-
 /*******************************************************************************************************************/
 if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f < rx[Pitch]) && (-0.1f < rx[Roll]) && (0.2f > rx[Roll]) && 0.0f == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
 {
