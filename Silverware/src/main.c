@@ -175,8 +175,8 @@ static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
 #ifdef  Lite_OSD            
-unsigned char Main_Count=0 ;            //  ¼ÇÂ¼´óÑ­»·µÄ´ÎÊý
-unsigned char Lite_OSD_Time_Flag=10 ;   //  ´óÑ­»·Ö´ÐÐLite_OSD_Time_Flag´ÎË¢ÐÂÒ»´ÎOSD,·ÉÐÐÄ¬ÈÏÎª10£¬µ÷²ÎÄ¬ÈÏÎª0
+unsigned char Main_Count=0 ;            //记录大循环执行次数
+unsigned char Lite_OSD_FPS=10 ;   //  大循环执行Lite_OSD_Time_Flag次刷新一次OSD,飞行默认为10，调参默认为0
 #endif	
 int main(void)
 {
@@ -261,7 +261,7 @@ rx_switch = 4;
 	Motor_menu_head = Motor_menu;
 	
 	Menu_pointer = main_menu;
-
+    Lite_OSD_FPS = OSD_FPS;
 
 #endif
     gpio_init();	
@@ -726,6 +726,7 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 {
 		int a;
 		menu_flag = 1;
+        Lite_OSD_FPS = 1;
 		for(a=0;a<3;a++)
 		{
 				PID_menu->PID_value = pidkp[a];
@@ -743,7 +744,7 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 				PID_menu->PID_value = pidkd[a];
 				PID_menu = PID_menu->next;
 		}
-    PID_menu = PID_menu_head;
+        PID_menu = PID_menu_head;
 		int i;
 		for(i=0;i<4;i++)
 		{
@@ -762,7 +763,7 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 }
     Main_Count ++;
 /*osd data transmit*/
-if(Lite_OSD_Time_Flag == Main_Count)
+if(Lite_OSD_FPS == Main_Count)
 {
     Main_Count = 0;
     while ( (gettime() - time) < LOOPTIME );	
@@ -913,6 +914,7 @@ if(1 == menu_flag)
 						down_flag = 0;
 						up_flag = 0;
 						Menu_pointer = main_menu_head;
+                        Lite_OSD_FPS = OSD_FPS;   //退出OSD菜单,Lite_OSD_FPS帧率修改为OSD_FPS
 				}
 				right_flag = 0;
 		}
