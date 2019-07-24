@@ -580,7 +580,7 @@ if ( LED_NUMBER > 0)
         if ( rxmode == RXMODE_BIND)
         {// bind mode
 
-#ifdef  Lite_OSD            
+#ifdef  Lite_Brushless            
             int i;
             for(i=2;i>0;i--)
             {
