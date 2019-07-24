@@ -3,7 +3,6 @@
 #include "stm32f0xx_usart.h"
 #include <stdio.h>
 #include "drv_serial.h"
-#include "config.h"
 #include "drv_time.h"
 #include "defines.h"
 #include "util.h"
@@ -19,14 +18,15 @@
 
 // sbus is normally inverted
 #define SBUS_INVERT 1
-// channel order,Enable is AETR, 
-#define AETR 
 
 // global use rx variables
 extern float rx[4];
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
+extern float aux_analog[AUXNUMBER];
+extern float lastaux_analog[AUXNUMBER];
+extern char aux_analogchange[AUXNUMBER];
 int failsafe = 0;
 int rxmode = 0;
 int rx_ready = 0;
@@ -134,7 +134,7 @@ void sbus_init(void)
 
     USART_Init(USART1, &USART_InitStructure);
 // swap rx/tx pins
-#ifndef Alienwhoop_ZERO
+#ifdef SERIAL_RX_SWD
     USART_SWAPPinCmd( USART1, ENABLE);
 #endif
 // invert signal ( default sbus )
@@ -165,7 +165,7 @@ void rx_init(void)
     
 }
 
-int Tempch[4];
+
 void checkrx()
 {
  
@@ -257,27 +257,18 @@ else
       
 if ( frame_received )
 {
-//   int channels[9];
-   //decode frame   Forcibly change TAER to AETR,XM and XM+ 
-#ifdef  AETR
+   int channels[9];
+   //decode frame    
    channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
    channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
    channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-#else
-   channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
-   channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-   channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-#endif    
    channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
    channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
    channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
    channels[6]  = ((data[9]>>2|data[10]<<6) & 0x07FF);
    channels[7]  = ((data[10]>>5|data[11]<<3) & 0x07FF);
    channels[8]  = ((data[12]|data[13]<< 8) & 0x07FF);
-    Tempch[0] = channels[0];
-    Tempch[1] = channels[1];
-    Tempch[2] = channels[2];
-    Tempch[3] = channels[3];
+
     if ( rx_state == 0)
     {
      // wait for valid sbus signal
@@ -322,7 +313,8 @@ if ( frame_received )
         channels[2]-= 173; 
         rx[3] = 0.000610128f * channels[2]; 
         
-        if ( rx[3] > 1 ) rx[3] = 1;
+				if ( rx[3] > 1 ) rx[3] = 1;	
+				if ( rx[3] < 0 ) rx[3] = 0;
 				
 							if (aux[LEVELMODE]){
 								if (aux[RACEMODE] && !aux[HORIZON]){
@@ -343,11 +335,32 @@ if ( frame_received )
 								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
 							}
 							
-			aux[CHAN_5] = (channels[4] > 993) ? 1 : 0;
+		    aux[CHAN_5] = (channels[4] > 993) ? 1 : 0;
 		    aux[CHAN_6] = (channels[5] > 993) ? 1 : 0;
 		    aux[CHAN_7] = (channels[6] > 993) ? 1 : 0;
 		    aux[CHAN_8] = (channels[7] > 993) ? 1 : 0;
-			aux[CHAN_9] = (channels[8] > 993) ? 1 : 0;
+		    aux[CHAN_9] = (channels[8] > 993) ? 1 : 0;
+
+#ifdef USE_ANALOG_AUX
+        // Map to range 0 to 1
+        aux_analog[CHAN_5] = (channels[4] - 173) * 0.000610128f;
+        aux_analog[CHAN_6] = (channels[5] - 173) * 0.000610128f;
+        aux_analog[CHAN_7] = (channels[6] - 173) * 0.000610128f;
+        aux_analog[CHAN_8] = (channels[7] - 173) * 0.000610128f;
+        aux_analog[CHAN_9] = (channels[8] - 173) * 0.000610128f;
+
+        aux_analogchange[CHAN_5] = (aux_analog[CHAN_5] != lastaux_analog[CHAN_5]) ? 1 : 0;
+        aux_analogchange[CHAN_6] = (aux_analog[CHAN_6] != lastaux_analog[CHAN_6]) ? 1 : 0;
+        aux_analogchange[CHAN_7] = (aux_analog[CHAN_7] != lastaux_analog[CHAN_7]) ? 1 : 0;
+        aux_analogchange[CHAN_8] = (aux_analog[CHAN_8] != lastaux_analog[CHAN_8]) ? 1 : 0;
+        aux_analogchange[CHAN_9] = (aux_analog[CHAN_9] != lastaux_analog[CHAN_9]) ? 1 : 0;
+
+        lastaux_analog[CHAN_5] = aux_analog[CHAN_5];
+        lastaux_analog[CHAN_6] = aux_analog[CHAN_6];
+        lastaux_analog[CHAN_7] = aux_analog[CHAN_7];
+        lastaux_analog[CHAN_8] = aux_analog[CHAN_8];
+        lastaux_analog[CHAN_9] = aux_analog[CHAN_9];
+#endif
         
         time_lastframe = gettime(); 
         if (sbus_stats) stat_frames_accepted++;

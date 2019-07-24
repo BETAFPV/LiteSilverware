@@ -19,6 +19,12 @@
 
 // USE AT YOUR OWN RISK. ALWAYS REMOVE PROPS WHEN TESTING.
 
+#include "project.h"
+#include "defines.h"
+#include "drv_pwm.h"
+#include "drv_time.h"
+#include "util.h"
+#include "drv_dshot.h"
 
 // Enable this for 3D. The 'Motor Direction' setting in BLHeliSuite must
 // be set to 'Bidirectional' (or 'Bidirectional Rev.') accordingly:
@@ -37,7 +43,9 @@
 
 // IDLE_OFFSET is added to the throttle. Adjust its value so that the motors
 // still spin at minimum throttle.
+#ifndef IDLE_OFFSET
 #define IDLE_OFFSET 40
+#endif
 
 // if using 3 gpio A and 1 b enable "less delay" (for dshot300 only)
 //#define LESS_DELAY
@@ -55,16 +63,8 @@
 
 // Dshot150 is pretty insensitive to pin mixes and wire capacitance
 
-#include "project.h"
 
-#include "config.h"
-#include "defines.h"
-#include "drv_pwm.h"
-#include "drv_time.h"
-#include "hardware.h"
-#include "util.h"
-#include "drv_dshot.h"
-#include "config.h"
+
 
 #ifdef USE_DSHOT_DRIVER_BETA
 

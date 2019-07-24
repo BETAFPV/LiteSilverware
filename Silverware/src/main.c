@@ -28,14 +28,13 @@ THE SOFTWARE.
 
 
 #include "project.h"
-
+#include "defines.h"
 #include "led.h"
 #include "util.h"
 #include "sixaxis.h"
 #include "drv_adc.h"
 #include "drv_time.h"
 #include "drv_softi2c.h"
-#include "config.h"
 #include "drv_pwm.h"
 #include "drv_adc.h"
 #include "drv_gpio.h"
@@ -44,7 +43,6 @@ THE SOFTWARE.
 #include "drv_spi.h"
 #include "control.h"
 #include "pid.h"
-#include "defines.h"
 #include "drv_i2c.h"
 #include "drv_softi2c.h"
 #include "drv_serial.h"
@@ -67,7 +65,7 @@ THE SOFTWARE.
 #endif									   
 						   
 						   
-#if defined (__GNUC__)&& !( defined (SOFT_LPF_NONE) || defined (SOFT_LPF_1ST_HZ) || defined (SOFT_LPF_2ST_HZ) )
+#if defined (__GNUC__)&& !( defined (SOFT_LPF_NONE) || defined (GYRO_FILTER_PASS1) || defined (GYRO_FILTER_PASS2) )
 #warning the soft lpf may not work correctly with gcc due to longer loop time
 #endif
 
@@ -107,8 +105,9 @@ extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
 #if defined(RX_SBUS_DSMX_BAYANG_SWITCH)
 extern int sbus_dsmx_flag;
-int rx_switch = 0;
 #endif
+int rx_switch = 0;
+int flightmode = 0;
 // looptime in seconds
 float looptime;
 // filtered battery in volts
@@ -132,15 +131,14 @@ float rx[4];
 // the last 2 are always on and off respectively
 char aux[AUXNUMBER] = { 0 ,0 ,0 , 0 , 0 , 0};
 char lastaux[AUXNUMBER];
+
 // if an aux channel has just changed
 char auxchange[AUXNUMBER];
-
-
-extern float pidkp[PIDNUMBER];  
-extern float pidki[PIDNUMBER];	
-extern float pidkd[PIDNUMBER];
-
-float *pid_p_i_d[] = {pidkp,pidki,pidkd};
+// analog version of each aux channel
+float aux_analog[AUXNUMBER];
+float lastaux_analog[AUXNUMBER];
+// if an analog aux channel has just changed
+char aux_analogchange[AUXNUMBER];
 
 // bind / normal rx mode
 extern int rxmode;
@@ -148,10 +146,17 @@ extern int rxmode;
 extern int failsafe;
 extern float hardcoded_pid_identifier;
 extern int onground;
+extern float pidkp[PIDNUMBER];  
+extern float pidki[PIDNUMBER];	
+extern float pidkd[PIDNUMBER];
+
+float *pid_p_i_d[] = {pidkp,pidki,pidkd};
+
 int in_air;
 int armed_state;
 int arming_release;
 int binding_while_armed = 1;
+float lipo_cell_count = 1;
 
 //Experimental Flash Memory Feature
 int flash_feature_1 = 0;
@@ -169,10 +174,13 @@ volatile int switch_to_4way = 0;
 static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
-
+#ifdef  Lite_OSD            
+unsigned char Main_Count=0 ;            //  ¼ÇÂ¼´óÑ­»·µÄ´ÎÊý
+unsigned char Lite_OSD_Time_Flag=10 ;   //  ´óÑ­»·Ö´ÐÐLite_OSD_Time_Flag´ÎË¢ÐÂÒ»´ÎOSD,·ÉÐÐÄ¬ÈÏÎª10£¬µ÷²ÎÄ¬ÈÏÎª0
+#endif	
 int main(void)
 {
-	
+
 	delay(1000);
 
 
@@ -230,8 +238,10 @@ if(KEY == 0)
 		}
 		flash_save();
 }
-#endif
+#else 
 
+#endif
+#ifdef Lite_OSD
 	main_menu = CreateDbCcLinkList(3,0);     //长度为3  0：主菜单
 	main_menu_head = main_menu;   					 //记录主菜单的头
 	
@@ -242,12 +252,21 @@ if(KEY == 0)
 	Motor_menu_head = Motor_menu;
 	
 	Menu_pointer = main_menu;
+
+
+#endif
     gpio_init();	
     ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
     time_init();
+#ifdef  Lite_OSD    
 	osd_spi_init();
+#endif
+#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
+		rx_spektrum_bind(); 
+#endif
+	
 	
 	delay(100000);
 		
@@ -310,27 +329,47 @@ else if(rx_switch == 3)    //DSMX 2048
 #else
 	rx_init();
 #endif
+
+#ifdef USE_ANALOG_AUX
+  // saves initial pid values - after flash loading
+  pid_init();
+#endif
+
+
+	
 int count = 0;
 	
-while ( count < 64 )
+while ( count < 5000 )
 {
-	vbattfilt += adc_read(0);
-	delay(1000);
+	float bootadc = adc_read(0)*vreffilt;
+	lpf ( &vreffilt , adc_read(1)  , 0.9968f);
+	lpf ( &vbattfilt , bootadc , 0.9968f);
 	count++;
 }
+
+#ifndef LIPO_CELL_COUNT
+for ( int i = 6 ; i > 0 ; i--)
+{
+		float cells = i;
+		if (vbattfilt/cells > 3.7f)
+		{	
+			lipo_cell_count = cells;
+			break;
+		}
+}
+#else
+		lipo_cell_count = (float)LIPO_CELL_COUNT;
+#endif
+	
 #ifdef RX_BAYANG_BLE_APP
    // for randomising MAC adddress of ble app - this will make the int = raw float value        
     random_seed =  *(int *)&vbattfilt ; 
     random_seed = random_seed&0xff;
 #endif
- vbattfilt = vbattfilt/64;	
-// startvref = startvref/64;
-
-
 	
 #ifdef STOP_LOWBATTERY
 // infinite loop
-if ( vbattfilt < (float) 3.3f) failloop(2);
+if ( vbattfilt/lipo_cell_count < 3.3f) failloop(2);
 #endif
 
 
@@ -359,7 +398,7 @@ extern float accelcal[3];
 extern int liberror;
 if ( liberror ) 
 {
-    failloop(7);
+		failloop(7);
 }
 
 
@@ -384,9 +423,9 @@ if ( liberror )
 		looptime = ((uint32_t)( time - lastlooptime));
 		if ( looptime <= 0 ) looptime = 1;
 		looptime = looptime * 1e-6f;
-		if ( looptime > 0.03f ) // max loop 20ms
+		if ( looptime > 0.02f ) // max loop 20ms
 		{
-			failloop(6);	
+			failloop( 6);	
 			//endless loop			
 		}
 	
@@ -430,7 +469,7 @@ if ( liberror )
 		// ( or they can use a single filter)		
 		lpf ( &thrfilt , thrsum , 0.9968f);	// 0.5 sec at 1.6ms loop time	
 
-        static float vbattfilt_corr = 4.2;
+        float vbattfilt_corr = 4.2f * lipo_cell_count;
         // li-ion battery model compensation time decay ( 18 seconds )
         lpf ( &vbattfilt_corr , vbattfilt , FILTERCALC( 1000 , 18000e3) );
 	
@@ -488,6 +527,7 @@ if( thrfilt > 0.1f )
             }
         }   
     }
+
 }
 
 #undef VDROP_FACTOR
@@ -530,14 +570,17 @@ if ( LED_NUMBER > 0)
     {
         if ( rxmode == RXMODE_BIND)
         {// bind mode
-						int i;
-					  for(i=2;i>0;i--)
-						{
-								motor_dir(0,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-								motor_dir(1,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-								motor_dir(2,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-								motor_dir(3,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-						}
+
+#ifdef  Lite_OSD            
+            int i;
+            for(i=2;i>0;i--)
+            {
+                motor_dir(0,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                motor_dir(1,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                motor_dir(2,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                motor_dir(3,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+            }
+#endif            
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -665,8 +708,9 @@ else if(rx_switch == 3)
 }
 #else
 checkrx();
-#endif
 
+#endif
+#ifdef  Lite_OSD  
 
 /*osd data transmit*/
 while ( (gettime() - time) < LOOPTIME );	
@@ -710,7 +754,32 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 		}
 		Motor_menu = Motor_menu_head;	
 }
+    Main_Count ++;
+/*osd data transmit*/
+if(Lite_OSD_Time_Flag == Main_Count)
+{
+    Main_Count = 0;
+    while ( (gettime() - time) < LOOPTIME );	
 
+    if (aux[LEVELMODE])
+    {
+        if (aux[RACEMODE] && !aux[HORIZON])
+        {
+            flightmode = 2;
+        }
+        else if (aux[HORIZON])
+        {
+            flightmode = 3; 
+        }
+        else
+        {
+            flightmode = 0;
+        }
+    }
+    else
+    {
+        flightmode = 1;
+    }
 if(1 == menu_flag)
 {
 		if((rx[Pitch] < -0.6f) && (down_flag == 1))
@@ -907,10 +976,18 @@ if(1 == menu_flag)
 
 make_vol_pack(OSD_DATA,(int)(vbattfilt*100),pidkp,pidki,pidkd,menu_flag,Menu_pointer->menu_class,Menu_pointer->menu_index);
 OSD_Tx_Data(OSD_DATA,pack_len);
+}
+#endif
 	}// end loop
 	
 
+#ifdef DEBUG
+	debug.cpu_load = (gettime() - lastlooptime )*1e-3f;
+#endif
+
+
 }
+
 
 // 2 - low battery at powerup - if enabled by config
 // 3 - radio chip not detected

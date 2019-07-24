@@ -9,7 +9,7 @@
 
 #include "util.h"
 #include "sixaxis.h"
-#include "config.h"
+#include "defines.h"
 
 #include <stdlib.h>
 
@@ -24,6 +24,16 @@ extern debug_type debug;
 // disable drift correction ( for testing)
 #define DISABLE_ACC 0
 
+#ifdef ACCELEROMETER_DRIFT_FIX
+// filter time in seconds
+// time to correct gyro readings using the accelerometer
+// 1-4 are generally good
+#define FILTERTIME 5.0
+
+// accel magnitude limits for drift correction
+#define ACC_MIN 0.9f
+#define ACC_MAX 1.1f
+#else
 // filter time in seconds
 // time to correct gyro readings using the accelerometer
 // 1-4 are generally good
@@ -32,7 +42,7 @@ extern debug_type debug;
 // accel magnitude limits for drift correction
 #define ACC_MIN 0.7f
 #define ACC_MAX 1.3f
-
+#endif
 
 float GEstG[3] = { 0, 0, ACC_1G };
 
@@ -119,7 +129,7 @@ void imu_calc(void)
 // remove bias
     accel[0] = accel[0] - accelcal[0];
     accel[1] = accel[1] - accelcal[1];
-
+		accel[2] = accel[2] - accelcal[2];
 
 // reduce to accel in G
     for (int i = 0; i < 3; i++)

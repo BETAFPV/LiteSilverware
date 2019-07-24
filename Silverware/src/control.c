@@ -26,7 +26,6 @@ THE SOFTWARE.
 #include <math.h>
 
 #include "pid.h"
-#include "config.h"
 #include "util.h"
 #include "drv_pwm.h"
 #include "control.h"
@@ -37,7 +36,6 @@ THE SOFTWARE.
 #include "drv_fmc.h"
 #include "flip_sequencer.h"
 #include "gestures.h"
-#include "defines.h"
 #include "led.h"
 
 
@@ -49,7 +47,7 @@ extern int in_air;
 extern int arming_release;
 extern int binding_while_armed;
 extern int rx_ready;
-extern char menu_flag;
+
 extern float rx[];
 extern float gyro[3];
 extern int failsafe;
@@ -61,7 +59,6 @@ extern float attitude[];
 
 int onground = 1;
 int onground_long = 1;
-int FlyingMode=0;
 
 float thrsum;
 
@@ -74,6 +71,8 @@ extern float looptime;
 
 extern char auxchange[AUXNUMBER];
 extern char aux[AUXNUMBER];
+extern float aux_analog[AUXNUMBER];
+extern char aux_analogchange[AUXNUMBER];
 
 extern int ledcommand;
 extern int ledblink;
@@ -102,12 +101,55 @@ float underthrottlefilt = 0;
 
 float rxcopy[4];
 
+#ifdef BETAFLIGHT_RATES
+#define SETPOINT_RATE_LIMIT 1998.0f
+#define RC_RATE_INCREMENTAL 14.54f
+
+static inline float constrainf(float amt, float low, float high)
+{
+    if (amt < low)
+        return low;
+    else if (amt > high)
+        return high;
+    else
+        return amt;
+}
+
+static float calcBFRatesRad(int axis)
+{
+    float rcRate, superExpo;
+    if (axis == ROLL) {
+        rcRate = (float) BF_RC_RATE_ROLL;
+        superExpo = (float) BF_SUPER_RATE_ROLL;
+    } else if (axis == PITCH) {
+        rcRate = (float) BF_RC_RATE_PITCH;
+        superExpo = (float) BF_SUPER_RATE_PITCH;
+	} else {
+        rcRate = (float) BF_RC_RATE_YAW;
+        superExpo = (float) BF_SUPER_RATE_YAW;
+    }
+    if (rcRate > 2.0f) {
+        rcRate += RC_RATE_INCREMENTAL * (rcRate - 2.0f);
+    }
+    const float rcCommandfAbs = rxcopy[axis] > 0 ? rxcopy[axis] : -rxcopy[axis];
+    float angleRate = 200.0f * rcRate * rxcopy[axis];
+    if (superExpo) {
+        const float rcSuperfactor = 1.0f / (constrainf(1.0f - (rcCommandfAbs * superExpo), 0.01f, 1.00f));
+        angleRate *= rcSuperfactor;
+    }
+    return constrainf(angleRate, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT) * (float) DEGTORAD;
+}
+#endif
+
 void control( void)
 {	
 
-// rates / expert mode
+// high-low rates switch 
 float rate_multiplier = 1.0;
-	
+
+#if (defined USE_ANALOG_AUX && defined ANALOG_RATE_MULT)
+	rate_multiplier = aux_analog[ANALOG_RATE_MULT];
+#else
 	if ( aux[RATES]  )
 	{		
 		
@@ -117,7 +159,7 @@ float rate_multiplier = 1.0;
 		rate_multiplier = LOW_RATES_MULTI;
 	}
 	// make local copy
-	
+#endif
 	
 #ifdef INVERTED_ENABLE	
     extern int pwmdir;
@@ -130,9 +172,9 @@ float rate_multiplier = 1.0;
 	for ( int i = 0 ; i < 3 ; i++)
 	{
 		#ifdef STOCK_TX_AUTOCENTER
-		rxcopy[i] = (rx[i] - autocenter[i])* rate_multiplier;
+		rxcopy[i] = (rx[i] - autocenter[i]);
 		#else
-		rxcopy[i] = rx[i] * rate_multiplier;
+		rxcopy[i] = rx[i];
 		#endif
 		#ifdef STICKS_DEADBAND
 		if ( fabsf( rxcopy[ i ] ) <= STICKS_DEADBAND ) {
@@ -171,23 +213,30 @@ pid_precalc();
 
 
 	// flight control
+
+	float rates[3];
+
+#ifndef BETAFLIGHT_RATES
+    rates[0] = rate_multiplier * rxcopy[0] * (float) MAX_RATE * DEGTORAD;
+    rates[1] = rate_multiplier * rxcopy[1] * (float) MAX_RATE * DEGTORAD;
+    rates[2] = rate_multiplier * rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
+#else
+    rates[0] = rate_multiplier * calcBFRatesRad(0);
+    rates[1] = rate_multiplier * calcBFRatesRad(1);
+    rates[2] = rate_multiplier * calcBFRatesRad(2);
+#endif
         
 if (aux[LEVELMODE]&&!acro_override){
-    
-    FlyingMode=0;
-	// level mode calculations done after to reduce latency
-	// the 1ms extra latency should not affect cascaded pids significantly
 	extern void stick_vector( float rx_input[] , float maxangle);
 	extern float errorvect[]; // level mode angle error calculated by stick_vector.c	
 	extern float GEstG[3]; // gravity vector for yaw feedforward
 	float yawerror[3] = {0}; // yaw rotation vector
 	// calculate roll / pitch error
-	stick_vector( rxcopy , 0 ); 
-	float yawrate = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD; 
+	stick_vector( rxcopy , 0 );
 	// apply yaw from the top of the quad 
-	yawerror[0] = GEstG[1] * yawrate;
-	yawerror[1] = - GEstG[0] * yawrate;
-	yawerror[2] = GEstG[2] * yawrate;
+	yawerror[0] = GEstG[1] * rates[2];
+	yawerror[1] = - GEstG[0] * rates[2];
+	yawerror[2] = GEstG[2] * rates[2];
 	
 	
 	// *************************************************************************
@@ -204,21 +253,19 @@ if (aux[LEVELMODE]&&!acro_override){
 	
 	
 	if (aux[RACEMODE] && !aux[HORIZON]){ //racemode with angle behavior on roll ais
-        
-        if (GEstG[2] < 0 ){ // acro on roll and pitch when inverted
-            error[0] = rxcopy[0] * (float) MAX_RATE * DEGTORAD - gyro[0];
-            error[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD - gyro[1];
-        }else{
-            //roll is leveled to max angle limit
-            angleerror[0] = errorvect[0] ; 
-            error[0] = apid(0) + yawerror[0] - gyro[0];
-            //pitch is acro 
-            error[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD - gyro[1];}
+			if (GEstG[2] < 0 ){ // acro on roll and pitch when inverted
+					error[0] = rates[0] - gyro[0];
+					error[1] = rates[1] - gyro[1];
+			}else{
+					//roll is leveled to max angle limit
+					angleerror[0] = errorvect[0] ; 
+					error[0] = apid(0) + yawerror[0] - gyro[0];
+					//pitch is acro 
+					error[1] = rates[1] - gyro[1];}
 			// yaw
 			error[2] = yawerror[2] - gyro[2];
 		
-	}else if(aux[RACEMODE] && aux[HORIZON]){	//racemode with horizon behavior on roll axis
-            
+	}else if(aux[RACEMODE] && aux[HORIZON]){	//racemode with horizon behavior on roll axis	
 			float inclinationRoll	= attitude[0];
 			float inclinationPitch = attitude[1];
 			float inclinationMax;
@@ -241,14 +288,14 @@ if (aux[LEVELMODE]&&!acro_override){
 			float fade = (stickFade *(1-HORIZON_SLIDER))+(HORIZON_SLIDER * angleFade);
 			// apply acro to roll for inverted behavior
 			if (GEstG[2] < 0 ){
-					error[0] = rxcopy[0] * (float) MAX_RATE * DEGTORAD - gyro[0];
-					error[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD - gyro[1];
+					error[0] = rates[0] - gyro[0];
+					error[1] = rates[1] - gyro[1];
 			}else{ // apply a transitioning mix of acro and level behavior inside of stick HORIZON_TRANSITION point and full acro beyond stick HORIZON_TRANSITION point					
 					angleerror[0] = errorvect[0] ;
 					// roll angle strength fades out as sticks approach HORIZON_TRANSITION while acro stength fades in according to value of acroFade factor
-					error[0] = ((apid(0) + yawerror[0] - gyro[0]) * (1 - fade)) + (fade * (rxcopy[0] * (float) MAX_RATE * DEGTORAD - gyro[0]));
+					error[0] = ((apid(0) + yawerror[0] - gyro[0]) * (1 - fade)) + (fade * (rates[0] - gyro[0]));
 					//pitch is acro
-					error[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD - gyro[1];
+					error[1] = rates[1] - gyro[1];
 			}
 	
 			// yaw
@@ -281,11 +328,11 @@ if (aux[LEVELMODE]&&!acro_override){
 					float fade = (stickFade *(1-HORIZON_SLIDER))+(HORIZON_SLIDER * angleFade);
 					// apply acro to roll and pitch sticks for inverted behavior
 					if (GEstG[2] < 0 ){
-						error[i] = rxcopy[i] * (float) MAX_RATE * DEGTORAD - gyro[i];
+						error[i] = rates[i] - gyro[i];
 					}else{ // apply a transitioning mix of acro and level behavior inside of stick HORIZON_TRANSITION point and full acro beyond stick HORIZON_TRANSITION point					
 						angleerror[i] = errorvect[i] ;
 						//  angle strength fades out as sticks approach HORIZON_TRANSITION while acro stength fades in according to value of acroFade factor
-						error[i] = ((apid(i) + yawerror[i] - gyro[i]) * (1 - fade)) + (fade * (rxcopy[i] * (float) MAX_RATE * DEGTORAD - gyro[i]));
+						error[i] = ((apid(i) + yawerror[i] - gyro[i]) * (1 - fade)) + (fade * (rates[i] - gyro[i]));
 					}
 			}
 			// yaw
@@ -300,16 +347,15 @@ if (aux[LEVELMODE]&&!acro_override){
       // yaw
 			error[2] = yawerror[2]  - gyro[2];
 		} 
-}
-else{	// rate mode
-    FlyingMode=1;
-    setpoint[0] = rxcopy[0] * (float) MAX_RATE * DEGTORAD;
-		setpoint[1] = rxcopy[1] * (float) MAX_RATE * DEGTORAD;
-		setpoint[2] = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
+}else{	// rate mode
+
+    setpoint[0] = rates[0];
+    setpoint[1] = rates[1];
+    setpoint[2] = rates[2];
           
-		for ( int i = 0; i < 3; i++ ) {
-			error[i] = setpoint[i] - gyro[i];          //Calculate Angle error                      
-		}
+	for ( int i = 0; i < 3; i++ ) {
+		error[i] = setpoint[i] - gyro[i];
+	}
 }
 
 
@@ -336,21 +382,20 @@ else{	// rate mode
 
 		
 #ifndef ARMING
- armed_state = 1;													// if arming feature is disabled - quad is always armed
-#else																// CONDITION: arming feature is enabled
-	if (!aux[ARMING]){												// CONDITION: switch is DISARMED
-		armed_state = 0;											// disarm the quad by setting armed state variable to zero
-		if (rx_ready ==1)	binding_while_armed = 0;				// rx is bound and has been disarmed so clear binding while armed flag
-	}else{ 															// CONDITION: switch is ARMED
-		if (((rx[3] > THROTTLE_SAFETY) && (arming_release == 0))|| (binding_while_armed == 1 || menu_flag == 1)){ 		// CONDITION: (throttle is above safety limit and ARMING RELEASE FLAG IS NOT CLEARED) OR (bind just took place with transmitter armed)		
-			armed_state = 0;																			// override to disarmed state and rapid blink the leds
+ armed_state = 1;																							 									 // if arming feature is disabled - quad is always armed
+#else																												  											// CONDITION: arming feature is enabled
+	if (!aux[ARMING]){																					 										  // 						CONDITION: switch is DISARMED
+		armed_state = 0;																															  // 												disarm the quad by setting armed state variable to zero
+		if (rx_ready ==1)	binding_while_armed = 0;																			//                        rx is bound and has been disarmed so clear binding while armed flag
+	}else{ 																				   						  										// 						CONDITION: switch is ARMED
+		if (((rx[3] > THROTTLE_SAFETY) && (arming_release == 0)) || (binding_while_armed == 1)){ 		//				   CONDITION: (throttle is above safety limit and ARMING RELEASE FLAG IS NOT CLEARED) OR (bind just took place with transmitter armed)		
+			armed_state = 0;																				 										  //                         	 				override to disarmed state and rapid blink the leds
 		  ledcommand = 1;
-			
-		}else{																							// CONDITION: quad is being armed in a safe state 																		
-			armed_state = 1;                                        									// arm the quad by setting armed state variable to 1
-		  arming_release = 1;																			// clear the arming release flag - the arming release flag being cleared
-		}																							    // is what stops the quad from automatically disarming again the next time
-	}																									// throttle is raised above the safety limit
+		}else{																									  										  //            					 CONDITION: quad is being armed in a safe state 																		
+			armed_state = 1;                                        										  //                      					  arm the quad by setting armed state variable to 1
+		  arming_release = 1;																														//                       						clear the arming release flag - the arming release flag being cleared
+		}																													 										  //											 						is what stops the quad from automatically disarming again the next time
+	}																																									//											 						throttle is raised above the safety limit
 #endif
 
 #ifndef IDLE_UP
@@ -362,29 +407,29 @@ else{	// rate mode
 #endif
 	
 #ifndef IDLE_THR
-	#define IDLE_THR .05f
+	#define IDLE_THR .001f
 #endif
 
-	if (armed_state == 0){                      // CONDITION: armed state variable is 0 so quad is DISARMED					
-		throttle = 0;							//						override throttle to 0
-		in_air = 0;								//						flag in air variable as NOT IN THE AIR for mix throttle increase safety
-		arming_release = 0;						//						arming release flag is set to not cleared to reactivate the throttle safety limit for the next arming event
+	if (armed_state == 0){                                     												// CONDITION: armed state variable is 0 so quad is DISARMED					
+		throttle = 0;																																		//						override throttle to 0
+		in_air = 0;																																			//						flag in air variable as NOT IN THE AIR for mix throttle increase safety
+		arming_release = 0;																															//						arming release flag is set to not cleared to reactivate the throttle safety limit for the next arming event
 	
-	}else{                                      // CONDITION: armed state variable is 1 so quad is ARMED							 
-			if (idle_state == 0){               //            CONDITION: idle up is turned OFF				
+	}else{                                                    	  										// CONDITION: armed state variable is 1 so quad is ARMED							 
+			if (idle_state == 0){                                     										//            CONDITION: idle up is turned OFF				
 				if ( rx[3] < 0.05f ){
-					throttle = 0;               //   											set a small dead zone where throttle is zero and
-				  in_air = 0;					//												deactivate mix increase 3 since throttle is off
+					throttle = 0;                      																				//   											set a small dead zone where throttle is zero and
+				  in_air = 0;																																//												deactivate mix increase 3 since throttle is off
 				}else{ 
-					throttle = (rx[3] - 0.05f)*1.05623158f;    //                        map the remainder of the the active throttle region to 100%
-					in_air = 1;}				//												activate mix increase since throttle is on
-			}else{ 								//						CONDITION: idle up is turned ON												
-				throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);//     throttle range is mapped from idle throttle value to 100%							  
-				if ((rx[3] > THROTTLE_SAFETY) && (in_air == 0)) in_air = 1; 	//      change the state of in air flag when first crossing the throttle 
-			}																	//      safety value to indicate craft has taken off for mix increase safety
+					throttle = (rx[3] - 0.05f)*1.05623158f;            												//                        map the remainder of the the active throttle region to 100%
+					in_air = 1;}																															//												activate mix increase since throttle is on
+			}else{ 																																				//						CONDITION: idle up is turned ON												
+				throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);						//            						throttle range is mapped from idle throttle value to 100%							  
+				if ((rx[3] > THROTTLE_SAFETY) && (in_air == 0)) in_air = 1; 			  				//            						change the state of in air flag when first crossing the throttle 
+			}																																							//            						safety value to indicate craft has taken off for mix increase safety
 	}
 
-#ifdef STICK_TRAVEL_CHECK														//This feature completely disables throttle and allows visual feedback if control inputs reach full throws
+#ifdef STICK_TRAVEL_CHECK																				//This feature completely disables throttle and allows visual feedback if control inputs reach full throws
 //Stick endpoints check tied to aux channel stick gesture
 if (aux[CH_AUX1]){
 	throttle = 0;
@@ -572,10 +617,12 @@ extern float throttlehpf( float in );
 		pidoutput[2] = -pidoutput[2];
 	#endif
 #endif
+	
 #ifdef INVERTED_ENABLE
 if (pwmdir == REVERSE)
 		{
-
+			// inverted flight
+		
 		mix[MOTOR_FR] = throttle + pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle - pidoutput[ROLL] + pidoutput[PITCH] + pidoutput[YAW];		// FL	
 		mix[MOTOR_BR] = throttle + pidoutput[ROLL] - pidoutput[PITCH] + pidoutput[YAW];		// BR
@@ -586,7 +633,7 @@ if (pwmdir == REVERSE)
 else
 #endif    
 {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ;
+    // normal mixer
 		mix[MOTOR_FR] = throttle - pidoutput[ROLL] - pidoutput[PITCH] + pidoutput[YAW];		// FR
 		mix[MOTOR_FL] = throttle + pidoutput[ROLL] - pidoutput[PITCH] - pidoutput[YAW];		// FL	
 		mix[MOTOR_BR] = throttle - pidoutput[ROLL] + pidoutput[PITCH] - pidoutput[YAW];		// BR
@@ -629,6 +676,50 @@ else
 		#endif
        		}
 
+
+// MIXER SCALING
+
+#ifdef BRUSHLESS_MIX_SCALING
+		#undef MIX_LOWER_THROTTLE
+		#undef MIX_INCREASE_THROTTLE
+		#undef MIX_LOWER_THROTTLE_3
+		#undef MIX_INCREASE_THROTTLE_3
+
+         static int mixScaling;
+         if (onground) mixScaling = 0;
+         // only enable once really in the air
+         else if (in_air) mixScaling = 1;
+         if (mixScaling) {
+						 //ledcommand=1;
+             float minMix = 1000.0f;
+             float maxMix = -1000.0f;
+             for (int i = 0; i<4; i++) {
+                 if (mix[i] < minMix) minMix = mix[i];
+                 if (mix[i] > maxMix) maxMix = mix[i];
+             }
+             float mixRange = maxMix - minMix;
+             float reduceAmount = 0.0f;
+             if (mixRange > 1.0f) {
+                 float scale = 1.0f / mixRange;
+                 for (int i = 0; i<4; i++)
+                     mix[i] *= scale;
+                 minMix *= scale;
+                 reduceAmount = minMix;
+             } else {
+                 if (maxMix > 1.0f)
+                     reduceAmount = maxMix - 1.0f;
+                 else if (minMix < 0.0f)
+                     reduceAmount = minMix;
+             }
+             if (reduceAmount != 0.0f)
+                 for (int i=0; i<4; i++)
+                     mix[i] -= reduceAmount;
+         }
+#endif            
+        					
+
+
+					
 
 #if ( defined MIX_LOWER_THROTTLE || defined MIX_INCREASE_THROTTLE)
 
@@ -811,11 +902,32 @@ if ( overthrottle > 0.1f) ledcommand = 1;
 }
 #endif
 
-            
-            
-            
-thrsum = 0;		
+ 
+#ifdef MOTOR_MIN_COMMAND2    // for testing purposes:  scaling style min motor command.  scales up all mix outputs so lowest motor is at min command only when one drops below min
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else
+		float motor_min_value = (float) MOTOR_MIN_COMMAND2 * 0.01f;
+		float motor_min_adjust = 0;
+		for (int i = 0; i<4; i++) {                      
+			if ( mix[i] < 0 ) mix[i] = 0;								 		//Clip all mixer value to 0 before scaling
+			if (mix[i] < (motor_min_value))    			        //Determine maximum adjustment necessary
+					{
+					float motor_min_adjust_temp = motor_min_value - mix[i];
+					if (motor_min_adjust_temp > motor_min_adjust) motor_min_adjust = motor_min_adjust_temp;
+					}
+		}
+		for (int i = 0; i<4; i++) { 											// Scale up all 4 motors by an equal amount if any command has dropped below min
+		mix[i] += motor_min_adjust;
+		}
+		#endif
+#endif
 				
+ 
+            
+thrsum = 0;		//reset throttle sum for voltage monitoring logic in main loop
+
+//Begin for-loop to send motor commands
 		for ( int i = 0 ; i <= 3 ; i++)
 		{			
 		           
@@ -823,6 +935,8 @@ thrsum = 0;
 		mix[i] = clip_ff(mix[i], i);
 		#endif
 
+			
+//***********************Motor Test Logic
 		#if defined(MOTORS_TO_THROTTLE) || defined(MOTORS_TO_THROTTLE_MODE)
 		#if defined(MOTORS_TO_THROTTLE_MODE) && !defined(MOTORS_TO_THROTTLE)
 		if(aux[MOTORS_TO_THROTTLE_MODE])
@@ -843,15 +957,32 @@ thrsum = 0;
 		#warning "MOTORS TEST MODE"
 		#endif
 		#endif
+//***********************End Motor Test Logic
 
-		#ifdef MOTOR_MIN_ENABLE
-		if (mix[i] < (float) MOTOR_MIN_VALUE)
-		{
-			mix[i] = (float) MOTOR_MIN_VALUE;
-		}
+
+//***********************Min Motor Command Logic
+		#ifdef MOTOR_MIN_COMMAND3			// clipping style min motor command
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else     //clipping style min motor command override
+		if (mix[i] < (float) MOTOR_MIN_COMMAND3 * 0.01f)  mix[i] = (float) MOTOR_MIN_COMMAND3 * 0.01f;
+		#endif
 		#endif
 		
-			
+		#ifdef MOTOR_MIN_COMMAND   // for testing purposes:  mapping style min motor command.  remaps entire range of motor commands from user set min value to 1
+		#ifdef BRUSHLESS_TARGET
+		// do nothing - idle set by DSHOT
+		#else
+			float motor_min_value = (float) MOTOR_MIN_COMMAND * 0.01f;
+			if ( mix[i] < 0 ) mix[i] = 0;											//Clip all mixer values into 0 to 1 range before remapping
+			if ( mix[i] > 1 ) mix[i] = 1;	
+			mix[i] = motor_min_value + mix[i] * (1.0f - motor_min_value);
+		#endif
+#endif  
+//***********************End Min Motor Command Logic
+
+
+//***********************Send Motor PWM Command Logic			
 		#ifndef NOMOTORS
 		#ifndef MOTORS_TO_THROTTLE
 		//normal mode
@@ -866,17 +997,20 @@ thrsum = 0;
 		#warning "NO MOTORS"
 		tempx[i] = motormap( mix[i] );
 		#endif
+//***********************End Motor PWM Command Logic
 		
+//***********************Clip mmixer outputs (if not already done) before applying calculating throttle sum
 		if ( mix[i] < 0 ) mix[i] = 0;
 		if ( mix[i] > 1 ) mix[i] = 1;
 		thrsum+= mix[i];
 		}	
-		thrsum = thrsum / 4;
-		
-	}// end motors on
+// end of for-loop to send motor PWM commands
+		thrsum = thrsum / 4;		//calculate throttle sum for voltage monitoring logic in main loop		
+	}
+// end motors on
 	
 }
-
+// end of control function
 
 #ifndef MOTOR_FILTER2_ALPHA
 #define MOTOR_FILTER2_ALPHA 0.3
@@ -936,20 +1070,21 @@ float  motor_kalman( float in , int x)
 {    
 
 
+    
+        //do a prediction 
+       float x_temp_est = x_est_last[x]; 
+       float P_temp = P_last[x] + Q; 
 
-	//do a prediction 
-   float x_temp_est = x_est_last[x]; 
-   float P_temp = P_last[x] + Q; 
+       float K = P_temp * (1.0f/(P_temp + R));
+       float x_est = x_temp_est + K * (in - x_temp_est);  
+       float P = (1- K) * P_temp; 
+       
+        //update our last's 
+        P_last[x] = P; 
+        x_est_last[x] = x_est; 
+//
 
-   float K = P_temp * (1.0f/(P_temp + R));
-   float x_est = x_temp_est + K * (in - x_temp_est);  
-   float P = (1- K) * P_temp; 
-   
-	//update our last's 
-	P_last[x] = P; 
-	x_est_last[x] = x_est; 
-
-	return x_est;
+return x_est;
 }	
 	
 	

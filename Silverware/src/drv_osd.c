@@ -2,7 +2,10 @@
 #include "drv_time.h"
 #include "math.h"
 #include "defines.h"
+#include "targets.h"
 #include "config.h"
+
+#ifdef  Lite_OSD
 extern char motor_sta;
 extern char aux[AUXNUMBER];
 extern int rx_switch;
@@ -207,3 +210,6 @@ void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],f
 //			data[9] = 0x00;
 //	    data[10] = OSD_checksum(data);
 //}
+#endif
+
+

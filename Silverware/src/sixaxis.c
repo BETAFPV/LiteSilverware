@@ -28,17 +28,14 @@ THE SOFTWARE.
 #include "sixaxis.h"
 #include "drv_time.h"
 #include "util.h"
-#include "config.h"
+#include "defines.h"
 #include "led.h"
 #include "drv_serial.h"
-
 #include "drv_i2c.h"
-
 
 #include <math.h>
 #include <stdio.h>
 #include <inttypes.h>
-
 
 #include "debug.h"
 
@@ -126,6 +123,7 @@ float gyrocal[3];
 
 
 float lpffilter(float in, int num);
+float lpffilter2(float in, int num);
 
 void sixaxis_read(void)
 {
@@ -263,7 +261,19 @@ gyronew[2] = - gyronew[2];
 	  {
 		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
-		  gyro[i] = lpffilter(gyronew[i], i);
+			
+		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter(gyronew[i], i);
+			gyro[i] = lpffilter2(gyro[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+			gyro[i] = lpffilter(gyronew[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter2(gyronew[i], i);
+		#endif
 #else
 		  gyro[i] = gyronew[i];
 #endif
@@ -353,7 +363,19 @@ for (int i = 0; i < 3; i++)
 	  {
 		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
-		  gyro[i] = lpffilter(gyronew[i], i);
+			
+		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter(gyronew[i], i);
+			gyro[i] = lpffilter2(gyro[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+			gyro[i] = lpffilter(gyronew[i], i);
+		#endif
+			
+		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
+			gyro[i] = lpffilter2(gyronew[i], i);
+		#endif
 #else
 		  gyro[i] = gyronew[i];
 #endif

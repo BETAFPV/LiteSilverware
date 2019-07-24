@@ -2,7 +2,6 @@
 #include "stm32f0xx_usart.h"
 #include <stdio.h>
 #include "drv_serial.h"
-#include "config.h"
 #include "drv_time.h"
 #include "defines.h"
 #include "util.h"
@@ -23,6 +22,9 @@ extern float rx[4];
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
+extern float aux_analog[AUXNUMBER];
+extern float lastaux_analog[AUXNUMBER];
+extern char aux_analogchange[AUXNUMBER];
 int failsafe = 0;
 int rxmode = 0;
 int rx_ready = 0;
@@ -31,6 +33,7 @@ int rx_bind_enable = 0;
 
 // internal dsm variables
 
+#define DSM_SCALE_PERCENT 150												//adjust this line to match the stick scaling % set in your transmitter
 #define SERIAL_BAUDRATE 115200
 #define SPEK_FRAME_SIZE 16   
 #define SPEKTRUM_NEEDED_FRAME_INTERVAL  5000
@@ -62,7 +65,8 @@ int rx_frame_pending;
 int rx_frame_pending_last;
 uint32_t flagged_time;
 static volatile uint8_t spekFrame[SPEK_FRAME_SIZE];
-
+float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
+float dsmx_scalefactor = (0.14662756f/DSM_SCALE_PERCENT);
 
 // Receive ISR callback
 void USART1_IRQHandler(void)
@@ -144,7 +148,7 @@ void dsm_init(void)
     USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART1, &USART_InitStructure);
 // swap rx/tx pins
-#ifndef Alienwhoop_ZERO
+#ifdef SERIAL_RX_SWD
     USART_SWAPPinCmd( USART1, ENABLE);
 #endif
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
@@ -156,46 +160,6 @@ void dsm_init(void)
     NVIC_Init(&NVIC_InitStructure);
 // set setup complete flag
  framestarted = 0;
-}
-
-// Initialize the binding button
-void lite_2S_BINDKEY_init(void)
-{
-		GPIO_InitTypeDef    GPIO_InitStructure;
-	
- 	    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);
-	
-        GPIO_InitStructure.GPIO_Pin = LED1PIN;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-        GPIO_Init(LED1PORT, &GPIO_InitStructure); 
-	
-		GPIO_SetBits(LED1PORT,LED1PIN);
-}
-
-// Send Spektrum bind pulses
-void lite_2S_rx_spektrum_bind(void)
-{
-        GPIO_InitTypeDef    GPIO_InitStructure;
-        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-        GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-        GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-        GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
-        
-        // RX line, set high
-        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
-        // Bind window is around 20-140ms after powerup
-        delay(60000);
-
-        for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
-                // RX line, drive low for 120us
-                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
-                delay(120);
-            
-                // RX line, drive high for 120us
-                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
-                delay(120);
-		}
 }
 
 // Send Spektrum bind pulses to a GPIO e.g. TX1
@@ -275,25 +239,27 @@ spektrumFrameStatus();
 if (rx_frame_pending != rx_frame_pending_last) flagged_time = gettime();  		//updates flag to current time only on changes of losing a frame or getting one back
 if (gettime() - flagged_time > FAILSAFETIME) framestarted = 0;            		//watchdog if more than 1 sec passes without a frame causes failsafe
 		
-         
+        
 if ( framestarted == 1){
-				if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;																								// normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
+		    if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;																								// normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
 		   
-      // AETR channel order
-	#ifdef RX_DSMX_2048
-        rx[0] = (channels[1]*0.000998005f)-1.02195767f;  
-        rx[1] = (channels[2]*0.000998005f)-1.02195767f; 
-        rx[2] = (channels[3]*0.000998005f)-1.02195767f;
-        rx[3] = (channels[0]*0.0004990025f)-0.0109780552f;
+      // TAER channel order
+	#ifdef RX_DSMX_2048																												
+	      rx[0] = (channels[1] - 1024.0f) * dsmx_scalefactor;
+        rx[1] = (channels[2] - 1024.0f) * dsmx_scalefactor;
+        rx[2] = (channels[3] - 1024.0f) * dsmx_scalefactor;
+        rx[3] =((channels[0] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+
 				if ( rx[3] > 1 ) rx[3] = 1;	
 				if ( rx[3] < 0 ) rx[3] = 0;
 	#endif
 
 	#ifdef RX_DSM2_1024
-        rx[0] = (channels[1]*0.00199601f)-1.02195767f;  
-        rx[1] = (channels[2]*0.00199601f)-1.02195767f; 
-        rx[2] = (channels[3]*0.00199601f)-1.02195767f;
-        rx[3] = (channels[0]*0.000998005f)-0.0109780552f;
+        rx[0] = (channels[1] - 512.0f) * dsm2_scalefactor;
+        rx[1] = (channels[2] - 512.0f) * dsm2_scalefactor;
+        rx[2] = (channels[3] - 512.0f) * dsm2_scalefactor;	
+        rx[3] =((channels[0] - 512.0f) * dsm2_scalefactor * 0.5f) + 0.5f;
+
 				if ( rx[3] > 1 ) rx[3] = 1;	
 				if ( rx[3] < 0 ) rx[3] = 0;
 	#endif
@@ -332,6 +298,43 @@ if ( framestarted == 1){
 				aux[CHAN_7] = (channels[6] > 550) ? 1 : 0;						
 	#endif
 
+#ifdef USE_ANALOG_AUX
+
+	// Map to range -1 to 1
+	#ifdef RX_DSM2_1024
+		aux_analog[CHAN_5] = (channels[4] - 512.0f) * dsm2_scalefactor;
+		aux_analog[CHAN_6] = (channels[5] - 512.0f) * dsm2_scalefactor;
+		aux_analog[CHAN_7] = (channels[6] - 512.0f) * dsm2_scalefactor;	
+	#endif
+
+	#ifdef RX_DSMX_2048
+		aux_analog[CHAN_5] = (channels[4] - 1024.0f) * dsmx_scalefactor;
+		aux_analog[CHAN_6] = (channels[5] - 1024.0f) * dsmx_scalefactor;
+		aux_analog[CHAN_7] = (channels[6] - 1024.0f) * dsmx_scalefactor;
+		aux_analog[CHAN_8] = (channels[7] - 1024.0f) * dsmx_scalefactor;
+		aux_analog[CHAN_9] = (channels[8] - 1024.0f) * dsmx_scalefactor;
+		aux_analog[CHAN_10] = (channels[9] - 1024.0f) * dsmx_scalefactor;
+	#endif
+
+				aux_analogchange[CHAN_5] = (aux_analog[CHAN_5] != lastaux_analog[CHAN_5]) ? 1 : 0;
+				aux_analogchange[CHAN_6] = (aux_analog[CHAN_6] != lastaux_analog[CHAN_6]) ? 1 : 0;
+				aux_analogchange[CHAN_7] = (aux_analog[CHAN_7] != lastaux_analog[CHAN_7]) ? 1 : 0;
+  #ifdef RX_DSMX_2048
+				aux_analogchange[CHAN_8] = (aux_analog[CHAN_8] != lastaux_analog[CHAN_8]) ? 1 : 0;
+				aux_analogchange[CHAN_9] = (aux_analog[CHAN_9] != lastaux_analog[CHAN_9]) ? 1 : 0;
+				aux_analogchange[CHAN_10] = (aux_analog[CHAN_10] != lastaux_analog[CHAN_10]) ? 1 : 0;
+  #endif
+
+				lastaux_analog[CHAN_5] = aux_analog[CHAN_5];
+				lastaux_analog[CHAN_6] = aux_analog[CHAN_6];
+				lastaux_analog[CHAN_7] = aux_analog[CHAN_7];
+  #ifdef RX_DSMX_2048
+				lastaux_analog[CHAN_8] = aux_analog[CHAN_8];
+				lastaux_analog[CHAN_9] = aux_analog[CHAN_9];
+				lastaux_analog[CHAN_10] = aux_analog[CHAN_10];
+  #endif
+#endif
+
 
 				if (bind_safety > 900){								//requires 10 good frames to come in before rx_ready safety can be toggled to 1.  900 is about 2 seconds of good data
 					rx_ready = 1;												// because aux channels initialize low and clear the binding while armed flag before aux updates high
@@ -344,18 +347,5 @@ if ( framestarted == 1){
 						
 	}
 }	
-#endif
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	#endif
 

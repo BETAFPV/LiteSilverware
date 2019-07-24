@@ -18,10 +18,13 @@
  * for info about the stk500v2 implementation
  */
 
+
+#include "defines.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "config.h"
+
 #ifdef  USE_SERIAL_4WAY_BLHELI_INTERFACE
 #include "serial_4way.h"
 

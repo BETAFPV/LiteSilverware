@@ -1,7 +1,7 @@
 #include "project.h"
 #include "drv_adc.h"
 #include "util.h"
-#include "config.h"
+#include "defines.h"
 #include "debug.h"
 
 uint16_t adcarray[2];
@@ -31,7 +31,7 @@ void adc_init(void)
   
 	{
   GPIO_InitTypeDef    GPIO_InitStructure;
-   
+  
   GPIO_InitStructure.GPIO_Pin = BATTERYPIN ;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
@@ -88,10 +88,14 @@ void adc_init(void)
  
  // reference is measured a 3.3v, we are powered by 2.8, so a 1.17 multiplier
  // different vccs will translate to a different adc scale factor,
- // so actual vcc is not important as long as the voltage is correct in the end 
- // vref_cal =  1.17857f * (float) ( adcref_read ((adcrefcal *) 0x1FFFF7BA) );
-	vref_cal =  ADC_REF * (float) ( adcref_read ((adcrefcal *) 0x1FFFF7BA) );
+	vref_cal =  (3.3f/ (float)ADC_REF_VOLTAGE) * (float) ( adcref_read ((adcrefcal *) 0x1FFFF7BA) );
 }
+
+#ifndef ADC_SCALEFACTOR
+						// 12 bit ADC has 4096 steps
+						//scalefactor = (vref/4096) * (R1 + R2)/R2
+#define ADC_SCALEFACTOR ((float)ADC_REF_VOLTAGE/4096)*((float)VOLTAGE_DIVIDER_R1 + (float)VOLTAGE_DIVIDER_R2)*(1/(float)VOLTAGE_DIVIDER_R2)
+#endif
 
 float adc_read(int channel)
 {
@@ -101,7 +105,14 @@ float adc_read(int channel)
 		#ifdef DEBUG
 		lpf(&debug.adcfilt , (float) adcarray[0] , 0.998);
 		#endif	
-		return (float) adcarray[0] * ((float) (ADC_SCALEFACTOR*(ACTUAL_BATTERY_VOLTAGE/REPORTED_TELEMETRY_VOLTAGE))) ;
+		#ifdef USE_TWO_POINT_VOLTAGE_CORRECTION
+		#define ACTUAL_BATTERY_VOLTAGE_RANGE (ACTUAL_BATTERY_VOLTAGE_HI - ACTUAL_BATTERY_VOLTAGE_LO)
+		#define REPORTED_TELEMETRY_VOLTAGE_RANGE (REPORTED_TELEMETRY_VOLTAGE_HI - REPORTED_TELEMETRY_VOLTAGE_LO)
+		// CorrectedValue = (((RawValue – RawLow) * ReferenceRange) / RawRange) + ReferenceLow
+		return ( ( ((float) adcarray[0] * (float) ADC_SCALEFACTOR) - (float) REPORTED_TELEMETRY_VOLTAGE_LO ) * ((float) ACTUAL_BATTERY_VOLTAGE_RANGE / (float) REPORTED_TELEMETRY_VOLTAGE_RANGE) ) + (float) ACTUAL_BATTERY_VOLTAGE_LO;
+		#else
+		return 			(float) adcarray[0] * ((float) (ADC_SCALEFACTOR*(ACTUAL_BATTERY_VOLTAGE/REPORTED_TELEMETRY_VOLTAGE))) ;
+		#endif
 		
 		case 1:
         #ifdef DEBUG

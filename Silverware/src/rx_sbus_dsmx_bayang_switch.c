@@ -45,11 +45,13 @@ THE SOFTWARE.
 #include <stdio.h>
 #include "drv_serial.h"
 #include "drv_fmc.h"
+#include "targets.h"
 
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
 
 // global use rx variables
 extern float rx[4];
+extern int flightmode;
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
@@ -59,7 +61,7 @@ int rx_ready = 0;
 int bind_safety = 0;
 int rx_bind_enable = 0;
 int sbus_dsmx_flag = 0;     
-int flightmode = 0;
+
 // internal dsm variables
 
 #define DSMX_SERIAL_BAUDRATE 115200
@@ -1006,10 +1008,7 @@ void sbus_init(void)
     USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
 
     USART_Init(USART1, &USART_InitStructure);
-// swap rx/tx pins
-#ifndef Alienwhoop_ZERO
-    USART_SWAPPinCmd( USART1, ENABLE);
-#endif
+
 // invert signal ( default sbus )
    if (SBUS_INVERT) USART_InvPinCmd(USART1, USART_InvPin_Rx|USART_InvPin_Tx , ENABLE );
 
@@ -1416,24 +1415,24 @@ void switch_key(void)
 void lite_2S_rx_spektrum_bind(void)
 {
         GPIO_InitTypeDef    GPIO_InitStructure;
-        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
         GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
         GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
         GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
         
         // RX line, set high
-        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_PIN);
         // Bind window is around 20-140ms after powerup
         delay(60000);
 
         for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
                 // RX line, drive low for 120us
-                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_PIN);
                 delay(120);
             
                 // RX line, drive high for 120us
-                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_PIN);
                 delay(120);
 		}
 }
@@ -1441,28 +1440,28 @@ void lite_2S_rx_spektrum_bind(void)
  //Send Spektrum bind pulses to a GPIO e.g. TX1
 void rx_spektrum_bind(void)
 {
-#ifdef SERIAL_RX_SPEKBIND_RX_PIN
+#ifdef SERIAL_RX_PIN
 	rx_bind_enable = fmc_read_float(56);
 	if (rx_bind_enable == 0){
         GPIO_InitTypeDef    GPIO_InitStructure;
-        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_RX_PIN;
+        GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
         GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
         GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
         GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
         
         // RX line, set high
-        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+        PIN_ON(SERIAL_RX_PORT, SERIAL_RX_PIN);
         // Bind window is around 20-140ms after powerup
         delay(60000);
 
         for (uint8_t i = 0; i < BIND_PULSES; i++) { // 9 pulses for internal dsmx 11ms, 3 pulses for internal dsm2 22ms          
                 // RX line, drive low for 120us
-                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                PIN_OFF(SERIAL_RX_PORT, SERIAL_RX_PIN);
                 delay(120);
             
                 // RX line, drive high for 120us
-                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_RX_PIN);
+                PIN_ON(SERIAL_RX_PORT, SERIAL_RX_PIN);
                 delay(120);
         }
 	}

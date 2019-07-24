@@ -3,7 +3,7 @@
 #include "project.h"
 #include "drv_spi.h"
 #include "binary.h"
-#include "config.h"
+#include "defines.h"
 
 #ifdef SOFTSPI_3WIRE
 
@@ -16,7 +16,7 @@ void spi_init(void)
 //#ifdef Alienwhoop_ZERO   //Only for 2nd prototype w/spi bayang rx and chip select on programming clock pin
 //	delay (2000000);
 //#endif
-	GPIO_InitTypeDef  GPIO_InitStructure;
+		GPIO_InitTypeDef  GPIO_InitStructure;
 	
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -97,8 +97,8 @@ void spi_csoff( )
 
 void spi_sendbyte ( int data)
 {
-	mosi_output();
-	for ( int i =7 ; i >=0 ; i--)
+mosi_output();
+for ( int i =7 ; i >=0 ; i--)
 	{
 		if (  (data>>i)&1  ) 
 		{
@@ -108,11 +108,12 @@ void spi_sendbyte ( int data)
 		{
 			MOSILOW;
 		}
-	
-		SCKHIGH;
-		delay(5);
+        SCKHIGH;
+        delay(5);
 		SCKLOW;
+        
 		delay(5);
+		
 	}
 }
 
