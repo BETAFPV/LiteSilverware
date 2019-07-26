@@ -582,7 +582,7 @@ if ( LED_NUMBER > 0)
 
 #ifdef  Lite_Brushless            
             int i;
-            for(i=2;i>0;i--)
+            for(i=10;i>0;i--)
             {
                 motor_dir(0,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
                 motor_dir(1,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));

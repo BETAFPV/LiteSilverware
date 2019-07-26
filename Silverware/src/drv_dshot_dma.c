@@ -559,7 +559,9 @@ void DMA1_Channel4_5_IRQHandler(void)
 void motor_dir(unsigned char  number, unsigned char value)
 {
     make_packet(number,value,true);
-    dshot_dma_start();
+	if ( number == 3 ) {
+			dshot_dma_start();
+	}
 }
 #endif
 
