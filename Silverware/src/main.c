@@ -784,8 +784,8 @@ if(Lite_OSD_FPS == Main_Count)
               motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
             }
         }
-				else if(aux[RACEMODE])
-				{
+        else if(aux[RACEMODE])
+        {
             flightmode = 1;
             for(int i=10;i>0;i--)
             {
