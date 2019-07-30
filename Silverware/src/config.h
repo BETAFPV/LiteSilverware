@@ -112,6 +112,11 @@
 #define RATES CHAN_ON
 #define LEDS_ON CHAN_10
 
+#define Roll     0   
+#define Pitch    1   
+#define Yaw      2   
+#define Throttle 3   
+
 // *************switch for fpv / other, requires fet
 // *************comment out to disable
 //#define FPV_ON CHAN_ON

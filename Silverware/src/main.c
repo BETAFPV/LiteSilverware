@@ -77,10 +77,7 @@ debug_type debug;
 #endif
 
 
-#define Roll     0   
-#define Pitch    1   
-#define Yaw      2   
-#define Throttle 3   
+
 #define menu_max_item 3
 
 char down_flag = 0;
@@ -96,7 +93,7 @@ Menu_List Motor_menu,Motor_menu_head;
 Menu_List Menu_pointer;
 
 unsigned char OSD_DATA[17] = {0x00};
-char save_motor_dir[4] = {0,1,1,0};              //flash save motor dir
+char save_motor_dir[4] = {1,0,0,1};              //flash save motor dir
 // hal
 void clk_init(void);
 void imu_init(void);
@@ -564,11 +561,6 @@ if( thrfilt > 0.1f )
 	 gestures( );
 	}
 
-//        if(aux[0]>0) 
-//     ledoff(255); 
-//        else
-//            ledon(255);
-
 
 if ( LED_NUMBER > 0)
 {
@@ -578,18 +570,7 @@ if ( LED_NUMBER > 0)
     else
     {
         if ( rxmode == RXMODE_BIND)
-        {// bind mode
-
-#ifdef  Lite_Brushless            
-            int i;
-            for(i=10;i>0;i--)
-            {
-                motor_dir(0,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                motor_dir(1,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                motor_dir(2,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                motor_dir(3,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-            }
-#endif            
+        {// bind mode       
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -770,6 +751,13 @@ if(Lite_OSD_FPS == Main_Count)
 
     if (aux[LEVELMODE])
     {
+        for(int i=10;i>0;i--)
+        {
+          motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+          motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+          motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+          motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+				}
         if (aux[RACEMODE] && !aux[HORIZON])
         {
             flightmode = 2;
@@ -785,7 +773,29 @@ if(Lite_OSD_FPS == Main_Count)
     }
     else
     {
-        flightmode = 1;
+        if (!aux[RACEMODE])
+        {
+            flightmode = 1;
+            for(int i=10;i>0;i--)
+            {
+              motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+              motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+              motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+              motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+            }
+        }
+				else if(aux[RACEMODE])
+				{
+            flightmode = 1;
+            for(int i=10;i>0;i--)
+            {
+              motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+              motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+              motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+              motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+            }
+        }
+				
     }
 if(1 == menu_flag)
 {

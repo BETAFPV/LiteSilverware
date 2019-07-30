@@ -108,6 +108,9 @@
 extern int failsafe;
 extern int onground;
 
+extern float rx[4];
+extern char aux[AUXNUMBER];
+
 int pwmdir = 0;
 static unsigned long pwm_failsafe_time = 1;
 
@@ -430,8 +433,66 @@ void pwm_set( uint8_t number, float pwm )
 
 #else
 
-	// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
-	value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
+	if (aux[LEVELMODE])
+	{
+		// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
+		value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
+	}
+	else
+	{
+		if(aux[RACEMODE])
+		{
+				if((rx[Roll] > 0.6f))
+				{
+						if(number > 1)
+						{
+							value = pwm + rx[3]*1000  + 1000;
+						}
+						else
+						{
+								value = pwm;
+						}
+				}
+				if((rx[Roll] < -0.6f)) 
+				{
+						if(number <2 )
+						{
+							value = pwm + rx[3]*1000  + 1000;
+						}
+						else
+						{
+								value = pwm;
+						}
+				}
+				if((rx[Pitch] > 0.6f))
+				{
+						if(number==1 || number==3)
+						{
+							value = pwm + rx[3]*1000  + 1000;
+						}
+						else
+						{
+								value = pwm;
+						}							
+				}
+				if((rx[Pitch] < -0.6f))
+				{
+						if(number==0 || number==2)
+						{
+							value = pwm + rx[3]*1000  + 1000;
+						}
+						else
+						{
+								value = pwm;
+						}						
+				}
+		}
+		else
+		{
+			// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
+			value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
+		}
+	}
 
 #endif
 
