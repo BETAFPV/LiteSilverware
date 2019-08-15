@@ -55,6 +55,11 @@ extern int flightmode;
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
+
+#define DSM_SCALE_PERCENT 100	
+float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
+float dsmx_scalefactor = (0.14662756f/DSM_SCALE_PERCENT);
+
 int failsafe = 0;
 int rxmode = 0;
 int rx_ready = 0;
@@ -100,10 +105,7 @@ int rx_frame_pending_last;
 uint32_t flagged_time;
 static volatile uint8_t spekFrame[SPEK_FRAME_SIZE];
 
-
-
-
-
+extern unsigned char aetr_or_taer;
 
 #define SERIAL_BAUDRATE 100000
 
@@ -736,12 +738,22 @@ static int decodepacket( void)
 		 }	
 		if ( (sum&0xFF) == rxdata[14] )
 		{
-			rx[0] = packettodata( &rxdata[4] );
-			rx[1] = packettodata( &rxdata[6] );
-			rx[2] = packettodata( &rxdata[10] );
-		// throttle		
-			rx[3] = ( (rxdata[8]&0x0003) * 256 + rxdata[9] ) * 0.000976562;     //throttle
-		
+			if(aetr_or_taer == 0)
+			{
+				rx[0] = packettodata( &rxdata[4] );
+				rx[1] = packettodata( &rxdata[6] );
+				rx[2] = packettodata( &rxdata[10] );
+			// throttle		
+				rx[3] = ( (rxdata[8]&0x0003) * 256 + rxdata[9] ) * 0.000976562;  
+			
+			}
+			else{
+					rx[3] = ( (rxdata[4]&0x0003) * 256 + rxdata[5] ) * 0.000976562;     
+					rx[0] = packettodata( &rxdata[6] );
+					rx[2] = packettodata( &rxdata[10] );
+				// throttle		
+					rx[1] = packettodata( &rxdata[8] );
+			}
 
 		if  (rxdata[1] != 0xfa) 
 		{// low rates
@@ -1131,15 +1143,19 @@ if ( frame_received )
 {
 //   int sbus_channels[9];
    //decode frame   Forcibly change TAER to AETR,XM and XM+ 
-#ifdef  AETR
-   sbus_channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
-   sbus_channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-   sbus_channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-#else
+
+  if(aetr_or_taer == 0)
+	 {
+		sbus_channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
+		sbus_channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
+		sbus_channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
+	 }
+	 else if(aetr_or_taer == 1)
+	 {
    sbus_channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
    sbus_channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-   channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-#endif    
+   sbus_channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
+	 }	
    sbus_channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
    sbus_channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
    sbus_channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
@@ -1518,10 +1534,21 @@ if ( framestarted == 1){
 		   
       // AETR channel order
 	#ifdef RX_DSMX_2048
-        rx[0] = (dsmx_channels[1]*0.000998005f)-1.02195767f;  
-        rx[1] = (dsmx_channels[2]*0.000998005f)-1.02195767f; 
-        rx[2] = (dsmx_channels[3]*0.000998005f)-1.02195767f;
-        rx[3] = (dsmx_channels[0]*0.0004990025f)-0.0109780552f;
+
+				if(aetr_or_taer == 1)
+				 {
+					rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
+					rx[1] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
+					rx[0] = (dsmx_channels[0] - 1024.0f) * dsmx_scalefactor;
+					rx[3] =((dsmx_channels[2] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+				 }
+				 else
+				 {
+					rx[0] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
+					rx[1] = (dsmx_channels[2] - 1024.0f) * dsmx_scalefactor;
+					rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
+					rx[3] =((dsmx_channels[0] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+				 }
 				if ( rx[3] > 1 ) rx[3] = 1;	
 				if ( rx[3] < 0 ) rx[3] = 0;
 	#endif

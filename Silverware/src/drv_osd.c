@@ -9,7 +9,8 @@
 extern char motor_sta;
 extern char aux[AUXNUMBER];
 extern int rx_switch;
-extern int flightmode;
+unsigned char showcase = 0;
+extern float rx[];
 /*********************************************
 * Function name: osd_spi_cson
 * Effect: OSD cs set low
@@ -85,143 +86,120 @@ uint8_t OSD_checksum(uint8_t OSD_DATA[])
     sum += OSD_DATA[i];
     return sum;
 }
-/*********************************************
-* Function name: OSD_Data_Send
-* Effect: FC MCU sends data to OSD MCU through SPI 
-* Import: Package_Type : ARMING state is 0;Vbattfilt is 1
-*         data : Package Type Corresponding data
-* Output: void
-**********************************************/
-//void OSD_Data_Send(uint8_t Package_Type,uint16_t data)
-//{
-//    uint8_t osd_data[15];
-//    osd_data[0] = Package_Type;           // Package Type
-//    osd_data[1] = data >> 8;
-//    osd_data[2] = data & 0xFF;
-//    osd_data[14] = OSD_checksum(osd_data);
-//    OSD_Tx_Data(osd_data,14);
-//}
 
-
-
-void make_vol_pack(unsigned char data[],unsigned int VOL,float kp[],float ki[],float kd[],unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index)
+void make_vol_pack(unsigned char data[],unsigned int VOL,unsigned char aetr_or_taer,float rx[],char aux[],float kp[],float ki[],float kd[],unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index,unsigned char showcase)
 {
-			data[0] = 0x88;
-	
+			data[0] =0x0f;
+
+			if(aux[CHAN_5] == 1)
+			{
+					data[0] |= (1<<4);
+			}
+			else
+			{
+					data[0] &= ~(1<<4);
+			}
+			
+			data[0] &= ~(0x3 << 6);
+			data[0] |= rx_switch << 6;
+			
 			data[1] = VOL >> 8;
 	    data[2] = VOL & 0xFF;
-			data[3] = round(kp[0]*100);
-			data[4] = round(kp[1]*100);
-			data[5] = round(kp[2]*100);
-			data[6] = round(ki[0]*100);
-			data[7] = round(ki[1]*100);
-			data[8] = round(ki[2]*100);
-			data[9] = round(kd[0]*100);
-			data[10] = round(kd[1]*100);
-			data[11] = round(kd[2]*100);
-			if(1 == menu_flag)
-			{
-					data[12] |= 0x10;
-			}
-			else
-			{
-					data[12] &= ~0x10;
-			}
-			if(aux[0] == 1)
-			{
-					data[12] |= 0x20;
-			}
-			else
-			{
-					data[12] &= ~0x20;
-			}
 			
-			if(flightmode == 0)       //LEVELMODE
-			{		data[12] &= ~0xC0;
-					data[12] |= 0x00;
-			}
-			else if(flightmode == 1)  //ACROMODE
-			{
-				  data[12] &= ~0xC0;
-				  data[12] |= 0x40;
-			}
-			else if(flightmode == 2)  //RACEMODE
-			{
-					data[12] &= ~0xC0;
-					data[12] |= 0x80;
-			}
-			else if(flightmode == 3)  //HORIZON
-			{
-					data[12] &= ~0xC0;
-					data[12] |= 0xC0;
-			}
-			data[12] &= 0xF0;
-			data[12] |= motor_sta;
-			data[13] = menu_class;
-			data[13] |= rx_switch << 4;
+			data[3]=0x0;
+			data[3] |= showcase << 0;
+			data[3] |= motor_sta <<4;
 			
-			data[14] = menu_index;
+			data[4] = menu_index;
+			data[4] |= aetr_or_taer << 4;
 			if(!aux[LEVELMODE])
 			{
 				if(aux[RACEMODE])
 				{
-					data[14] |= 0x80;
+					data[4] |= 1<<6;
 				}
 				else
 				{
-					data[14] &= ~0x80;
+					data[4] &= ~(1<<6);
 				}
 			}
-			//data[15] = 0;
-	    data[15] = OSD_checksum(data);
+			data[5]=0x00;
+			data[6]=0x00;
+			if(showcase !=2)
+			{
+				if(rx[0]> -0.2f && rx[0] <0.2f)
+				{
+					data[5] |= 0x1<<0;
+				}
+				else if(rx[0] > 0.4f)
+				{
+					data[5] |= 0x2<<0;
+				}
+				else if(rx[0] < -0.4f)
+				{
+					data[5] |= 0x0<<0;
+				}
+				
+				if(rx[1]> -0.2f && rx[1] <0.2f)
+				{
+					data[5] |= 0x1<<2;
+				}
+				else if(rx[1]>= 0.2f)
+				{
+					data[5] |= 0x2<<2;
+				}
+				else 
+				{
+					data[5] |= 0x0<<2;
+				}
+				
+				if(rx[2]> -0.2f && rx[2] <0.2f)
+				{
+					data[5] |= 0x1<<4;
+				}
+				else if(rx[2]>= 0.2f)
+				{
+					data[5] |= 0x2<<4;
+				}
+				else 
+				{
+					data[5] |= 0x0<<4;
+				}
+				
+				if(rx[3]> 0.4f && rx[3] <0.6f)
+				{
+					data[5] |= 0x1<<6;
+				}
+				else if(rx[3]>= 0.6f)
+				{
+					data[5] |= 0x2<<6;
+				}
+				else 
+				{
+					data[5] |= 0x0<<6;
+				}
+				
+				data[6] |= aux[CHAN_5] << 0;
+				data[6] |= aux[CHAN_6] << 1;
+				data[6] |= aux[CHAN_7] << 2;
+				data[6] |= aux[CHAN_8] << 3;
+			}
+			else
+			{
+					data[5] = round(kp[0]*100);
+					data[6] = round(kp[1]*100);
+					data[7] = round(kp[2]*100);
+					data[8] = round(ki[0]*100);
+					data[9] = round(ki[1]*100);
+					data[10] = round(ki[2]*100);
+					data[11] = round(kd[0]*100);
+					data[12] = round(kd[1]*100);
+					data[13] = round(kd[2]*100);
+			}
+
+	    data[14] = OSD_checksum(data);
 }
 
-//void make_vol_pack_pid(unsigned char data[],float kp[],float ki[],float kd[])
-//{
-//		data[0] = 0x77;
-//		data[1] = round(kp[0]*100);
-//		data[2] = round(kp[1]*100);
-//		data[3] = round(kp[2]*100);
-//		data[4] = round(ki[0]*100);
-//		data[5] = round(ki[1]*100);
-//		data[6] = round(ki[2]*100);
-//		data[7] = round(kd[0]*100);
-//		data[8] = round(kd[1]*100);
-//		data[9] = round(kd[2]*100);
-//		data[10] = OSD_checksum(data);
-//}
-
-//void make_vol_pack_com(unsigned char data[],unsigned int VOL,unsigned char menu_flag,unsigned char menu_class,unsigned char menu_index)
-//{
-//		data[0] = 0x89;
-//		data[1] = VOL >> 8;
-//	  data[2] = VOL & 0xFF;
-//		if(1 == menu_flag)
-//			{
-//					data[3] |= 0x10;
-//			}
-//			else
-//			{
-//					data[3] &= ~0x10;
-//			}
-//			if(aux[0] == 1)
-//			{
-//					data[3] |= 0x20;
-//			}
-//			else
-//			{
-//					data[3] &= ~0x20;
-//			}
-//			data[3] &= 0xF0;
-//			data[3] |= motor_sta;
-//			data[4] = menu_class;
-//			data[5] = menu_index;
-//			data[6] = 0x00;
-//			data[7] = 0x00;
-//			data[8] = 0x00;
-//			data[9] = 0x00;
-//	    data[10] = OSD_checksum(data);
-//}
 #endif
 
 

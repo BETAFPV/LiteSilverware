@@ -13,7 +13,7 @@
 
 #define Lite_Brushless
 //#define Lite_Frsky  
-#define RX_Default 2 //1:BAYANG;  2:SBUS;  3:DSMX
+#define RX_Default 1 //1:BAYANG;  2:SBUS;  3:DSMX
 
 
 

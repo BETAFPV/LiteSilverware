@@ -90,9 +90,10 @@ char motor_sta = 0x00;
 Menu_List main_menu,main_menu_head;
 Menu_List PID_menu,PID_menu_head;
 Menu_List Motor_menu,Motor_menu_head;
+Menu_List Receiver_menu,Receiver_menu_head;
 Menu_List Menu_pointer;
 
-unsigned char OSD_DATA[17] = {0x00};
+unsigned char OSD_DATA[15] = {0x00};
 char save_motor_dir[4] = {1,0,0,1};              //flash save motor dir
 // hal
 void clk_init(void);
@@ -139,6 +140,7 @@ char aux_analogchange[AUXNUMBER];
 
 // bind / normal rx mode
 extern int rxmode;
+unsigned char aetr_or_taer=0;
 // failsafe on / off
 extern int failsafe;
 extern float hardcoded_pid_identifier;
@@ -146,7 +148,7 @@ extern int onground;
 extern float pidkp[PIDNUMBER];  
 extern float pidki[PIDNUMBER];	
 extern float pidkd[PIDNUMBER];
-
+extern unsigned char showcase;
 float *pid_p_i_d[] = {pidkp,pidki,pidkd};
 
 int in_air;
@@ -248,7 +250,7 @@ rx_switch = 4;
 #endif
 #endif
 #ifdef Lite_OSD
-	main_menu = CreateDbCcLinkList(3,0);     //长度为3  0：主菜单
+	main_menu = CreateDbCcLinkList(4,0);     //长度为3  0：主菜单
 	main_menu_head = main_menu;   					 //记录主菜单的头
 	
 	PID_menu = CreateDbCcLinkList(9,1);
@@ -257,6 +259,8 @@ rx_switch = 4;
 	Motor_menu = CreateDbCcLinkList(4,2);
 	Motor_menu_head = Motor_menu;
 	
+	Receiver_menu = CreateDbCcLinkList(1,3);
+	Receiver_menu_head = Receiver_menu;
 	Menu_pointer = main_menu;
     Lite_OSD_FPS = OSD_FPS;
 
@@ -556,10 +560,10 @@ if( thrfilt > 0.1f )
 	debug.vbatt_comp = vbatt_comp ;
 #endif		
 // check gestures
-    if ( onground )
-	{
-	 gestures( );
-	}
+//    if ( onground )
+//	{
+//	 gestures( );
+//	}
 
 
 if ( LED_NUMBER > 0)
@@ -703,10 +707,13 @@ checkrx();
 #ifdef  Lite_OSD  
 /*osd data transmit*/
 /*******************************************************************************************************************/
-if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f < rx[Pitch]) && (-0.1f < rx[Roll]) && (0.2f > rx[Roll]) && 0.0f == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
+if(!showcase)
 {
+	if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f < rx[Pitch]) && (-0.1f < rx[Roll]) && (0.2f > rx[Roll]) && 0.0f == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
+	{
 		int a;
 		menu_flag = 1;
+		showcase = 1;
         Lite_OSD_FPS = 1;
 		for(a=0;a<3;a++)
 		{
@@ -741,14 +748,13 @@ if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f
 				Motor_menu = Motor_menu->next;
 		}
 		Motor_menu = Motor_menu_head;	
+	}
 }
     Main_Count ++;
 /*osd data transmit*/
 if(Lite_OSD_FPS == Main_Count)
 {
     Main_Count = 0;
-    while ( (gettime() - time) < LOOPTIME );	
-
     if (aux[LEVELMODE])
     {
         for(int i=10;i>0;i--)
@@ -823,6 +829,7 @@ if(1 == menu_flag)
 				if(0 == Menu_pointer->menu_class && 0 == Menu_pointer->menu_index)    //PID parameter tuning
 				{
 						Menu_pointer = PID_menu_head;
+						showcase = 2;
 				}		
 				else if(1 == Menu_pointer->menu_class)    //PID值 操作
 				{
@@ -856,11 +863,13 @@ if(1 == menu_flag)
 				if(1 == Menu_pointer->menu_class && 9 == Menu_pointer->menu_index) //返回上一级菜单
 				{
 						Menu_pointer = main_menu_head;
+						showcase = 1;
 					  //退出PID调试  更新PID值
 				}
 				if(0 == Menu_pointer->menu_class  && 1 == Menu_pointer->menu_index)    //Motor direction
 				{
 					  Menu_pointer = Motor_menu_head;
+					  showcase = 3;
 				}
 				else if(2 == Menu_pointer->menu_class)
 				{
@@ -888,6 +897,7 @@ if(1 == menu_flag)
 				if(2 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index)     //退出电机转向菜单
 				{
 						int i;
+						showcase = 1;
 						Menu_pointer = main_menu_head;
 					  Motor_menu = Motor_menu_head;
 						for(i=0;i<4;i++)
@@ -898,7 +908,27 @@ if(1 == menu_flag)
 				}
 				
 				
-				if(0 == Menu_pointer->menu_class && 2 == Menu_pointer->menu_index)    //save parameter
+				if(0 == Menu_pointer->menu_class && 2 == Menu_pointer->menu_index)
+				{
+						showcase =4;
+						Menu_pointer = Receiver_menu_head;
+				}
+				else if(3 == Menu_pointer->menu_class)
+				{
+						if(aux[LEVELMODE])
+						{
+							if(Menu_pointer->menu_index ==0)
+							{
+								aetr_or_taer = !aetr_or_taer;
+							}
+							else
+							{
+								Menu_pointer = main_menu_head;
+								showcase =1;
+							}
+						}
+				}
+				if(0 == Menu_pointer->menu_class && 3 == Menu_pointer->menu_index)    //save parameter
 				{
 						 #ifdef FLASH_SAVE1
 								//extern void flash_save( void);
@@ -913,18 +943,20 @@ if(1 == menu_flag)
                     for( int j = 0 ; j < 3 ; j++)
                         number_of_increments[i][j] = 0; 
               #endif
+							showcase = 0;
 					   delay(1000);
 					   NVIC_SystemReset();
 				}
 				
-				if(0 == Menu_pointer->menu_class && 3 == Menu_pointer->menu_index)   //menu exit
+				if(0 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index)   //menu exit
 				{
 						//init main menu index paramenter
 						menu_flag = 0;
 						down_flag = 0;
 						up_flag = 0;
+						showcase = 0;
 						Menu_pointer = main_menu_head;
-                        Lite_OSD_FPS = OSD_FPS;   //退出OSD菜单,Lite_OSD_FPS帧率修改为OSD_FPS
+            Lite_OSD_FPS = OSD_FPS;   //退出OSD菜单,Lite_OSD_FPS帧率修改为OSD_FPS
 				}
 				right_flag = 0;
 		}
@@ -982,6 +1014,13 @@ if(1 == menu_flag)
 								Motor_menu = Motor_menu->next;
 						}
 				}
+				if(3 == Menu_pointer->menu_class)
+				{
+						if(aux[LEVELMODE])
+						{
+						aetr_or_taer = !aetr_or_taer;
+						}
+				}
 				left_flag = 0;
 		}
 		
@@ -992,7 +1031,7 @@ if(1 == menu_flag)
 		}
 }
 
-make_vol_pack(OSD_DATA,(int)(vbattfilt*100),pidkp,pidki,pidkd,menu_flag,Menu_pointer->menu_class,Menu_pointer->menu_index);
+make_vol_pack(OSD_DATA,(int)(vbattfilt*100),aetr_or_taer,rx,aux,pidkp,pidki,pidkd,menu_flag,Menu_pointer->menu_class,Menu_pointer->menu_index,showcase);
 OSD_Tx_Data(OSD_DATA,pack_len);
 }
 #endif
