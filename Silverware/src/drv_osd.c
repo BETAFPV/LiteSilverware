@@ -64,13 +64,26 @@ void osd_spi_init(void)
 void OSD_Tx_Data(uint8_t *OSD_Data ,uint8_t length)
 {
 	uint8_t index = 0;
-	osd_spi_cson();
-	while(index < length)
+	if(1==rx_switch)
 	{
-		spi_sendbyte(OSD_Data[index]);
-		index++;
+		osd_spi_cson();
+		while(index < length)
+		{
+			spi_sendbyte(OSD_Data[index]);
+			index++;
+		}
+		osd_spi_csoff();
 	}
-	osd_spi_csoff();
+	else
+	{
+		osd_spi_cson();
+		while(index < length)
+		{
+			spi_sendbyte_sd(OSD_Data[index]);
+			index++;
+		}
+		osd_spi_csoff();
+	}
 }
 
 /*************************

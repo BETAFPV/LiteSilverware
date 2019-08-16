@@ -213,10 +213,10 @@ switch_key();           //初始化按键
 #endif
 
 if(KEY == 0)
-{
-        lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
-        rx_switch = 1;                 //bayang
-        while(KEY == 0);    //等待松手
+{	
+		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
+		rx_switch = 1;                 //bayang
+		while(KEY == 0);    //等待松手
 		unsigned long time=0;
 		while(time < 4000000)       
 		{

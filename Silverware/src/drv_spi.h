@@ -10,5 +10,4 @@ void spi_sendbyte( int );
 int spi_sendrecvbyte( int);
 int spi_sendzerorecvbyte( void );
 
-
-
+void spi_sendbyte_sd ( int data);

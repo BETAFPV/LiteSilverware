@@ -1393,10 +1393,7 @@ void dsm_init(void)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART1, &USART_InitStructure);
-// swap rx/tx pins
-#ifndef Alienwhoop_ZERO
-    USART_SWAPPinCmd( USART1, ENABLE);
-#endif
+
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
     USART_Cmd(USART1, ENABLE);
     NVIC_InitTypeDef NVIC_InitStructure;
