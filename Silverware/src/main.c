@@ -384,7 +384,7 @@ if ( vbattfilt/lipo_cell_count < 3.3f) failloop(2);
 
 
 
-	gyro_cal();
+gyro_cal();
 
 extern void rgb_init( void);
 rgb_init();
