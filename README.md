@@ -1,14 +1,14 @@
 ﻿LiteSilverware project is based on the NotFastEnuf Silverware firmware, AKA [NFE_Silverware](https://github.com/NotFastEnuf/NFE_Silverware), which has a big success on the brushed whoop FC board like Alienwhoop ZER0. Several features are included in order to support brushless drones.
 
-1. Make it to fly with brushless drones. Support BLHeli_S ESC.
-2. OSD interface is included based on the LiteOSD project.
+1. Support brushless motor ESC firmware BLHeli_S.
+2. Support OSD interface, based on the [LiteOSD](https://github.com/BETAFPV/LiteOSD) project.
 3. Change parameters via OSD menu and original stick gestures are not supported.
 4. Support external receiver SBUS and DSMX protocol.
 5. Built in Bayang receiver or Frsky D8 protocol
 
-## Specification
-1. OSD_MCU：Silicon Lab EFM8BB21f16G​​_A_QFN20
+The full [user manual](https://github.com/BETAFPV/LiteSilverware/blob/master/docs/manual%20for%20lite%202s%20brushless%20fc.pdf) is here.
 
+_end LiteSilverware notes_
 
 ## NotFastEnuf Notes
 
