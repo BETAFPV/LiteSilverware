@@ -51,21 +51,19 @@ THE SOFTWARE.
 
 // global use rx variables
 extern float rx[4];
-extern int flightmode;
 extern char aux[AUXNUMBER];
 extern char lastaux[AUXNUMBER];
 extern char auxchange[AUXNUMBER];
-
-#define DSM_SCALE_PERCENT 100	
-float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
-float dsmx_scalefactor = (0.14662756f/DSM_SCALE_PERCENT);
-
 int failsafe = 0;
 int rxmode = 0;
 int rx_ready = 0;
 int bind_safety = 0;
 int rx_bind_enable = 0;
 int sbus_dsmx_flag = 0;     
+
+#define DSM_SCALE_PERCENT 100	
+float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
+float dsmx_scalefactor = (0.14662756f/DSM_SCALE_PERCENT);
 
 // internal dsm variables
 
@@ -750,10 +748,10 @@ static int decodepacket( void)
 			else{
 					rx[3] = ( (rxdata[4]&0x0003) * 256 + rxdata[5] ) * 0.000976562;     
 					rx[0] = packettodata( &rxdata[6] );
-					rx[2] = packettodata( &rxdata[10] );
-				// throttle		
+					rx[2] = packettodata( &rxdata[10] );	
 					rx[1] = packettodata( &rxdata[8] );
 			}
+		
 
 		if  (rxdata[1] != 0xfa) 
 		{// low rates
@@ -786,21 +784,21 @@ static int decodepacket( void)
 											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											flightmode = 2;
+											
 									}
 									else if (aux[HORIZON])
 									{
 											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											flightmode = 3;
+											
 									}
 									else
 									{
 											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 											if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
 											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											flightmode = 0;
+											
 									}
 							}
 							else
@@ -808,7 +806,7 @@ static int decodepacket( void)
 									if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 									if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-									flightmode = 1;
+									
 							}		
 
 			for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
@@ -1003,11 +1001,15 @@ void sbus_init(void)
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-
-    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
+#ifdef ENABLE_UART1_TX 
+    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN | SERIAL_TX_PIN;
     GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
-    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE , SERIAL_RX_CHANNEL);
-
+    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE | SERIAL_TX_SOURCE , SERIAL_RX_CHANNEL);
+#else 
+    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN ;
+    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE  , SERIAL_RX_CHANNEL);
+#endif
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 
     USART_InitTypeDef USART_InitStructure;
@@ -1017,14 +1019,20 @@ void sbus_init(void)
     USART_InitStructure.USART_StopBits = USART_StopBits_2;
     USART_InitStructure.USART_Parity = USART_Parity_No;
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
-
+#ifdef ENABLE_UART1_TX     
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;//USART_Mode_Rx | USART_Mode_Tx;
+#else 
+    USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx ;
+#endif
     USART_Init(USART1, &USART_InitStructure);
 
 // invert signal ( default sbus )
-   if (SBUS_INVERT) USART_InvPinCmd(USART1, USART_InvPin_Rx|USART_InvPin_Tx , ENABLE );
+   if (SBUS_INVERT) USART_InvPinCmd(USART1, USART_InvPin_Rx , ENABLE );//USART_InvPin_Tx
 
-
+// swap rx/tx pins
+#ifdef SERIAL_RX_SWD
+    USART_SWAPPinCmd( USART1, ENABLE);
+#endif
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 
     USART_Cmd(USART1, ENABLE);
@@ -1141,27 +1149,24 @@ else
       
 if ( frame_received )
 {
-//   int sbus_channels[9];
-   //decode frame   Forcibly change TAER to AETR,XM and XM+ 
-
-  if(aetr_or_taer == 0)
-	 {
-		sbus_channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
-		sbus_channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-		sbus_channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-	 }
-	 else if(aetr_or_taer == 1)
-	 {
-   sbus_channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
-   sbus_channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
-   sbus_channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
-	 }	
-   sbus_channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
-   sbus_channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
-   sbus_channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
-   sbus_channels[6]  = ((data[9]>>2|data[10]<<6) & 0x07FF);
-   sbus_channels[7]  = ((data[10]>>5|data[11]<<3) & 0x07FF);
-   sbus_channels[8]  = ((data[12]|data[13]<< 8) & 0x07FF);
+    if(aetr_or_taer == 0)
+    {
+        sbus_channels[0]  = ((data[1]|data[2]<< 8) & 0x07FF);
+        sbus_channels[1]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
+        sbus_channels[2]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
+    }
+    else if(aetr_or_taer == 1)
+    {
+       sbus_channels[2]  = ((data[1]|data[2]<< 8) & 0x07FF);
+       sbus_channels[0]  = ((data[2]>>3|data[3]<<5) & 0x07FF);
+       sbus_channels[1]  = ((data[3]>>6|data[4]<<2|data[5]<<10) & 0x07FF);
+    }	
+    sbus_channels[3]  = ((data[5]>>1|data[6]<<7) & 0x07FF);
+    sbus_channels[4]  = ((data[6]>>4|data[7]<<4) & 0x07FF);
+    sbus_channels[5]  = ((data[7]>>7|data[8]<<1|data[9]<<9) & 0x07FF);
+    sbus_channels[6]  = ((data[9]>>2|data[10]<<6) & 0x07FF);
+    sbus_channels[7]  = ((data[10]>>5|data[11]<<3) & 0x07FF);
+    sbus_channels[8]  = ((data[12]|data[13]<< 8) & 0x07FF);
     Tempch[0] = sbus_channels[0];
     Tempch[1] = sbus_channels[1];
     Tempch[2] = sbus_channels[2];
@@ -1214,22 +1219,22 @@ if ( frame_received )
 				
 							if (aux[LEVELMODE]){
 								if (aux[RACEMODE] && !aux[HORIZON]){
-									flightmode = 2;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
 								}else if (aux[HORIZON]){
-									flightmode = 3;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
 								}else{
-									flightmode = 0;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
 							}else{
-								flightmode = 1;
+								
 								if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 								if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
@@ -1381,6 +1386,15 @@ void dsm_init(void)
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;   
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;   
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;  
+#ifdef ENABLE_UART1_TX
+    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN | SERIAL_TX_PIN;
+    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE | SERIAL_TX_SOURCE , SERIAL_RX_CHANNEL);
+#else 
+    GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN ;
+    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+    GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE  , SERIAL_RX_CHANNEL);
+#endif
     GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
     GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
     GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE , SERIAL_RX_CHANNEL);
@@ -1391,9 +1405,16 @@ void dsm_init(void)
     USART_InitStructure.USART_StopBits = USART_StopBits_1;  
     USART_InitStructure.USART_Parity = USART_Parity_No;    //sbus is even parity
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx | USART_Mode_Tx;
+#ifdef ENABLE_UART1_TX     
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;//USART_Mode_Rx | USART_Mode_Tx;
+#else 
+    USART_InitStructure.USART_Mode = USART_Mode_Rx ;//USART_Mode_Rx ;
+#endif
     USART_Init(USART1, &USART_InitStructure);
-
+// swap rx/tx pins
+#ifdef SERIAL_RX_SWD
+    USART_SWAPPinCmd( USART1, ENABLE);
+#endif
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
     USART_Cmd(USART1, ENABLE);
     NVIC_InitTypeDef NVIC_InitStructure;
@@ -1416,7 +1437,7 @@ void lite_2S_BINDKEY_init(void)
       GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
       GPIO_Init(LED1PORT, &GPIO_InitStructure); 
 	
-			GPIO_SetBits(LED1PORT,LED1PIN);
+        GPIO_SetBits(LED1PORT,LED1PIN);
 }
 
 void switch_key(void)
@@ -1479,6 +1500,9 @@ void rx_spektrum_bind(void)
         }
 	}
 #endif
+#if defined(Lite_BrushlessRX) ||defined(Lite_Brushless)
+    // Lite_BrushlessRX & Lite_Brushless use the bind key for binding
+#else
         GPIO_InitTypeDef    GPIO_InitStructure;
         GPIO_InitStructure.GPIO_Pin = SERIAL_RX_SPEKBIND_BINDTOOL_PIN;
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -1500,6 +1524,7 @@ void rx_spektrum_bind(void)
                 PIN_ON(SERIAL_RX_PORT, SERIAL_RX_SPEKBIND_BINDTOOL_PIN);
                 delay(120);
         }	
+#endif
 }
 
 void dsmx_rx_init(void)
@@ -1531,23 +1556,22 @@ if ( framestarted == 1){
 		   
       // AETR channel order
 	#ifdef RX_DSMX_2048
-
-				if(aetr_or_taer == 1)
-				 {
-					rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
-					rx[1] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
-					rx[0] = (dsmx_channels[0] - 1024.0f) * dsmx_scalefactor;
-					rx[3] =((dsmx_channels[2] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
-				 }
-				 else
-				 {
-					rx[0] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
-					rx[1] = (dsmx_channels[2] - 1024.0f) * dsmx_scalefactor;
-					rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
-					rx[3] =((dsmx_channels[0] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
-				 }
-				if ( rx[3] > 1 ) rx[3] = 1;	
-				if ( rx[3] < 0 ) rx[3] = 0;
+        if(aetr_or_taer == 1)
+         {
+            rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
+            rx[1] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
+            rx[0] = (dsmx_channels[0] - 1024.0f) * dsmx_scalefactor;
+            rx[3] =((dsmx_channels[2] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+         }
+         else
+         {
+            rx[0] = (dsmx_channels[1] - 1024.0f) * dsmx_scalefactor;
+            rx[1] = (dsmx_channels[2] - 1024.0f) * dsmx_scalefactor;
+            rx[2] = (dsmx_channels[3] - 1024.0f) * dsmx_scalefactor;
+            rx[3] =((dsmx_channels[0] - 1024.0f) * dsmx_scalefactor * 0.5f) + 0.5f;
+         }
+        if ( rx[3] > 1 ) rx[3] = 1;	
+        if ( rx[3] < 0 ) rx[3] = 0;
 	#endif
 
 	#ifdef RX_DSM2_1024
@@ -1561,22 +1585,22 @@ if ( framestarted == 1){
 				
 				if (aux[LEVELMODE]){
 							if (aux[RACEMODE] && !aux[HORIZON]){
-									flightmode = 2;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
 							}else if (aux[HORIZON]){
-									flightmode = 3;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
 							}else{
-									flightmode = 0;
+									
 									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
 									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
 									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
 				}else{
-						flightmode = 1;
+						
 						if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
 						if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
 						if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);

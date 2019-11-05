@@ -81,9 +81,16 @@ float stickTransitionProfileB[3]  = { 0.3 , 0.3 , 0.0};           //keep values 
 
 //75mm Brushless 2s 0802 Whoop - Seems to need heavy filtering in early tests - PID_VBat Compensation must be disabled (it seems overly responsive to sag and is feeding back)
 //                         ROLL       PITCH     YAW
-float pidkp[PIDNUMBER] = {11.2e-2 , 12.6e-2  , 1.8e-1 }; 
-float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };	
-float pidkd[PIDNUMBER] = { 5.6e-1 , 6.7e-1  , 0.5e-1 };
+//float pidkp[PIDNUMBER] = {11.2e-2 , 12.6e-2  , 1.8e-1 }; 
+//float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };	
+//float pidkd[PIDNUMBER] = { 5.6e-1 , 6.7e-1  , 0.5e-1 };
+
+
+//Brushless 1s
+float pidkp[PIDNUMBER] = {0.1438  , 0.1438  , 0.2436 }; 
+float pidki[PIDNUMBER] = { 1.4    , 1.4     , 1.4    };	
+float pidkd[PIDNUMBER] = { 0.5666 , 0.5666  , 0.05   };
+
 
 //4in Brushless Pids - 1407 3600kv Motors, 4s - Gyro filters at 90hz, 1st order D at 70hz - PID_Vbat Comp seems ok here
 //                         ROLL       PITCH     YAW

@@ -4,9 +4,12 @@
 #include "defines.h"
 #include "debug.h"
 
+#ifndef  CURR_ADC
 uint16_t adcarray[2];
+#else
+uint16_t adcarray[3];
+#endif
 extern debug_type debug;
-
 
 #ifndef DISABLE_LVC
 
@@ -29,14 +32,20 @@ void adc_init(void)
 {	 
   ADC_InitTypeDef     ADC_InitStructure;
   
-	{
+	
   GPIO_InitTypeDef    GPIO_InitStructure;
   
   GPIO_InitStructure.GPIO_Pin = BATTERYPIN ;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
   GPIO_Init(BATTERYPORT, &GPIO_InitStructure);
-	}
+	
+#ifdef  CURR_ADC
+    GPIO_InitStructure.GPIO_Pin =  CURR_PIN;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+    GPIO_Init(CURRPORT, &GPIO_InitStructure);    
+#endif
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
   
@@ -48,6 +57,9 @@ void adc_init(void)
   DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)adcarray;
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
   DMA_InitStructure.DMA_BufferSize = 2;
+#ifdef  CURR_ADC         
+  DMA_InitStructure.DMA_BufferSize = 3;
+#endif        
   DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
@@ -75,6 +87,9 @@ void adc_init(void)
   ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint , ADC_SampleTime_239_5Cycles); 
  
   ADC_ChannelConfig(ADC1, BATTERY_ADC_CHANNEL , ADC_SampleTime_239_5Cycles); 
+#ifdef  CURR_ADC    
+    ADC_ChannelConfig(ADC1, CURR_ADC_CHANNEL  , ADC_SampleTime_239_5Cycles);
+#endif
 
   ADC_VrefintCmd(ENABLE);
 	
@@ -111,21 +126,31 @@ float adc_read(int channel)
 		// CorrectedValue = (((RawValue – RawLow) * ReferenceRange) / RawRange) + ReferenceLow
 		return ( ( ((float) adcarray[0] * (float) ADC_SCALEFACTOR) - (float) REPORTED_TELEMETRY_VOLTAGE_LO ) * ((float) ACTUAL_BATTERY_VOLTAGE_RANGE / (float) REPORTED_TELEMETRY_VOLTAGE_RANGE) ) + (float) ACTUAL_BATTERY_VOLTAGE_LO;
 		#else
-		return 			(float) adcarray[0] * ((float) (ADC_SCALEFACTOR*(ACTUAL_BATTERY_VOLTAGE/REPORTED_TELEMETRY_VOLTAGE))) ;
+#ifdef  CURR_ADC         
+		return 			(float) adcarray[2] * ((float) (ADC_SCALEFACTOR*(ACTUAL_BATTERY_VOLTAGE/REPORTED_TELEMETRY_VOLTAGE))) ;
+#else
+        return 			(float) adcarray[0] * ((float) (ADC_SCALEFACTOR*(ACTUAL_BATTERY_VOLTAGE/REPORTED_TELEMETRY_VOLTAGE))) ;
+#endif        
 		#endif
-		
+        
 		case 1:
         #ifdef DEBUG
         lpf(&debug.adcreffilt , (float) adcarray[1] , 0.998);
         #endif	
 		return vref_cal / (float) adcarray[1];
-		
+        
+#ifdef  CURR_ADC        
+		case 2:
+		return (float) (((3.3*adcarray[0])/4096.0)*CURR_K);//return current to CURR
+#endif
+        
 		default:			
-	  return 0;
+        return 0;
 	}
 	
 	
 }
+
 #else
 // // lvc disabled
 void adc_init(void)
