@@ -11,10 +11,11 @@
 // *************uncomment E011 define for E011 flight Controller
 // *************uncomment H8mini_blue_board for the H8 mini flight controller with blue circuit board
 
-#define Lite_Brushless
-//#define Lite_Frsky  
-#define RX_Default 1 //1:BAYANG;  2:SBUS;  3:DSMX
-
+//#define Lite_Brushless
+#define Lite_BrushlessRX
+#define RX_Default 2 //1:BAYANG;  2:SBUS;  3:DSMX
+//#define ENABLE_UART1_TX //重定向USART1_TX
+//#define SERIAL_RX_SWD //使能PA14作为RX接口,lite有刷使用
 
 
 
@@ -143,7 +144,7 @@
 //#define LIPO_CELL_COUNT 1
 
 // ************* Raises pids automatically as battery voltage drops in flight.  Ensure voltage is calibrated before use ****CRITICAL****.
-#define PID_VOLTAGE_COMPENSATION
+//#define PID_VOLTAGE_COMPENSATION
 #define LEVELMODE_PID_ATTENUATION 0.90f  //used to prevent oscillations in angle modes with pid_voltage_compensation enabled due to high pids
 
 // *************lower throttle when battery below threshold - forced landing low voltage cutoff

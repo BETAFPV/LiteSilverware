@@ -46,13 +46,14 @@ THE SOFTWARE.
 #include "drv_i2c.h"
 #include "drv_softi2c.h"
 #include "drv_serial.h"
+#include "drv_dshot.h"
 #include "buzzer.h"
 #include "drv_fmc2.h"
-#include "gestures.h"
 #include "binary.h"
-#include "drv_osd.h"
-#include "menu.h"
-#include "drv_dshot.h"
+#include "osd.h"
+#include "IIR_filter.h"
+#include "sensor.h"
+
 
 #include <stdio.h>
 #include <math.h>
@@ -78,34 +79,30 @@ debug_type debug;
 
 
 
-#define menu_max_item 3
 
-char down_flag = 0;
-char up_flag = 0;
-char right_flag = 0;
-char left_flag = 0;
-char menu_flag = 0;
-char PID_parameter_tuning_flag = 0;
-char motor_sta = 0x00;
-Menu_List main_menu,main_menu_head;
-Menu_List PID_menu,PID_menu_head;
-Menu_List Motor_menu,Motor_menu_head;
-Menu_List Receiver_menu,Receiver_menu_head;
-Menu_List Menu_pointer;
 
-unsigned char OSD_DATA[15] = {0x00};
-char save_motor_dir[4] = {1,0,0,1};              //flash save motor dir
 // hal
 void clk_init(void);
 void imu_init(void);
 extern void flash_load( void);
+void (*pFun)(void);
 extern void flash_save( void);
 extern void flash_hard_coded_pid_identifier(void);
-#if defined(RX_SBUS_DSMX_BAYANG_SWITCH)
+extern unsigned char showcase;
+extern unsigned char rx_switch;
+//lite osd
+unsigned char cal=0;
+unsigned char osd_data[12] = {0};
+unsigned int osd_count = 0;
+unsigned int pwm_count = 0;
+unsigned int vol = 0;
+float electricCur = 0;
+unsigned int cur = 0;
+unsigned char flip_start = 0;
+unsigned char flip_finish = 0;
 extern int sbus_dsmx_flag;
-#endif
-int rx_switch = 0;
-int flightmode = 0;
+extern unsigned char motorDir[4];
+
 // looptime in seconds
 float looptime;
 // filtered battery in volts
@@ -129,7 +126,6 @@ float rx[4];
 // the last 2 are always on and off respectively
 char aux[AUXNUMBER] = { 0 ,0 ,0 , 0 , 0 , 0};
 char lastaux[AUXNUMBER];
-
 // if an aux channel has just changed
 char auxchange[AUXNUMBER];
 // analog version of each aux channel
@@ -140,17 +136,13 @@ char aux_analogchange[AUXNUMBER];
 
 // bind / normal rx mode
 extern int rxmode;
-unsigned char aetr_or_taer=0;
+
+
+
 // failsafe on / off
 extern int failsafe;
 extern float hardcoded_pid_identifier;
 extern int onground;
-extern float pidkp[PIDNUMBER];  
-extern float pidki[PIDNUMBER];	
-extern float pidkd[PIDNUMBER];
-extern unsigned char showcase;
-float *pid_p_i_d[] = {pidkp,pidki,pidkd};
-
 int in_air;
 int armed_state;
 int arming_release;
@@ -173,67 +165,41 @@ volatile int switch_to_4way = 0;
 static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
-#ifdef  Lite_OSD            
-unsigned char Main_Count=0 ;            //记录大循环执行次数
-unsigned char Lite_OSD_FPS=10 ;   //  大循环执行Lite_OSD_Time_Flag次刷新一次OSD,飞行默认为10，调参默认为0
-#endif	
+
 int main(void)
 {
-
+	
 	delay(1000);
-    rx_switch = RX_Default; //设置为默认接收类型
+
 
 #ifdef ENABLE_OVERCLOCK
 clk_init();
 #endif
 	
-	
-#if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
-	
-	lite_2S_BINDKEY_init();            // Initialize the binding key
-
-	delay(1000);
-	if(GPIO_ReadInputDataBit(LED1PORT,LED1PIN) == 0)   //Read key value
-	{
-		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
-	}
-	delay(50000);
-#endif
-
-#if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
-//按键上电 不做任何操作 等待4秒  为bayang协议 
-//按键上电 再按一次	为Sbus Frsky协议 
-//按键上电 再按两次 为DSMX协议
-//默认出厂有RX_Default中的值确定
-switch_key();           //初始化按键
-#ifdef FLASH_SAVE1
-
-    flash_load( );               //加载PID
-	  
-#endif
-
-if(KEY == 0)
-{	
-		lite_2S_rx_spektrum_bind();	   // Send Spektrum bind pulses
-		rx_switch = 1;                 //bayang
-		while(KEY == 0);    //等待松手
-		unsigned long time=0;
-		while(time < 4000000)       
-		{
+    #if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
+    switch_key(); 
+    if(KEY ==0)
+    {	
+       lite_2S_rx_spektrum_bind();
+        rx_switch = 1;
+        while(KEY == 0); 
+        unsigned long time=0;
+        while(time < 4000000)       
+        {
             if(KEY == 0)
             {
                 rx_switch++;
-                while(KEY == 0);    //等待松手
+                while(KEY == 0);
             }
             if(rx_switch >= 3)
             {
                 rx_switch = 3;
             }
             time++;
-		}
-		flash_save();
-}
-#else 
+        }
+        flash_save();
+    }
+#else    
 #ifdef RX_BAYANG_PROTOCOL_BLE_BEACON
 rx_switch = 1 ;
 #endif
@@ -244,35 +210,35 @@ rx_switch = 2 ;
 #ifdef RX_DSMX_2048
 rx_switch = 3;
 #endif
-
 #ifdef RX_DSMX_1024
 rx_switch = 4;
 #endif
 #endif
-#ifdef Lite_OSD
-	main_menu = CreateDbCcLinkList(4,0);     //长度为3  0：主菜单
-	main_menu_head = main_menu;   					 //记录主菜单的头
-	
-	PID_menu = CreateDbCcLinkList(9,1);
-	PID_menu_head = PID_menu;                //记录PID调试菜单链表的头
-	
-	Motor_menu = CreateDbCcLinkList(4,2);
-	Motor_menu_head = Motor_menu;
-	
-	Receiver_menu = CreateDbCcLinkList(1,3);
-	Receiver_menu_head = Receiver_menu;
-	Menu_pointer = main_menu;
-    Lite_OSD_FPS = OSD_FPS;
-
-#endif
-    gpio_init();	
-    ledon(255);	//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
+    
+    
+  gpio_init();	
+    
+  ledon(255);		//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
-    time_init();
-#ifdef  Lite_OSD    
-	osd_spi_init();
+  time_init();
+
+ #ifdef Lite_OSD
+    
+  osdMenuInit();
+  
+#ifndef debug_uart
+  UART2_init(4800);
 #endif
+
+ #endif  
+ 
+ #ifdef debug_uart
+    
+  UART2_init(115200);
+    
+ #endif   
+   
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
 		rx_spektrum_bind(); 
 #endif
@@ -288,10 +254,10 @@ rx_switch = 4;
 	pwm_set( MOTOR_FL , 0);	 
 	pwm_set( MOTOR_FR , 0); 
 	pwm_set( MOTOR_BR , 0); 
-    delay(1000);
-   
-	sixaxis_init();
 
+
+	sixaxis_init();
+	
 	if ( sixaxis_check() ) 
 	{
 		
@@ -299,52 +265,57 @@ rx_switch = 4;
 	else 
 	{
         //gyro not found   
-	//	failloop(4);
+		failloop(4);
 	}
 	
 	adc_init();
-    //set always on channel to on
-    aux[CH_ON] = 1;	
+//set always on channel to on
+aux[CH_ON] = 1;	
 	
 #ifdef AUX1_START_ON
 aux[CH_AUX1] = 1;
 #endif
     
     
-#ifdef FLASH_SAVE1
+ #ifdef FLASH_SAVE1
 // read pid identifier for values in file pid.c
-    
-	//	flash_hard_coded_pid_identifier();
-// load flash saved variables
-//    flash_load( );               //加载PID
-	  
-#endif
+    flash_hard_coded_pid_identifier();
 
+// load flash saved variables
+    flash_load( );
+#endif
 
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-if(rx_switch == 1)
-{
-		rx_init();
-}
-else if(rx_switch == 2)
-{
-		sbus_rx_init();
-		sbus_dsmx_flag = 1;
-}
-else if(rx_switch == 3)    //DSMX 2048
-{
-		dsmx_rx_init();
-		sbus_dsmx_flag = 0;
-}
+    if(rx_switch == 1)
+    {
+        SET_RX_PSW(1);
+        sbus_rx_init();
+        sbus_dsmx_flag = 1;
+        pFun = sbus_checkrx;
+    }
+    else if(rx_switch == 2)
+    {
+        SET_RX_PSW(0);
+        sbus_rx_init();
+        sbus_dsmx_flag = 1;
+        pFun = sbus_checkrx;
+    }
+    else if(rx_switch == 3)    //DSMX 2048
+    {
+        SET_RX_PSW(0);
+        dsmx_rx_init();
+        sbus_dsmx_flag = 0;
+        pFun = dsmx_checkrx;
+    }
 #else
 	rx_init();
+    pFun =checkrx;
 #endif
-
+    
 #ifdef USE_ANALOG_AUX
   // saves initial pid values - after flash loading
   pid_init();
 #endif
-
 
 	
 int count = 0;
@@ -382,9 +353,9 @@ for ( int i = 6 ; i > 0 ; i--)
 if ( vbattfilt/lipo_cell_count < 3.3f) failloop(2);
 #endif
 
+    IIRFilter_Init();
 
-
-gyro_cal();
+	gyro_cal();
 
 extern void rgb_init( void);
 rgb_init();
@@ -410,8 +381,6 @@ if ( liberror )
 {
 		failloop(7);
 }
-
-
 
  lastlooptime = gettime();
 
@@ -466,6 +435,11 @@ if ( liberror )
 
         // read acd and scale based on processor voltage
 		float battadc = adc_read(0)*vreffilt; 
+#ifdef Lite_OSD
+        
+        electricCur = adc_read(2);
+#endif
+        
         // read and filter internal reference
         lpf ( &vreffilt , adc_read(1)  , 0.9968f);	
   
@@ -556,15 +530,6 @@ if( thrfilt > 0.1f )
     vbatt_comp = tempvolt + (float) VDROP_FACTOR * thrfilt; 	
 
            
-#ifdef DEBUG
-	debug.vbatt_comp = vbatt_comp ;
-#endif		
-// check gestures
-//    if ( onground )
-//	{
-//	 gestures( );
-//	}
-
 
 if ( LED_NUMBER > 0)
 {
@@ -574,7 +539,7 @@ if ( LED_NUMBER > 0)
     else
     {
         if ( rxmode == RXMODE_BIND)
-        {// bind mode       
+        {// bind mode
             ledflash ( 100000, 12);
         }else
         {// non bind
@@ -687,363 +652,142 @@ rgb_dma_start();
 #endif
 
 // receiver function
-#ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-if(rx_switch == 1)
-{
-	checkrx();
-}
-else if(rx_switch == 2)
-{
-	sbus_checkrx();
-}
-else if(rx_switch == 3)
-{
-	dsmx_checkrx();
-}
-#else
-checkrx();
+	pFun();
+    
+    
+#ifdef debug_uart
+
+    if(!aux[ARMING])
+    {
+        if(!cal && aux[CHAN_7] )
+        {
+            cal = 1;
+//            gyro_cal();
+//            acc_cal();
+//			imu_init();
+            ImuOrientationDetect();
+            AccCalibration();
+            lastlooptime = gettime();
+        }
+        if(cal && !aux[CHAN_7])
+        {
+            cal = 0;
+        }
+	}
+
 
 #endif
-#ifdef  Lite_OSD  
-/*osd data transmit*/
-/*******************************************************************************************************************/
-if(!showcase)
-{
-	if((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.7f < rx[Pitch]) && (-0.1f < rx[Roll]) && (0.2f > rx[Roll]) && 0.0f == aux[0])    //组合打杆，进入调试界面，前提条件在未解锁情况下
-	{
-		int a;
-		menu_flag = 1;
-		showcase = 1;
-        Lite_OSD_FPS = 1;
-		for(a=0;a<3;a++)
-		{
-				PID_menu->PID_value = pidkp[a];
-				PID_menu = PID_menu->next;
-		}
-		
-		for(a=0;a<3;a++)
-		{
-				PID_menu->PID_value = pidki[a];
-				PID_menu = PID_menu->next;
-		}
-		
-		for(a=0;a<3;a++)
-		{
-				PID_menu->PID_value = pidkd[a];
-				PID_menu = PID_menu->next;
-		}
-        PID_menu = PID_menu_head;
-		int i;
-		for(i=0;i<4;i++)
-		{
-				if( save_motor_dir[i] == 0x00)
-				{
-						motor_sta &= ~(0x01<<i);
-				}
-				else if(save_motor_dir[i] == 0x01)
-				{
-						motor_sta |= (0x01<<i);
-				}
-				Motor_menu->dir = save_motor_dir[i];
-				Motor_menu = Motor_menu->next;
-		}
-		Motor_menu = Motor_menu_head;	
-	}
-}
-    Main_Count ++;
-/*osd data transmit*/
-if(Lite_OSD_FPS == Main_Count)
-{
-    Main_Count = 0;
-    if (aux[LEVELMODE])
+    
+
+    
+#ifdef Lite_OSD   
+
+    osd_count ++;
+
+    vol = (int)(vbattfilt*100);
+    cur = (int)(electricCur*100);
+    
+    if(aux[ARMING] && showcase==0)
     {
-        for(int i=10;i>0;i--)
+        if(osd_count == 200)
         {
-          motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-          motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-          motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-          motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-				}
-        if (aux[RACEMODE] && !aux[HORIZON])
-        {
-            flightmode = 2;
-        }
-        else if (aux[HORIZON])
-        {
-            flightmode = 3; 
-        }
-        else
-        {
-            flightmode = 0;
+            osd_data[0] = 0x0f;
+            osd_data[0] |=0 << 4;
+            osd_data[1] = aux[CHAN_5];
+            osd_data[2] = 0;
+            osd_data[3] = vol >> 8;
+            osd_data[4] = vol & 0xFF;
+            osd_data[5] = rx_switch;
+            
+            osd_data[6] = 0;
+            osd_data[6] = (aux[CHAN_6] << 0) | (aux[CHAN_7] << 1) | (aux[CHAN_8] << 2);
+
+            osd_data[7] = 0;
+            osd_data[8] = cur >> 8;
+            osd_data[9] = cur & 0xFF;
+            osd_data[10] = 0;
+            osd_data[11] = 0;
+            for (uint8_t i = 0; i < 11; i++)
+                osd_data[11] += osd_data[i];  
+            
+            UART2_DMA_Send();
+            osd_count = 0;
         }
     }
     else
     {
-        if (!aux[RACEMODE])
+         pwm_count ++;
+        if(!cal && !aux[CHAN_6] && aux[CHAN_8] )
         {
-            flightmode = 1;
-            for(int i=10;i>0;i--)
-            {
-              motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-              motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-              motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-              motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-            }
+            cal = 1;
+            ImuOrientationDetect();
+            AccCalibration();
+            lastlooptime = gettime();
         }
-        else if(aux[RACEMODE])
+        if(cal && (aux[CHAN_6] || !aux[CHAN_8]))
         {
-            flightmode = 1;
-            for(int i=10;i>0;i--)
-            {
-              motor_dir(0,(save_motor_dir[0] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-              motor_dir(1,(save_motor_dir[1] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-              motor_dir(2,(save_motor_dir[2] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-              motor_dir(3,(save_motor_dir[3] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-            }
+            cal = 0;
         }
-				
+
+        osd_setting();
+        
+         if(pwm_count ==30)
+         {
+            if (aux[LEVELMODE])
+            {
+                for(int i=20;i>0;i--)
+                {
+                  motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                  motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                  motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                  motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                }
+
+            }
+            else
+            {
+                if (!aux[RACEMODE])
+                {
+                    for(int i=20;i>0;i--)
+                    {
+                      motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                      motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                      motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                      motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
+                    }
+                }
+                else if(aux[RACEMODE])
+                {
+                    for(int i=20;i>0;i--)
+                    {
+                      motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+                      motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+                      motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+                      motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
+                    }
+                }
+                        
+            }
+            pwm_count = 0;
+        }
     }
-if(1 == menu_flag)
-{
-		if((rx[Pitch] < -0.6f) && (down_flag == 1))
-		{
-			  Menu_pointer = Menu_pointer->next;
-				down_flag = 0;
-		}		
-		
-		if((rx[Pitch] > 0.6f) && (up_flag == 1))
-		{
-			  Menu_pointer = Menu_pointer->prior;
-				up_flag = 0;
-		}
-		
-		if((rx[Pitch]) < 0.6f && (rx[Pitch] > -0.6f))
-		{
-				up_flag = 1;
-				down_flag = 1;
-		}
-		
-		/******************************************************************/
-		if((rx[Roll] > 0.6f) && right_flag == 1)     //右打杆操作
-		{
-				if(0 == Menu_pointer->menu_class && 0 == Menu_pointer->menu_index)    //PID parameter tuning
-				{
-						Menu_pointer = PID_menu_head;
-						showcase = 2;
-				}		
-				else if(1 == Menu_pointer->menu_class)    //PID值 操作
-				{
-					  int a;
-						Menu_pointer->PID_value += 0.01f;
-//						if(Menu_pointer->PID_value >= 100)
-//						{
-//								Menu_pointer->PID_value = 100;
-//						}
-						PID_menu = PID_menu_head;
-//					  //更新PID值
-						for(a=0;a<3;a++)
-						{
-								pidkp[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidki[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidkd[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-				}
-				
-				if(1 == Menu_pointer->menu_class && 9 == Menu_pointer->menu_index) //返回上一级菜单
-				{
-						Menu_pointer = main_menu_head;
-						showcase = 1;
-					  //退出PID调试  更新PID值
-				}
-				if(0 == Menu_pointer->menu_class  && 1 == Menu_pointer->menu_index)    //Motor direction
-				{
-					  Menu_pointer = Motor_menu_head;
-					  showcase = 3;
-				}
-				else if(2 == Menu_pointer->menu_class)
-				{
-					  int i;
-						Menu_pointer->dir ++;
-						if(Menu_pointer->dir > 1)
-						{
-								Menu_pointer->dir = 1;
-						}
-						Motor_menu = Motor_menu_head;
-						for(i=0;i<4;i++)
-						{
-								if(Motor_menu->dir == 0)
-								{
-										motor_sta &= ~(0x01<<i);
-								}
-								else
-								{
-										motor_sta |= (0x01<<i);
-								}
-								Motor_menu = Motor_menu->next;
-						}
-				}
-				
-				if(2 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index)     //退出电机转向菜单
-				{
-						int i;
-						showcase = 1;
-						Menu_pointer = main_menu_head;
-					  Motor_menu = Motor_menu_head;
-						for(i=0;i<4;i++)
-						{
-								save_motor_dir[i] = Motor_menu->dir;
-								Motor_menu = Motor_menu->next;
-						}
-				}
-				
-				
-				if(0 == Menu_pointer->menu_class && 2 == Menu_pointer->menu_index)
-				{
-						showcase =4;
-						Menu_pointer = Receiver_menu_head;
-				}
-				else if(3 == Menu_pointer->menu_class)
-				{
-						if(aux[LEVELMODE])
-						{
-							if(Menu_pointer->menu_index ==0)
-							{
-								aetr_or_taer = !aetr_or_taer;
-							}
-							else
-							{
-								Menu_pointer = main_menu_head;
-								showcase =1;
-							}
-						}
-				}
-				if(0 == Menu_pointer->menu_class && 3 == Menu_pointer->menu_index)    //save parameter
-				{
-						 #ifdef FLASH_SAVE1
-								//extern void flash_save( void);
-                //extern void flash_load( void);
-								flash_hard_coded_pid_identifier();					
-								flash_save( );
-                flash_load( );
-                // reset flash numbers
-                extern int number_of_increments[3][3];
-					
-                for( int i = 0 ; i < 3 ; i++)
-                    for( int j = 0 ; j < 3 ; j++)
-                        number_of_increments[i][j] = 0; 
-              #endif
-							showcase = 0;
-					   delay(1000);
-					   NVIC_SystemReset();
-				}
-				
-				if(0 == Menu_pointer->menu_class && 4 == Menu_pointer->menu_index)   //menu exit
-				{
-						//init main menu index paramenter
-						menu_flag = 0;
-						down_flag = 0;
-						up_flag = 0;
-						showcase = 0;
-						Menu_pointer = main_menu_head;
-            Lite_OSD_FPS = OSD_FPS;   //退出OSD菜单,Lite_OSD_FPS帧率修改为OSD_FPS
-				}
-				right_flag = 0;
-		}
-		
-		if((rx[Roll] < -0.6f) && left_flag == 1)     //左打杆操作
-		{
-				int a;
-				if(1 == Menu_pointer->menu_class)       //PID值 操作
-				{
-						Menu_pointer->PID_value -= 0.01f;
-						if(Menu_pointer->PID_value <= 0)
-						{
-								Menu_pointer->PID_value = 0;
-						}
-								PID_menu = PID_menu_head;
-//					  //更新PID值
-						for(a=0;a<3;a++)
-						{
-								pidkp[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidki[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-						
-						for(a=0;a<3;a++)
-						{
-								pidkd[a] = PID_menu->PID_value;
-								PID_menu = PID_menu->next;
-						}
-				}
-				
-				if(2 == Menu_pointer->menu_class)
-				{
-					 // int z;
-						Menu_pointer->dir --;
-						if((Menu_pointer->dir - 0xf) > 0)
-						{
-								Menu_pointer->dir = 0;
-						}
-						Motor_menu = Motor_menu_head;
-						for(z=0;z<4;z++)
-						{
-								if(Motor_menu->dir == 0x00)
-								{
-										motor_sta &= (~(0x01<<z));
-								}
-								else if(Motor_menu->dir == 0x01)
-								{
-										motor_sta |= (0x01<<z);
-								}
-								Motor_menu = Motor_menu->next;
-						}
-				}
-				if(3 == Menu_pointer->menu_class)
-				{
-						if(aux[LEVELMODE])
-						{
-						aetr_or_taer = !aetr_or_taer;
-						}
-				}
-				left_flag = 0;
-		}
-		
-		if((rx[Roll]) < 0.6f && (rx[Roll] > -0.6f))
-		{
-				right_flag = 1;
-			  left_flag = 1;
-		}
-}
 
-make_vol_pack(OSD_DATA,(int)(vbattfilt*100),aetr_or_taer,rx,aux,pidkp,pidki,pidkd,menu_flag,Menu_pointer->menu_class,Menu_pointer->menu_index,showcase);
-OSD_Tx_Data(OSD_DATA,pack_len);
-}
-#endif
-	}// end loop
 	
-
+#endif 
+    
+    
 #ifdef DEBUG
 	debug.cpu_load = (gettime() - lastlooptime )*1e-3f;
 #endif
 
+while ( (gettime() - time) < LOOPTIME );	
+
+		
+	}// end loop
+	
 
 }
+
 
 
 // 2 - low battery at powerup - if enabled by config
@@ -1058,10 +802,10 @@ OSD_Tx_Data(OSD_DATA,pack_len);
 void failloop( int val)
 {
 	for ( int i = 0 ; i <= 3 ; i++)
-
 	{
 		pwm_set( i ,0 );
 	}	
+
 	while(1)
 	{
 		for ( int i = 0 ; i < val; i++)
@@ -1079,47 +823,19 @@ void failloop( int val)
 
 void HardFault_Handler(void)
 {
-	if(menu_flag == 1)
-	{
-	
-	}
-	else
-	{
-		failloop(5);
-	}
+	failloop(5);
 }
 void MemManage_Handler(void) 
 {
-	if(menu_flag == 1)
-	{
-	
-	}
-	else
-	{
-		failloop(5);
-	}
+	failloop(5);
 }
 void BusFault_Handler(void) 
 {
-	if(menu_flag == 1)
-	{
-	
-	}
-	else
-	{
-		failloop(5);
-	}
+	failloop(5);
 }
 void UsageFault_Handler(void) 
 {
-	if(menu_flag == 1)
-	{
-	
-	}
-	else
-	{
-		failloop(5);
-	}
+	failloop(5);
 }
 
 
