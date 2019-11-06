@@ -1,6 +1,0 @@
---c99 -c --cpu Cortex-M0 -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I .\src -I ..\ -I ..\Libraries\CMSIS\Device\ST\STM32F0xx\Include -I ..\Libraries\CMSIS\Include -I ..\Libraries\STM32F0xx_StdPeriph_Driver\inc -I ..\Utilities\ --fpmode=fast
--I.\RTE\_BWhoop
--ID:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\2.0.0\Drivers\CMSIS\Device\ST\STM32F0xx\Include
--ID:\Keil_v5\ARM\CMSIS\Include
--D__UVISION_VERSION="525" -DSTM32F031x6 -DUSE_STDPERIPH_DRIVER -DSTM32F031
--o .\objects\stm32f0xx_rtc.o --omf_browse .\objects\stm32f0xx_rtc.crf --depend .\objects\stm32f0xx_rtc.d --feedback ".\Objects\bwhoop.fed" "..\Libraries\STM32F0xx_StdPeriph_Driver\src\stm32f0xx_rtc.c"

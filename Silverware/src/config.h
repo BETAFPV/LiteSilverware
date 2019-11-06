@@ -13,7 +13,6 @@
 
 //#define Lite_Brushless
 #define Lite_BrushlessRX
-#define RX_Default 2 //1:BAYANG;  2:SBUS;  3:DSMX
 //#define ENABLE_UART1_TX //重定向USART1_TX
 //#define SERIAL_RX_SWD //使能PA14作为RX接口,lite有刷使用
 

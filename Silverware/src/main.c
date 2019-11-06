@@ -176,7 +176,7 @@ int main(void)
 clk_init();
 #endif
 	
-    #if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
+#if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
     switch_key(); 
     if(KEY ==0)
     {	
@@ -685,11 +685,11 @@ rgb_dma_start();
     osd_count ++;
 
     vol = (int)(vbattfilt*100);
-    cur = (int)(electricCur*100);
+    cur = (int)(electricCur*10);
     
     if(aux[ARMING] && showcase==0)
     {
-        if(osd_count == 200)
+        if(osd_count == 400)
         {
             osd_data[0] = 0x0f;
             osd_data[0] |=0 << 4;
@@ -728,7 +728,7 @@ rgb_dma_start();
         {
             cal = 0;
         }
-
+        
         osd_setting();
         
          if(pwm_count ==30)

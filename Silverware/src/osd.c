@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define AETR  ((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.5f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
-#define TAER  ((-0.65f > rx[Yaw]) && (-0.3f < rx[Pitch]) && (0.3f > rx[Pitch]) && (0.7f < rx[Roll]) && (0.7f > rx[Throttle]) && (0.3f < rx[Throttle]))
+
 #define POLYGEN 0xd5
 
 
@@ -33,7 +33,6 @@ unsigned char channeltmp = 0;
 unsigned char initmotor =0;
 unsigned char mode = 0;
 unsigned char sa_flag = 0;
-unsigned char aetr_or_taer=0;
 unsigned char showcase = 0;
 unsigned char rx_switch = 1;
 
@@ -107,7 +106,7 @@ void osd_setting()
     switch(showcase)
     {
         case 0:
-            if(AETR || TAER)
+            if(AETR)
             {
                 showcase = 1;
                 unsigned char i = 0;
@@ -139,7 +138,7 @@ void osd_setting()
                 channeltmp = channel;
                 powerleveltmp = powerlevel;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] = 0x0f;
                 osd_data[0] |=showcase << 4;
@@ -215,7 +214,7 @@ void osd_setting()
                 }
                 right_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -306,7 +305,7 @@ void osd_setting()
                 }
                 left_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -347,7 +346,7 @@ void osd_setting()
                 right_flag = 0;
             }
         
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -377,19 +376,12 @@ void osd_setting()
             {
                 if(aux[LEVELMODE])
                 {
-                    if(currentMenu->index ==0)
-                    {
-                        aetr_or_taer = !aetr_or_taer;
-                    }
-                    else
-                    {
-                        showcase = 1;
-                        currentMenu = setMenuHead;
-                    }
+                    showcase = 1;
+                    currentMenu = setMenuHead;
                 }
                 right_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -452,7 +444,7 @@ void osd_setting()
                 osd_data[4] = aux[CHAN_6] ;
                 osd_data[5] = aux[CHAN_7] ;
                 osd_data[6] = aux[CHAN_8] ;
-                osd_data[7] = aetr_or_taer;
+                osd_data[7] = 0;
                 osd_data[8] = 0;
                 osd_data[9] = 0;
                 osd_data[10] = 0;
@@ -556,7 +548,7 @@ void osd_setting()
                 left_flag = 0;
             }
             
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -628,7 +620,7 @@ void osdMenuInit(void)
     motorMenu = createMenu(4,2);
     motorMenuHead = motorMenu;
     
-    receiverMenu = createMenu(1,3);
+    receiverMenu = createMenu(0,3);
     receiverMenuHead = receiverMenu;
     
     smartaudioMenu = createMenu(3,4);
