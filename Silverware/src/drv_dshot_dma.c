@@ -109,7 +109,7 @@ extern char aux[16];
 
 extern int failsafe;
 extern int onground;
-
+extern unsigned char showcase;
 int pwmdir = 0;
 static unsigned long pwm_failsafe_time = 1;
 
@@ -507,7 +507,7 @@ void pwm_set( uint8_t number, float pwm )
 		value = 0; // stop the motors
 	}
 
-    if(!aux[ARMING] && !aux[LEVELMODE] && aux[RACEMODE])
+    if(!showcase && !aux[ARMING] && !aux[LEVELMODE] && aux[RACEMODE])
     {
         if((rx[Roll] > 0.3f))
         {
