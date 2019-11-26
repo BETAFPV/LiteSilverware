@@ -4,8 +4,7 @@
 #include "math.h"
 #include <stdlib.h>
 
-#define AETR  ((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.5f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
-#define TAER  ((-0.65f > rx[Yaw]) && (-0.3f < rx[Pitch]) && (0.3f > rx[Pitch]) && (0.7f < rx[Roll]) && (0.7f > rx[Throttle]) && (0.3f < rx[Throttle]))
+#define AETR  ((-0.40f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.4f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
 #define POLYGEN 0xd5
 
 
@@ -102,7 +101,7 @@ void osd_setting()
     switch(showcase)
     {
         case 0:
-            if(AETR || TAER)
+            if(AETR)
             {
                 showcase = 1;
                 unsigned char i = 0;
