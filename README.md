@@ -6,7 +6,7 @@
 4. Support external receiver SBUS and DSMX protocol.
 5. Built in Bayang receiver or Frsky D8 protocol
 
-The full [user manual](https://github.com/BETAFPV/LiteSilverware/blob/master/docs/manual%20for%20lite%202s%20brushless%20fc.pdf) is here.
+The full [user manual](https://github.com/BETAFPV/LiteSilverware/tree/master/docs) is here.
 
 _end LiteSilverware notes_
 
@@ -14,27 +14,27 @@ _end LiteSilverware notes_
 
 Last major update 9.11.18
 
-Testing a new layout for config.h  - feel free to let me know what you think.  Your feedback is appreciated. 
+Testing a new layout for config.h  - feel free to let me know what you think.  Your feedback is appreciated.
 
 There are two main steps to prep this file for flash.  The first will be in config.h and the second will be in pid.c file.
 
 STEP 1:  Open config.h with keil and make edits to set your selections in 6 categories.
 
          _Hardware Selection_ - select your target: alienwhoop zer0, bwhoop, e011, or H8mini_blue_board based hardware
-         
+
          _Receiver Settings_ - set rates, expo, radio protocol, transmitter type and assign features to auxiliary channel switches
-                              
+
          _Voltage Settings_ - low voltage cutoff and other voltage related settings - UPDATE: LVC can now be switched on via stick gesture.  See notes for Berzerker release on the releases page.
-         
+
          _Filter Settings_ -set gyro filter and D term filter frequencies and orders - UPDATE: reccomendation is to use alienwhoop switchable filtering.  See notes for Berzerker release on releases page.
-         
+
          _Motor Output Settings_ - set pwm rate, motor curves, inverted yaw for props out, and features related to motor output - UPDATE: props in/props out is now switchable via stick gesture with alienwhoop settings.  See notes for Berzerker release for instructions.
-                                 
-         _Additional Features_ - remaining special features 
-         
+
+         _Additional Features_ - remaining special features
+
 STEP 2:  Open pid.c with keil and either edit pids to your preferred values or select a set of pids that I have prepared.   I plan to keep all my tunes in pid.c and will have them labeled and noted with the associated filter settings for each type of build.  All you have to do to use one of my tunes is uncomment the pid group you want to use and make sure the others are commented out.  I will keep whatever pids I'm using updated here if I change them and the default set will always be for a whoop with fpv gear installed.  Setpoint weight values for P are also just below pids - if you want a sharper stick feel on one of my tunes then change these values closer to 1.0.  Stick Accelerator and transition values are here too.  There are two profiles you can populate which are switchable via auxillary channel.
 
-## Current Experimental Features and DEVIATIONS FROM STOCK SILVERWARE 
+## Current Experimental Features and DEVIATIONS FROM STOCK SILVERWARE
 
  - Target Selection:  define your board type and hardware settings are automatically selected for E011 (OLD STYLE), Bwhoop, bwhoop pro, E011c, beta fpv lite, and ALIENWHOOP ZER0.  
  - Radio Type Selection:  Renamed aux channels as chan_5 through chan_10 and proper mapping is now controlled by defining your transmitter type.  Simply select devo, multi (for taranis or other multimodule), or stock (for toy tx) and assign the features you want to chan_#.  Your aux channel mapping will be adjusted in software to match your radio channel numbering.
@@ -68,7 +68,7 @@ This commit enables flashing and configuring Blheli using the Silverware FC. **M
  - Connect TX/RX of a usb TTL adapter/Arduino to DAT/CLK and GND to GND in Blheli suite, select the 4way-IF (D) interface
  - Connect and configure/flash ESCs as usual
  - After disconnecting, normal FC operation should resume
- 
+
  Credit to Bikemike https://www.rcgroups.com/forums/showpost.php?p=38505698&postcount=11950
 
 _Easiest way to find me for feedback & discussion is here https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501?u=notfastenuf_
@@ -76,4 +76,3 @@ _Easiest way to find me for feedback & discussion is here https://community.micr
 _end NFE notes_
 
 _The note about original Silverware is not included here. You could check it on [silver13/BoldClash-BWHOOP-B-03](https://github.com/silver13/BoldClash-BWHOOP-B-03) if needed._
-
