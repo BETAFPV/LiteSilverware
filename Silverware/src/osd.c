@@ -4,7 +4,7 @@
 #include "math.h"
 #include <stdlib.h>
 
-#define AETR  ((-0.65f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.5f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
+#define AETR  ((-0.4f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.4f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
 
 #define POLYGEN 0xd5
 
