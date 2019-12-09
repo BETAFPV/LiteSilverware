@@ -598,33 +598,38 @@ void osd_setting()
                 switch(currentMenu->index)
                 {
                     case 0:
-                        low_bat_l--;
-                        if(low_bat_l<0)
+                        if(low_bat_l==0)
                             low_bat_l=25;
+                        else
+                            low_bat_l--;
                         break;
                     
                     case 1:
-                        mode_l--;
-                        if(mode_l<0)
+                        if(mode_l==0)
                             mode_l=25;
+                        else
+                            mode_l--;
                         break;
                     
                     case 2:
-                        vol_l--;
-                        if(vol_l<0)
+                        if(vol_l==0)
                             vol_l=25;
+                        else
+                            vol_l--;
                         break;
                     
                     case 3:
-                        curr_l--;
-                        if(curr_l<0)
+                        if(curr_l==0)
                             curr_l=25;
+                        else
+                            curr_l--;
                         break;
                     
                     case 4:
-                        turtle_l--;
-                        if(turtle_l<0)
+                        if(turtle_l==0)
                             turtle_l=25;
+                        else
+                            turtle_l--;
                         break;
                     
                     case 5:
