@@ -27,14 +27,22 @@ unsigned char powerlevel = 0;
 unsigned char channel = 0;
 unsigned char powerleveltmp = 0;
 unsigned char channeltmp = 0;
-unsigned char main_version = 1;
-unsigned char modify_version = 0;
+
 unsigned char mode = 0;
 unsigned char sa_flag = 0;
-unsigned char aetr_or_taer=0;
 unsigned char showcase = 0;
 unsigned char rx_switch = 1;
-unsigned char motorDir[4] = {1,0,0,1};
+int showcase_cnt = 0;
+unsigned char showcase_init=0;
+unsigned char low_bat_l=16;
+unsigned char mode_l=21;
+unsigned char vol_l=23;
+unsigned char turtle_l=18;
+unsigned char low_battery=33;
+char motorDir[4] = {1,0,0,1};
+
+unsigned char main_version = 1;
+unsigned char modify_version = 1;
 char down_flag = 0;
 char up_flag = 0;
 char right_flag = 0;
@@ -45,6 +53,7 @@ menu_list pidMenu,pidMenuHead;
 menu_list motorMenu,motorMenuHead;
 menu_list receiverMenu,receiverMenuHead;
 menu_list smartaudioMenu,smartaudioMenuHead;
+menu_list displayMenu,displayMenuHead;
 menu_list currentMenu;
 
 #ifdef Lite_OSD
@@ -98,6 +107,17 @@ void getIndex()
 
 void osd_setting()
 {
+    if(showcase_cnt<810)
+    {
+        showcase_cnt++;
+        showcase =6;
+    }
+    else if(!showcase_init){
+        showcase_init = 1;
+        showcase =0;
+    }
+    
+    
     switch(showcase)
     {
         case 0:
@@ -133,7 +153,7 @@ void osd_setting()
                 channeltmp = channel;
                 powerleveltmp = powerlevel;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] = 0x0f;
                 osd_data[0] |=showcase << 4;
@@ -170,18 +190,22 @@ void osd_setting()
                         showcase = 2;
                         break;
                     case 1:
-                       currentMenu = motorMenuHead;
-                       showcase = 3;
-                       break; 
+                        currentMenu = motorMenuHead;
+                        showcase = 3;
+                        break; 
                     case 2:
-                       currentMenu = receiverMenuHead;
-                       showcase = 4;
-                       break; 
+                        currentMenu = receiverMenuHead;
+                        showcase = 4;
+                        break; 
                     case 3:
-                       currentMenu = smartaudioMenuHead;
-                       showcase = 5;
-                       break; 
+                        currentMenu = smartaudioMenuHead;
+                        showcase = 5;
+                        break; 
                     case 4:
+                        currentMenu = displayMenuHead;
+                        showcase = 6;
+                        break;
+                    case 5:
                         showcase =0;
                         currentMenu = setMenuHead;
                         down_flag = 0;
@@ -200,7 +224,7 @@ void osd_setting()
                         extern unsigned long lastlooptime;
                         lastlooptime = gettime();
                         break;
-                    case 5:
+                    case 6:
                         showcase =0;
                         currentMenu = setMenuHead;
                         down_flag = 0;
@@ -209,7 +233,7 @@ void osd_setting()
                 }
                 right_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -300,7 +324,7 @@ void osd_setting()
                 }
                 left_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -341,7 +365,7 @@ void osd_setting()
                 right_flag = 0;
             }
         
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -371,85 +395,25 @@ void osd_setting()
             {
                 if(aux[LEVELMODE])
                 {
-//                    if(currentMenu->index ==0)
-//                    {
-//                        aetr_or_taer = !aetr_or_taer;
-//                    }
-//                    else
-//                    {
-                        showcase = 1;
-                        
-                        currentMenu = setMenuHead;
-//                    }
+                    showcase = 1;
+                    currentMenu = setMenuHead;
                 }
                 right_flag = 0;
             }
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
                 osd_data[1] = currentMenu->index;
                 
-                osd_data[2]  = 0;
-                if(rx[0]> -0.2f && rx[0] <0.2f)
-                {
-                    osd_data[2] |= 0x1<<0;
-                }
-                else if(rx[0] > 0.4f)
-                {
-                    osd_data[2] |= 0x2<<0;
-                }
-                else if(rx[0] < -0.4f)
-                {
-                    osd_data[2] |= 0x0<<0;
-                }
-                
-                if(rx[1]> -0.2f && rx[1] <0.2f)
-                {
-                    osd_data[2] |= 0x1<<2;
-                }
-                else if(rx[1]>= 0.2f)
-                {
-                    osd_data[2] |= 0x2<<2;
-                }
-                else 
-                {
-                    osd_data[2] |= 0x0<<2;
-                }
-                
-                if(rx[2]> -0.2f && rx[2] <0.2f)
-                {
-                    osd_data[2] |= 0x1<<4;
-                }
-                else if(rx[2]>= 0.2f)
-                {
-                    osd_data[2] |= 0x2<<4;
-                }
-                else 
-                {
-                    osd_data[2] |= 0x0<<4;
-                }
-                
-                if(rx[3]> 0.4f && rx[3] <0.6f)
-                {
-                    osd_data[2] |= 0x1<<6;
-                }
-                else if(rx[3]>= 0.6f)
-                {
-                    osd_data[2] |= 0x2<<6;
-                }
-                else 
-                {
-                    osd_data[2] |= 0x0<<6;
-                }
-
-                osd_data[3] = aux[CHAN_5] ;
-                osd_data[4] = aux[CHAN_6] ;
-                osd_data[5] = aux[CHAN_7] ;
-                osd_data[6] = aux[CHAN_8] ;
-                osd_data[7] = aetr_or_taer;
-                osd_data[8] = 0;
-                osd_data[9] = 0;
+                osd_data[2]  = round(rx[0]*100);
+                osd_data[3] =  round(rx[1]*100);
+                osd_data[4] =  round(rx[2]*100);
+                osd_data[5] =  round(rx[3]*100);
+                osd_data[6] =  aux[CHAN_5];
+                osd_data[7] =  aux[CHAN_6];
+                osd_data[8] =  aux[CHAN_7];
+                osd_data[9] =  aux[CHAN_8];
                 osd_data[10] = 0;
                 osd_data[11] = 0;
                 for (uint8_t i = 0; i < 11; i++)
@@ -551,7 +515,7 @@ void osd_setting()
                 left_flag = 0;
             }
             
-            if(osd_count == 200)
+            if(osd_count >= 200)
             {
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
@@ -562,6 +526,115 @@ void osd_setting()
                 osd_data[5] = channeltmp;
                 osd_data[6] = powerleveltmp;
                 osd_data[7] = 0;
+                osd_data[8] = 0;
+                osd_data[9] = 0;
+                osd_data[10] = 0;
+                osd_data[11] = 0;
+                for (uint8_t i = 0; i < 11; i++)
+                    osd_data[11] += osd_data[i];  
+                
+                UART2_DMA_Send();
+                osd_count = 0;
+            }
+            break;
+           
+        case 6:
+            getIndex();
+        
+            if((rx[Roll] > 0.6f) && right_flag == 1)
+            {
+                switch(currentMenu->index)
+                {
+                    case 0:
+                        low_bat_l++;
+                        if(low_bat_l>25)
+                            low_bat_l=0;
+                        break;
+                    
+                    case 1:
+                        mode_l++;
+                        if(mode_l>25)
+                            mode_l=0;
+                        break;
+                    
+                    case 2:
+                        vol_l++;
+                        if(vol_l>25)
+                            vol_l=0;
+                        break;
+
+                    case 3:
+                        turtle_l++;
+                        if(turtle_l>25)
+                            turtle_l=0;
+                        break;
+                    
+                    case 4:
+                        low_battery++;
+                        if(low_battery>40)
+                            low_battery=28;
+                        break;
+                        
+                    case 5:
+                        showcase = 1;
+                        displayMenu = displayMenuHead;
+                        currentMenu = setMenuHead;
+                        break;                    
+                }
+                right_flag = 0;
+            }
+            if((rx[Roll] < -0.6f) && left_flag == 1)
+            {
+                switch(currentMenu->index)
+                {
+                    case 0:
+                        if(low_bat_l==0)
+                            low_bat_l=25;
+                        else
+                            low_bat_l--;
+                        break;
+                    
+                    case 1:
+                        if(mode_l==0)
+                            mode_l=25;
+                        else
+                            mode_l--;
+                        break;
+                    
+                    case 2:
+                        if(vol_l==0)
+                            vol_l=25;
+                        else
+                            vol_l--;
+                        break;
+                    
+                    case 3:
+                        if(turtle_l==0)
+                            turtle_l=25;
+                        else
+                            turtle_l--;
+                        break;
+                    
+                    case 4:
+                        low_battery--;
+                        if(low_battery<28)
+                            low_battery=40;
+                        break;
+                }
+                
+                left_flag = 0;
+            }
+            if(osd_count >= 200)
+            {
+                osd_data[0] =0x0f;
+                osd_data[0] |=showcase << 4;
+                osd_data[1] = currentMenu->index;
+                osd_data[2] = low_bat_l;
+                osd_data[3] = mode_l;
+                osd_data[4] = vol_l;
+                osd_data[5] = 0;
+                osd_data[6] = turtle_l;
+                osd_data[7] = low_battery;
                 osd_data[8] = 0;
                 osd_data[9] = 0;
                 osd_data[10] = 0;
@@ -614,7 +687,7 @@ menu_list createMenu(char len,char item)
 
 void osdMenuInit(void)
 {
-    setMenu = createMenu(5,0);
+    setMenu = createMenu(6,0);
     setMenuHead = setMenu;
     
     pidMenu = createMenu(9,1);
@@ -628,6 +701,9 @@ void osdMenuInit(void)
     
     smartaudioMenu = createMenu(3,4);
     smartaudioMenuHead = smartaudioMenu;
+    
+    displayMenu = createMenu(5,5);
+    displayMenuHead = displayMenu;
     
     currentMenu = setMenu;    
 }
