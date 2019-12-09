@@ -78,9 +78,6 @@ debug_type debug;
 #endif
 
 
-
-
-
 // hal
 void clk_init(void);
 void imu_init(void);

@@ -16,6 +16,13 @@ extern  char motorDir[4];
 extern float hardcoded_pid_identifier;
 extern unsigned char rx_switch;
 
+extern unsigned char low_bat_l;
+extern unsigned char mode_l;
+extern unsigned char vol_l;
+extern unsigned char curr_l;
+extern unsigned char turtle_l;
+extern unsigned char low_battery;
+
 
 #define FMC_HEADER 0x12AA0001
 
@@ -76,6 +83,13 @@ void flash_save( void) {
     writeword(40,(motorDir[0]|motorDir[1]|motorDir[2]|motorDir[3]));
     writeword(41, motorDir[0] | (motorDir[1]<<8) |(motorDir[2]<<16) |(motorDir[3]<<24));
     writeword(42,rx_switch);
+    
+    writeword(43,low_bat_l);
+    writeword(44,mode_l);
+    writeword(45,vol_l);
+    writeword(46,curr_l);
+    writeword(47,turtle_l);
+    writeword(48,low_battery);
    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
@@ -202,7 +216,14 @@ void flash_load( void) {
         }
      }
      rx_switch = fmc_read(42);	
-
+     
+     low_bat_l = fmc_read(43);
+     mode_l = fmc_read(44);
+     vol_l = fmc_read(45);
+     curr_l = fmc_read(46);
+     turtle_l = fmc_read(47);
+     low_battery = fmc_read(48);
+     
      
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
