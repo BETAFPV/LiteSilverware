@@ -551,31 +551,31 @@ void osd_setting()
                 {
                     case 0:
                         low_bat_l++;
-                        if(low_bat_l>25)
+                        if(low_bat_l>32)
                             low_bat_l=0;
                         break;
                     
                     case 1:
                         mode_l++;
-                        if(mode_l>25)
+                        if(mode_l>32)
                             mode_l=0;
                         break;
                     
                     case 2:
                         vol_l++;
-                        if(vol_l>25)
+                        if(vol_l>32)
                             vol_l=0;
                         break;
                     
                     case 3:
                         curr_l++;
-                        if(curr_l>25)
+                        if(curr_l>32)
                             curr_l=0;
                         break;
                     
                     case 4:
                         turtle_l++;
-                        if(turtle_l>25)
+                        if(turtle_l>32)
                             turtle_l=0;
                         break;
                     
@@ -599,35 +599,35 @@ void osd_setting()
                 {
                     case 0:
                         if(low_bat_l==0)
-                            low_bat_l=25;
+                            low_bat_l=32;
                         else
                             low_bat_l--;
                         break;
                     
                     case 1:
                         if(mode_l==0)
-                            mode_l=25;
+                            mode_l=32;
                         else
                             mode_l--;
                         break;
                     
                     case 2:
                         if(vol_l==0)
-                            vol_l=25;
+                            vol_l=32;
                         else
                             vol_l--;
                         break;
                     
                     case 3:
                         if(curr_l==0)
-                            curr_l=25;
+                            curr_l=32;
                         else
                             curr_l--;
                         break;
                     
                     case 4:
                         if(turtle_l==0)
-                            turtle_l=25;
+                            turtle_l=32;
                         else
                             turtle_l--;
                         break;
