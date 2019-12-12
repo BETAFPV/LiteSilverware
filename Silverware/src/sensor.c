@@ -25,8 +25,6 @@ static Vector3f_t new_offset;
 static Vector3f_t new_scale;
 static Vector3f_t samples[6];
 extern float accelcal[3];
-extern float accelscal[3];
-
 
 extern float accelraw[3];
 enum ORIENTATION_STATUS orientationStatus;
@@ -348,10 +346,6 @@ void AccCalibration(void)
         accelcal[0] = new_offset.x;
         accelcal[1] = new_offset.y;
         accelcal[2] = new_offset.z;
-        
-        accelscal[0] = new_scale.x;
-        accelscal[1] = new_scale.y;
-        accelscal[2] = new_scale.z;
         
         should_cali = false;
         accstep = 0;

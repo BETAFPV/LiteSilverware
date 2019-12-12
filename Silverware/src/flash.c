@@ -8,7 +8,6 @@ extern void fmc_unlock(void);
 extern void fmc_lock(void);
 
 extern float accelcal[];
-extern float accelscal[3];
 extern unsigned char powerlevel;
 extern unsigned char channel;
 extern float * pids_array[3];
@@ -23,6 +22,9 @@ extern unsigned char curr_l;
 extern unsigned char turtle_l;
 extern unsigned char low_battery;
 
+extern unsigned char profileAB;
+extern unsigned int ratesValue;
+extern unsigned int ratesValueYaw;
 
 #define FMC_HEADER 0x12AA0001
 
@@ -71,10 +73,10 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
+  
+    fmc_write_float(addresscount++, ratesValue);
+    fmc_write_float(addresscount++, ratesValueYaw);
 
-    fmc_write_float(addresscount++, accelscal[0]);
-    fmc_write_float(addresscount++, accelscal[1]);
-    fmc_write_float(addresscount++, accelscal[2]);
     
     writeword(addresscount++, powerlevel);
     writeword(addresscount++, channel);
@@ -90,7 +92,9 @@ void flash_save( void) {
     writeword(46,curr_l);
     writeword(47,turtle_l);
     writeword(48,low_battery);
-   
+    writeword(49,profileAB);
+    
+    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
 extern char rfchannel[4];
@@ -193,11 +197,9 @@ void flash_load( void) {
      accelcal[1] = fmc_read_float(addresscount++ );
      accelcal[2] = fmc_read_float(addresscount++ );  
     
-     accelscal[0] = fmc_read_float(addresscount++ );
-     accelscal[1] = fmc_read_float(addresscount++ );
-     accelscal[2] = fmc_read_float(addresscount++ ); 
-
-     
+     ratesValue = fmc_read_float(addresscount++ );
+     ratesValueYaw = fmc_read_float(addresscount++ ); 
+    
      powerlevel = fmc_read(addresscount++ );
      channel = fmc_read(addresscount++ ); 
      
@@ -223,7 +225,7 @@ void flash_load( void) {
      curr_l = fmc_read(46);
      turtle_l = fmc_read(47);
      low_battery = fmc_read(48);
-     
+     profileAB = fmc_read(49);
      
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];

@@ -57,6 +57,9 @@ extern unsigned char showcase;
 extern float angleerror[];
 extern float attitude[];
 
+extern unsigned short ratesValue;
+extern unsigned short ratesValueYaw;
+
 int onground = 1;
 int onground_long = 1;
 
@@ -217,9 +220,9 @@ pid_precalc();
 	float rates[3];
 
 #ifndef BETAFLIGHT_RATES
-    rates[0] = rate_multiplier * rxcopy[0] * (float) MAX_RATE * DEGTORAD;
-    rates[1] = rate_multiplier * rxcopy[1] * (float) MAX_RATE * DEGTORAD;
-    rates[2] = rate_multiplier * rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
+    rates[0] = rate_multiplier * rxcopy[0] * (float) ratesValue * DEGTORAD;
+    rates[1] = rate_multiplier * rxcopy[1] * (float) ratesValue * DEGTORAD;
+    rates[2] = rate_multiplier * rxcopy[2] * (float) ratesValueYaw * DEGTORAD;
 #else
     rates[0] = rate_multiplier * calcBFRatesRad(0);
     rates[1] = rate_multiplier * calcBFRatesRad(1);
