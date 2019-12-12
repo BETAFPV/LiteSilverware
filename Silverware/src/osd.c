@@ -23,6 +23,8 @@ extern float pidkd[PIDNUMBER];
 extern int number_of_increments[3][3];
 extern unsigned long lastlooptime;
 
+unsigned char profileAB =0;
+
 unsigned char powerlevel = 0;
 unsigned char channel = 0;
 unsigned char powerleveltmp = 0;
@@ -41,6 +43,10 @@ unsigned char turtle_l=18;
 unsigned char low_battery=33;
 char motorDir[4] = {1,0,0,1};
 
+unsigned int ratesValue=860;
+unsigned int ratesValueYaw = 500;
+
+
 unsigned char main_version = 1;
 unsigned char modify_version = 1;
 char down_flag = 0;
@@ -54,6 +60,7 @@ menu_list motorMenu,motorMenuHead;
 menu_list receiverMenu,receiverMenuHead;
 menu_list smartaudioMenu,smartaudioMenuHead;
 menu_list displayMenu,displayMenuHead;
+menu_list ratesMenu,ratesMenuHead;
 menu_list currentMenu;
 
 #ifdef Lite_OSD
@@ -206,6 +213,10 @@ void osd_setting()
                         showcase = 6;
                         break;
                     case 5:
+                        currentMenu = ratesMenuHead;
+                        showcase = 7;
+                        break;
+                    case 6:
                         showcase =0;
                         currentMenu = setMenuHead;
                         down_flag = 0;
@@ -224,7 +235,7 @@ void osd_setting()
                         extern unsigned long lastlooptime;
                         lastlooptime = gettime();
                         break;
-                    case 6:
+                    case 7:
                         showcase =0;
                         currentMenu = setMenuHead;
                         down_flag = 0;
@@ -569,13 +580,13 @@ void osd_setting()
                             turtle_l=0;
                         break;
                     
-                    case 4:
+                    case 5:
                         low_battery++;
                         if(low_battery>40)
                             low_battery=28;
                         break;
                         
-                    case 5:
+                    case 6:
                         showcase = 1;
                         displayMenu = displayMenuHead;
                         currentMenu = setMenuHead;
@@ -615,7 +626,7 @@ void osd_setting()
                             turtle_l--;
                         break;
                     
-                    case 4:
+                    case 5:
                         low_battery--;
                         if(low_battery<28)
                             low_battery=40;
@@ -646,6 +657,75 @@ void osd_setting()
                 osd_count = 0;
             }
             break;
+        
+        case 7:
+            getIndex();
+        
+            if((rx[Roll] > 0.6f) && right_flag == 1)
+            {
+                switch(currentMenu->index)
+                {
+                    case 0:
+                        ratesValue +=10;
+                        break;
+                    
+                    case 1:
+                        ratesValueYaw +=10;
+                        break;
+                    
+                    case 2:
+                        profileAB = !profileAB;
+                        break;
+                    
+                    case 3:
+                        showcase = 1;
+                        ratesMenu = ratesMenuHead;
+                        currentMenu = setMenuHead;
+                        break;
+                }
+                right_flag = 0;
+            }
+            if((rx[Roll] < -0.6f) && left_flag == 1)
+            {
+                switch(currentMenu->index)
+                {
+                    case 0:
+                        ratesValue -=10;
+                        break;
+                    
+                    case 1:
+                        ratesValueYaw -=10;
+                        break;
+                    
+                    case 2:
+                        profileAB = !profileAB;
+                        break;
+                }
+                left_flag = 0;
+            }
+            
+            if(osd_count >= 200)
+            {
+                osd_data[0] =0x0f;
+                osd_data[0] |=showcase << 4;
+                osd_data[1] = currentMenu->index;
+                osd_data[2] = ratesValue >> 8;
+                osd_data[3] = ratesValue & 0xff;
+                osd_data[4] = ratesValueYaw >> 8;
+                osd_data[5] = ratesValueYaw & 0xff;
+                osd_data[6] = profileAB;
+                osd_data[7] = 0;
+                osd_data[8] = 0;
+                osd_data[9] = 0;
+                osd_data[10] = 0;
+                osd_data[11] = 0;
+                for (uint8_t i = 0; i < 11; i++)
+                    osd_data[11] += osd_data[i];  
+                
+                UART2_DMA_Send();
+                osd_count = 0;
+            }
+            break;    
         default:
             break;
     }
@@ -687,7 +767,7 @@ menu_list createMenu(char len,char item)
 
 void osdMenuInit(void)
 {
-    setMenu = createMenu(6,0);
+    setMenu = createMenu(7,0);
     setMenuHead = setMenu;
     
     pidMenu = createMenu(9,1);
@@ -704,6 +784,9 @@ void osdMenuInit(void)
     
     displayMenu = createMenu(5,5);
     displayMenuHead = displayMenu;
+    
+    ratesMenu = createMenu(3,6);
+    ratesMenuHead = ratesMenu;
     
     currentMenu = setMenu;    
 }

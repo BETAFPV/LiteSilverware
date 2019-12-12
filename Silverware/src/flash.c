@@ -23,7 +23,10 @@ extern unsigned char vol_l;
 extern unsigned char turtle_l;
 extern unsigned char low_battery;
 
+extern unsigned char profileAB;
 int save_motor_dir_identifier;
+extern unsigned int ratesValue;
+extern unsigned int ratesValueYaw;
 #define FMC_HEADER 0x12AA0001
 
 float initial_pid_identifier = -10;
@@ -71,6 +74,9 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
+    
+    fmc_write_float(addresscount++, ratesValue);
+    fmc_write_float(addresscount++, ratesValueYaw);
    
     writeword(30, powerlevel);
     writeword(31, channel);
@@ -88,6 +94,7 @@ void flash_save( void) {
 
     writeword(47,turtle_l);
     writeword(48,low_battery);
+    writeword(49,profileAB);
    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
@@ -190,6 +197,9 @@ void flash_load( void) {
      accelcal[1] = fmc_read_float(addresscount++ );
      accelcal[2] = fmc_read_float(addresscount++ );  
     
+     ratesValue = fmc_read_float(addresscount++ );
+     ratesValueYaw = fmc_read_float(addresscount++ ); 
+     
      powerlevel = fmc_read(30 );
      channel = fmc_read(31); 
      
@@ -217,6 +227,7 @@ void flash_load( void) {
 
      turtle_l = fmc_read(47);
      low_battery = fmc_read(48);
+     profileAB = fmc_read(49);
      
         
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  

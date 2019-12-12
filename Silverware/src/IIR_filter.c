@@ -178,7 +178,7 @@ float LPF2pApply_3(float sample)
     }
 }
   
- 
+#if 0
 static float  _cutoff_freq4; 
 static float  _a14;
 static float  _a24;
@@ -353,15 +353,16 @@ float LPF2pApply_6(float sample)
     }
 }
 
+#endif
 
 void IIRFilter_Init(void)
 {
     LPF2pSetCutOffFreq_1(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
     LPF2pSetCutOffFreq_2(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
     LPF2pSetCutOffFreq_3(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
-    LPF2pSetCutOffFreq_4(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
-    LPF2pSetCutOffFreq_5(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
-    LPF2pSetCutOffFreq_6(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+//    LPF2pSetCutOffFreq_4(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+//    LPF2pSetCutOffFreq_5(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+//    LPF2pSetCutOffFreq_6(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
 }
 
 

@@ -56,7 +56,7 @@ extern float accel[3];
 
 extern float accelcal[3];
 extern float accelraw[3];
-float accelscal[3] = {1,1,1};
+
 
 void imu_init(void)
 {
@@ -67,7 +67,7 @@ void imu_init(void)
 
 		  for (int x = 0; x < 3; x++)
 		    {
-			    lpf(&GEstG[x], (accelraw[x] - accelcal[x]) * accelscal[x], 0.85);
+			    lpf(&GEstG[x], (accelraw[x] - accelcal[x]), 0.85);
 		    }
 		  delay(1000);
 	  }
@@ -131,9 +131,9 @@ void imu_calc(void)
 {
 
 // remove bias
-    accel[0] = (accelraw[0] - accelcal[0]) * accelscal[0];
-    accel[1] = (accelraw[1] - accelcal[1]) * accelscal[1];
-	accel[2] = (accelraw[2] - accelcal[2]) * accelscal[2];
+    accel[0] = (accelraw[0] - accelcal[0]) ;
+    accel[1] = (accelraw[1] - accelcal[1]) ;
+	accel[2] = (accelraw[2] - accelcal[2]) ;
      
     accel[0] = LPF2pApply_1(accel[0]);
     accel[1] = LPF2pApply_2(accel[1]);

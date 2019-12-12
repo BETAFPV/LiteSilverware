@@ -193,7 +193,7 @@ extern float aux_analog[AUXNUMBER];
 extern char aux_analogchange[AUXNUMBER];
 extern float vbattfilt;
 
-
+extern unsigned char profileAB;
 
 // multiplier for pids at 3V - for PID_VOLTAGE_COMPENSATION - default 1.33f from H101 code
 #define PID_VC_FACTOR 1.33f
@@ -452,7 +452,7 @@ float pid(int x )
 				float transitionSetpointWeight[3];
 				float stickAccelerator[3];
 				float stickTransition[3];
-			if (aux[PIDPROFILE]){
+			if (profileAB){
 				stickAccelerator[x] = stickAcceleratorProfileB[x];
 				stickTransition[x] = stickTransitionProfileB[x];
 			}else{
