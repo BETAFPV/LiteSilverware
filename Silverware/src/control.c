@@ -57,8 +57,8 @@ extern unsigned char showcase;
 extern float angleerror[];
 extern float attitude[];
 
-extern unsigned short ratesValue;
-extern unsigned short ratesValueYaw;
+extern unsigned int ratesValue;
+extern unsigned int ratesValueYaw;
 
 int onground = 1;
 int onground_long = 1;
