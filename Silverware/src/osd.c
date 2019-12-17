@@ -580,13 +580,13 @@ void osd_setting()
                             turtle_l=0;
                         break;
                     
-                    case 5:
+                    case 4:
                         low_battery++;
                         if(low_battery>40)
                             low_battery=28;
                         break;
                         
-                    case 6:
+                    case 5:
                         showcase = 1;
                         displayMenu = displayMenuHead;
                         currentMenu = setMenuHead;
@@ -626,7 +626,7 @@ void osd_setting()
                             turtle_l--;
                         break;
                     
-                    case 5:
+                    case 4:
                         low_battery--;
                         if(low_battery<28)
                             low_battery=40;
