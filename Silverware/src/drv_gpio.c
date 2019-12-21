@@ -55,7 +55,7 @@ void gpio_init(void)
 }
 
 
-
+#ifdef FPV_ON
 // init fpv pin separately because it may use SWDAT/SWCLK don't want to enable it right away
 int gpio_init_fpv(void)
 {
@@ -78,7 +78,7 @@ int gpio_init_fpv(void)
 	}
 	return 0;
 }
-
+#endif
 
 
 
