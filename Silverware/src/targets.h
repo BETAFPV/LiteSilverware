@@ -182,6 +182,14 @@
 #define LED2PIN GPIO_Pin_0
 #define LED2PORT GPIOA
 
+// RGB led type ws2812 - ws2813
+// numbers over 8 could decrease performance
+#define RGB_LED_NUMBER 2
+#define RGB_LED_DMA
+// pin / port for the RGB led ( programming port ok )
+#define RGB_PIN GPIO_Pin_3
+#define RGB_PORT GPIOA
+
 //SOFT I2C & GYRO
 #define USE_HARDWARE_I2C
 #define GYRO_ID_1 0x68
