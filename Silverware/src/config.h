@@ -12,10 +12,10 @@
 // *************uncomment H8mini_blue_board for the H8 mini flight controller with blue circuit board
 
 //#define Lite_Brushless
-#define Lite_BrushlessRX
-#define RX_Default 2 //1:BAYANG;  2:SBUS;  3:DSMX
-//#define ENABLE_UART1_TX //重定向USART1_TX
-//#define SERIAL_RX_SWD //使能PA14作为RX接口,lite有刷使用
+//#define Lite_BrushlessRX
+#define Lite_BrushedRX
+//#define ENABLE_UART1_TX //閲嶅畾鍚慤SART1_TX
+//#define SERIAL_RX_SWD //浣胯兘PA14浣滀负RX鎺ュ彛,lite鏈夊埛浣跨敤
 
 
 

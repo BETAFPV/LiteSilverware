@@ -1483,7 +1483,7 @@ void rx_spektrum_bind(void)
         }
 	}
 #endif
-#if defined(Lite_BrushlessRX) ||defined(Lite_Brushless)
+#if defined(Lite_BrushlessRX) ||defined(Lite_Brushless)||defined(Lite_BrushedRX)
     // Lite_BrushlessRX & Lite_Brushless use the bind key for binding
 #else
         GPIO_InitTypeDef    GPIO_InitStructure;

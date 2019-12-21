@@ -286,7 +286,12 @@ aux[CH_AUX1] = 1;
 
     // init receiver
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-    if(rx_switch == 1)
+    if(rx_switch == 0)
+    {
+        rx_init();
+        pFun =checkrx;
+    }    
+    else if(rx_switch == 1)
     {
         SET_RX_PSW(1);
         sbus_rx_init();

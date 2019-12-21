@@ -107,9 +107,11 @@
 
 
 
+#if defined(Lite_Brushless)
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 		
+#endif
 		
 // pwm pins disable
 // disable all pwm pins / function
@@ -129,17 +131,28 @@
 //#define PWM_PA9
 //#define PWM_PA10
 //#define PWM_PA11
-#define PWM_PA15
-#define PWM_PB0
-#define PWM_PB1
+//#define PWM_PA15
+//#define PWM_PB0
+//#define PWM_PB1
 //#define PWM_PB3
-#define PWM_PB4
+//#define PWM_PB4
 //#define PWM_PB5
 //#define PWM_PB6
 //#define PWM_PB7
 
+#ifdef Lite_BrushlessRX
+#define PWM_PB0
+#define PWM_PB1
+#define PWM_PB4
+#define PWM_PA15
+#endif
 
-
+#ifdef Lite_BrushedRX
+#define PWM_PB1
+#define PWM_PB3
+#define PWM_PA7
+#define PWM_PA15
+#endif
 
 
 
