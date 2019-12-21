@@ -715,7 +715,6 @@ rgb_dma_start();
     }
     else
     {
-         pwm_count ++;
 //        if(!cal && !aux[CHAN_6] && aux[CHAN_8] )
 //        {
 //            cal = 1;
@@ -729,7 +728,8 @@ rgb_dma_start();
 //        }
 
         osd_setting();
-        
+#ifdef BRUSHLESS_TARGET
+         pwm_count ++;
          if(pwm_count ==30)
          {
             if (aux[LEVELMODE])
@@ -769,6 +769,7 @@ rgb_dma_start();
             }
             pwm_count = 0;
         }
+#endif        
     }
 
 	
