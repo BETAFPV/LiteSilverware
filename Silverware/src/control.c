@@ -410,56 +410,25 @@ if (aux[LEVELMODE]&&!acro_override){
 	#define IDLE_THR .001f
 #endif
 
-	if(aux[LEVELMODE])
-	{
-		if (armed_state == 0){                                     												// CONDITION: armed state variable is 0 so quad is DISARMED					
-			throttle = 0;																																		//						override throttle to 0
-			in_air = 0;																																			//						flag in air variable as NOT IN THE AIR for mix throttle increase safety
-			arming_release = 0;																															//						arming release flag is set to not cleared to reactivate the throttle safety limit for the next arming event
-		
-		}else{                                                    	  										// CONDITION: armed state variable is 1 so quad is ARMED							 
-				if (idle_state == 0){                                     										//            CONDITION: idle up is turned OFF				
-					if ( rx[3] < 0.05f ){
-						throttle = 0;                      																				//   											set a small dead zone where throttle is zero and
-						in_air = 0;																																//												deactivate mix increase 3 since throttle is off
-					}else{ 
-						throttle = (rx[3] - 0.05f)*1.05623158f;            												//                        map the remainder of the the active throttle region to 100%
-						in_air = 1;}																															//												activate mix increase since throttle is on
-				}else{ 																																				//						CONDITION: idle up is turned ON												
-					throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);						//            						throttle range is mapped from idle throttle value to 100%							  
-					if ((rx[3] > THROTTLE_SAFETY) && (in_air == 0)) in_air = 1; 			  				//            						change the state of in air flag when first crossing the throttle 
-				}																																							//            						safety value to indicate craft has taken off for mix increase safety
-		}
+	if (armed_state == 0){                                     												// CONDITION: armed state variable is 0 so quad is DISARMED					
+		throttle = 0;																																		//						override throttle to 0
+		in_air = 0;																																			//						flag in air variable as NOT IN THE AIR for mix throttle increase safety
+		arming_release = 0;																															//						arming release flag is set to not cleared to reactivate the throttle safety limit for the next arming event
+	
+	}else{                                                    	  										// CONDITION: armed state variable is 1 so quad is ARMED							 
+			if (idle_state == 0){                                     										//            CONDITION: idle up is turned OFF				
+				if ( rx[3] < 0.05f ){
+					throttle = 0;                      																				//   											set a small dead zone where throttle is zero and
+				  in_air = 0;																																//												deactivate mix increase 3 since throttle is off
+				}else{ 
+					throttle = (rx[3] - 0.05f)*1.05623158f;            												//                        map the remainder of the the active throttle region to 100%
+					in_air = 1;}																															//												activate mix increase since throttle is on
+			}else{ 																																				//						CONDITION: idle up is turned ON												
+				throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);						//            						throttle range is mapped from idle throttle value to 100%							  
+				if ((rx[3] > THROTTLE_SAFETY) && (in_air == 0)) in_air = 1; 			  				//            						change the state of in air flag when first crossing the throttle 
+			}																																							//            						safety value to indicate craft has taken off for mix increase safety
 	}
-	else
-	{
-		if(aux[RACEMODE])
-		{
-			throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);						  
-			in_air = 1; 
-		}
-		else
-		{
-			if (armed_state == 0){                                     												// CONDITION: armed state variable is 0 so quad is DISARMED					
-				throttle = 0;																																		//						override throttle to 0
-				in_air = 0;																																			//						flag in air variable as NOT IN THE AIR for mix throttle increase safety
-				arming_release = 0;																															//						arming release flag is set to not cleared to reactivate the throttle safety limit for the next arming event
-			
-			}else{                                                    	  										// CONDITION: armed state variable is 1 so quad is ARMED							 
-					if (idle_state == 0){                                     										//            CONDITION: idle up is turned OFF				
-						if ( rx[3] < 0.05f ){
-							throttle = 0;                      																				//   											set a small dead zone where throttle is zero and
-							in_air = 0;																																//												deactivate mix increase 3 since throttle is off
-						}else{ 
-							throttle = (rx[3] - 0.05f)*1.05623158f;            												//                        map the remainder of the the active throttle region to 100%
-							in_air = 1;}																															//												activate mix increase since throttle is on
-					}else{ 																																				//						CONDITION: idle up is turned ON												
-						throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);						//            						throttle range is mapped from idle throttle value to 100%							  
-						if ((rx[3] > THROTTLE_SAFETY) && (in_air == 0)) in_air = 1; 			  				//            						change the state of in air flag when first crossing the throttle 
-					}																																							//            						safety value to indicate craft has taken off for mix increase safety
-			}
-		}
-	}
+
 #ifdef STICK_TRAVEL_CHECK																				//This feature completely disables throttle and allows visual feedback if control inputs reach full throws
 //Stick endpoints check tied to aux channel stick gesture
 if (aux[CH_AUX1]){
@@ -1014,47 +983,20 @@ thrsum = 0;		//reset throttle sum for voltage monitoring logic in main loop
 
 
 //***********************Send Motor PWM Command Logic			
-		if(aux[LEVELMODE])
-		{
-			#ifndef NOMOTORS
-			#ifndef MOTORS_TO_THROTTLE
-			//normal mode
-			pwm_set( i ,motormap( mix[i] ) );
-			#else
-			// throttle test mode
-			ledcommand = 1;
-			pwm_set( i , mix[i] );
-			#endif
-			#else
-			// no motors mode ( anti-optimization)
-			#warning "NO MOTORS"
-			tempx[i] = motormap( mix[i] );
-			#endif
-		}
-		else
-		{
-			if(aux[RACEMODE])
-			{
-				pwm_set(i,0);
-			}
-			else
-			{
-				#ifndef NOMOTORS
-				#ifndef MOTORS_TO_THROTTLE
-				//normal mode
-				pwm_set( i ,motormap( mix[i] ) );
-				#else
-				// throttle test mode
-				ledcommand = 1;
-				pwm_set( i , mix[i] );
-				#endif
-				#else
-				// no motors mode ( anti-optimization)
-				#warning "NO MOTORS"
-				tempx[i] = motormap( mix[i] );
-				#endif
-			}
-		}
+		#ifndef NOMOTORS
+		#ifndef MOTORS_TO_THROTTLE
+		//normal mode
+		pwm_set( i ,motormap( mix[i] ) );
+		#else
+		// throttle test mode
+		ledcommand = 1;
+		pwm_set( i , mix[i] );
+		#endif
+		#else
+		// no motors mode ( anti-optimization)
+		#warning "NO MOTORS"
+		tempx[i] = motormap( mix[i] );
+		#endif
 //***********************End Motor PWM Command Logic
 		
 //***********************Clip mmixer outputs (if not already done) before applying calculating throttle sum

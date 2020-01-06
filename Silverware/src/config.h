@@ -10,10 +10,11 @@
 // *************uncomment BWHOOP define for bwhoop, bwhoop pro, E011C Santa Edition, and Beta FPV Lite Flight Controllers
 // *************uncomment E011 define for E011 flight Controller
 // *************uncomment H8mini_blue_board for the H8 mini flight controller with blue circuit board
-
-#define Lite_Brushless
-//#define Lite_Frsky  
-#define RX_Default 1 //1:BAYANG;  2:SBUS;  3:DSMX
+//#define BWHOOP
+//#define E011
+//#define H8mini_blue_board
+//#define Silverlite_Brushless
+#define Alienwhoop_ZERO  
 
 
 
@@ -74,12 +75,10 @@
 
 // *************Radio protocol selection
 // *************select only one
-
-//#define RX_SBUS
+#define RX_SBUS
 //#define RX_CRSF                                           //Requires tbs firmware v2.88 or newer for failsafe to operate properly
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
-#define RX_SBUS_DSMX_BAYANG_SWITCH
 //#define RX_NRF24_BAYANG_TELEMETRY
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
@@ -111,11 +110,6 @@
 #define PIDPROFILE CHAN_9                //For switching stickAccelerator & stickTransition profiles on pid.c page
 #define RATES CHAN_ON
 #define LEDS_ON CHAN_10
-
-#define Roll     0   
-#define Pitch    1   
-#define Yaw      2   
-#define Throttle 3   
 
 // *************switch for fpv / other, requires fet
 // *************comment out to disable

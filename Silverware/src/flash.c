@@ -1,29 +1,23 @@
 
 #include "project.h"
 #include "drv_fmc.h"
-#include "config.h"
-#include "math.h"
-int moto_temp = 0;
-float re;
+#include "defines.h"
+
 extern int fmc_erase( void );
 extern void fmc_unlock(void);
 extern void fmc_lock(void);
-extern char save_motor_dir[4];
+
 extern float accelcal[];
 extern float * pids_array[3];
-float save_pid[3][3] = {0};
+
 extern float hardcoded_pid_identifier;
-extern int rx_switch;
-extern unsigned char aetr_or_taer;
+
 
 #define FMC_HEADER 0x12AA0001
 
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
 
-int save_motor_dir_identifier;
-int initial_motor_dir_identifier;
-char save_motor_dir_temp[4] = {0};
 
 float flash_get_hard_coded_pid_identifier( void) {
 	float result = 0;
@@ -47,17 +41,14 @@ void flash_hard_coded_pid_identifier( void)
 
 void flash_save( void) {
 
-  fmc_unlock();
+    fmc_unlock();
 	fmc_erase();
 	
 	unsigned long addresscount = 0;
 
-  writeword(addresscount++, FMC_HEADER);         
+    writeword(addresscount++, FMC_HEADER);
    
 	fmc_write_float(addresscount++, initial_pid_identifier );
-	
-	
-	
 	
 	for (int i=0;  i<3 ; i++) {
 		for (int j=0; j<3 ; j++) {
@@ -69,14 +60,8 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
-	
-		writeword(20,save_motor_dir[0] | (save_motor_dir[1]<<8) | (save_motor_dir[2]<<16) | (save_motor_dir[3]<<24));
-	  //motor dir identifier 
-		writeword(21,(save_motor_dir[0]|save_motor_dir[1]|save_motor_dir[2]|save_motor_dir[3]));
-		writeword(22,rx_switch);
-	
-		writeword(23,aetr_or_taer);
-	
+
+   
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
 extern char rfchannel[4];
@@ -137,8 +122,6 @@ if (flash_feature_3)
 }
 #endif
 
-
-
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 extern int rx_bind_enable;
 if ( rx_bind_enable ){
@@ -161,81 +144,26 @@ void flash_load( void) {
 // check if saved data is present
     if (FMC_HEADER == fmc_read(addresscount++)&& FMC_HEADER == fmc_read(255))
     {
+
      saved_pid_identifier = fmc_read_float(addresscount++);
-		 /************************2019 7 9************************/
-			for (int i=0;  i<3 ; i++) 
-			{
-					for(int j=0; j<3 ; j++)
-					{
-                save_pid[i][j] = fmc_read_float(addresscount++);
-          }
-      }
-			
-			for (int i=0;  i<3 ; i++)
-			{
-					for (int j=0; j<3 ; j++) 
-					{
-							re += save_pid[i][j] * (i+1) * (j+1) * 0.932f;
-					}
-	    }
-			if(fabs(re - saved_pid_identifier) < 1.0)
-			{
-					for (int i=0;  i<3 ; i++) 
-					{
-							for(int j=0; j<3 ; j++)
-							{
-									pids_array[i][j] = save_pid[i][j];
-							}
-					}
-			}
-			else
-			{
-					addresscount+=9; 
-			}
-		 /********************************************************/
 // load pids from flash if pid.c values are still the same       
-//     if (saved_pid_identifier == initial_pid_identifier )
-//     {
-//         for (int i=0;  i<3 ; i++) {
-//            for (int j=0; j<3 ; j++) {
-//                pids_array[i][j] = fmc_read_float(addresscount++);
-//            }
-//        }
-//     }
-//     else
-//		 {
-//        addresscount+=9; 
-//     }    
+     if (  saved_pid_identifier == initial_pid_identifier )
+     {
+         for (int i=0;  i<3 ; i++) {
+            for (int j=0; j<3 ; j++) {
+                pids_array[i][j] = fmc_read_float(addresscount++);
+            }
+        }
+     }
+     else{
+         addresscount+=9; 
+     }    
 
     accelcal[0] = fmc_read_float(addresscount++ );
     accelcal[1] = fmc_read_float(addresscount++ );
     accelcal[2] = fmc_read_float(addresscount++ );  
-	  save_motor_dir_identifier =  fmc_read(21);
-		moto_temp = fmc_read(20);
-		for ( int i = 0 ; i < 4; i++)
-		
-		{
-				save_motor_dir_temp[i] =  moto_temp>>(i*8);        
-		}
-		if(save_motor_dir_temp[0]|save_motor_dir_temp[1]|save_motor_dir_temp[2]|save_motor_dir_temp[3] == save_motor_dir_identifier)
-		{
-				for(int i = 0 ; i < 4; i++)
-				{
-						save_motor_dir[i] = save_motor_dir_temp[i];
-				}
-		}
-		else
-		{
-				//*****
-		}
-	  rx_switch = fmc_read(22);
-		
-		aetr_or_taer = fmc_read(23);
-		if(aetr_or_taer & 0xf0)
-		{
-			aetr_or_taer=0;
-		}
-		
+
+       
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
 extern char rxaddress[5];
@@ -290,6 +218,7 @@ extern int rx_bind_enable;
 	extern int flash_feature_3;
 	flash_feature_3 = fmc_read_float(55);
 #endif
+
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)
 	extern int rx_bind_enable;
 	rx_bind_enable = fmc_read_float(56);
