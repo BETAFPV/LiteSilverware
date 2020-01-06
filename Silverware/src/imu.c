@@ -10,10 +10,10 @@
 #include "util.h"
 #include "sixaxis.h"
 #include "defines.h"
-#include "IIR_filter.h"
+
 #include <stdlib.h>
 
-#include <stdio.h>
+
 #ifdef DEBUG
 #include "debug.h"
 extern debug_type debug;
@@ -44,18 +44,13 @@ extern debug_type debug;
 #define ACC_MAX 1.3f
 #endif
 
-#define _sinf(val) sinf(val)
-#define _cosf(val) cosf(val)
-
 float GEstG[3] = { 0, 0, ACC_1G };
 
 float attitude[3];
 
 extern float gyro[3];
 extern float accel[3];
-
 extern float accelcal[3];
-extern float accelraw[3];
 
 
 void imu_init(void)
@@ -63,13 +58,15 @@ void imu_init(void)
 	// init the gravity vector with accel values
 	for (int xx = 0; xx < 100; xx++)
 	  {
-		  acc_read();
+		  sixaxis_read();
 
 		  for (int x = 0; x < 3; x++)
 		    {
-			    lpf(&GEstG[x], (accelraw[x] - accelcal[x]), 0.85);
+			    lpf(&GEstG[x], accel[x]* ( 1/ 2048.0f) , 0.85);
 		    }
 		  delay(1000);
+
+
 	  }
 }
 
@@ -123,140 +120,65 @@ void vectorcopy(float *vector1, float *vector2)
 
 extern float looptime;
 
-extern char aux[16];
-extern int onground;
-unsigned k = 0,l=0;
 
 void imu_calc(void)
 {
 
+
+
 // remove bias
-    accel[0] = (accelraw[0] - accelcal[0]) ;
-    accel[1] = (accelraw[1] - accelcal[1]) ;
-	accel[2] = (accelraw[2] - accelcal[2]) ;
-     
-    accel[0] = LPF2pApply_1(accel[0]);
-    accel[1] = LPF2pApply_2(accel[1]);
-    accel[2] = LPF2pApply_3(accel[2]);
+    accel[0] = accel[0] - accelcal[0];
+    accel[1] = accel[1] - accelcal[1];
+		accel[2] = accel[2] - accelcal[2];
 
-   // gyro[0] = LPF2pApply_4(gyro[0]);
-    //gyro[1] = LPF2pApply_5(gyro[1]);
-    //gyro[2] = LPF2pApply_6(gyro[2]);  
-//    gyro[0] = 0;
-//    gyro[1] = 0;
-//    gyro[2] = 0;
+// reduce to accel in G
+    for (int i = 0; i < 3; i++)
+	  {
+		  accel[i] *= ( 1/ 2048.0f);
+	  }
+  
       
-//	float deltaGyroAngle[3];
+	float deltaGyroAngle[3];
 
-//	for ( int i = 0 ; i < 3 ; i++)
-//    {
-//        deltaGyroAngle[i] = (gyro[i]) * looptime;
-//    }
-//	
-//	
-//	GEstG[2] = GEstG[2] - (deltaGyroAngle[0]) * GEstG[0];
-//	GEstG[0] = (deltaGyroAngle[0]) * GEstG[2] +  GEstG[0];
-
-
-//	GEstG[1] =  GEstG[1] + (deltaGyroAngle[1]) * GEstG[2];
-//	GEstG[2] = -(deltaGyroAngle[1]) * GEstG[1] +  GEstG[2];
-
-
-//	GEstG[0] = GEstG[0] - (deltaGyroAngle[2]) * GEstG[1];
-//	GEstG[1] = (deltaGyroAngle[2]) * GEstG[0] +  GEstG[1];
-
-    float EstG[3];
-
-	vectorcopy(&EstG[0], &GEstG[0]);
-
-    float gyros[3];
-	for (int i = 0; i < 3; i++)
+	for ( int i = 0 ; i < 3 ; i++)
     {
-        gyros[i] = gyro[i] * looptime;
+        deltaGyroAngle[i] = (gyro[i]) * looptime;
     }
-    float mat[3][3];
-	float cosx, sinx, cosy, siny, cosz, sinz;
-	float coszcosx, coszcosy, sinzcosx, coszsinx, sinzsinx;
-
-	cosx = _cosf(gyros[1]);
-	sinx = _sinf(gyros[1]);
-	cosy = _cosf(gyros[0]);
-	siny = _sinf(-gyros[0]);
-	cosz = _cosf(gyros[2]);
-	sinz = _sinf(-gyros[2]);
-
-	coszcosx = cosz * cosx;
-	coszcosy = cosz * cosy;
-	sinzcosx = sinz * cosx;
-	coszsinx = sinx * cosz;
-	sinzsinx = sinx * sinz;
-
-	mat[0][0] = coszcosy;
-	mat[0][1] = -cosy * sinz;
-	mat[0][2] = siny;
-	mat[1][0] = sinzcosx + (coszsinx * siny);
-	mat[1][1] = coszcosx - (sinzsinx * siny);
-	mat[1][2] = -sinx * cosy;
-	mat[2][0] = (sinzsinx) - (coszcosx * siny);
-	mat[2][1] = (coszsinx) + (sinzcosx * siny);
-	mat[2][2] = cosy * cosx;
-
-	EstG[0] = GEstG[0] * mat[0][0] + GEstG[1] * mat[1][0] + GEstG[2] * mat[2][0];
-	EstG[1] = GEstG[0] * mat[0][1] + GEstG[1] * mat[1][1] + GEstG[2] * mat[2][1];
-	EstG[2] = GEstG[0] * mat[0][2] + GEstG[1] * mat[1][2] + GEstG[2] * mat[2][2];
+	
+	
+	GEstG[2] = GEstG[2] - (deltaGyroAngle[0]) * GEstG[0];
+	GEstG[0] = (deltaGyroAngle[0]) * GEstG[2] +  GEstG[0];
 
 
-    vectorcopy(&GEstG[0], &EstG[0]);
+	GEstG[1] =  GEstG[1] + (deltaGyroAngle[1]) * GEstG[2];
+	GEstG[2] = -(deltaGyroAngle[1]) * GEstG[1] +  GEstG[2];
+
+
+	GEstG[0] = GEstG[0] - (deltaGyroAngle[2]) * GEstG[1];
+	GEstG[1] = (deltaGyroAngle[2]) * GEstG[0] +  GEstG[1];
+
+
 // calc acc mag
 	float accmag;
 
 	accmag = calcmagnitude(&accel[0]);
 
-    if(onground)
-    {
-        if ((accmag > ACC_MIN * ACC_1G) && (accmag < ACC_MAX * ACC_1G) && !DISABLE_ACC)
-          {			 
-            // normalize acc
-            for (int axis = 0; axis < 3; axis++)
-            {
-                accel[axis] = accel[axis] * ( ACC_1G / accmag);
-            }       
-            float filtcoeff = lpfcalc_hz( looptime, 1.0f/(float)FILTERTIME);
-            for (int x = 0; x < 3; x++)
-            {
-               lpf(&GEstG[x], accel[x], filtcoeff);
-            }
-          }
-    }
-    else
-    {
+
+	if ((accmag > ACC_MIN * ACC_1G) && (accmag < ACC_MAX * ACC_1G) && !DISABLE_ACC)
+	  {			 
+        // normalize acc
         for (int axis = 0; axis < 3; axis++)
-            {
-                accel[axis] = accel[axis] * ( ACC_1G / accmag);
-            }       
-            float filtcoeff = lpfcalc_hz( looptime, 1.0f/(float)FILTERTIME);
-            for (int x = 0; x < 3; x++)
-            {
-               lpf(&GEstG[x], accel[x], filtcoeff);
-            }
-    }
-    
-
-    
-#ifdef debug_uart
-  // if(aux[CHAN_6])
-   {
-        k++;
-        if(k == 100)
         {
-            k=0;
-            l++;
-            printf("%d,%f,%f,%f,%f,%f,%f\r\n",l,GEstG[0],GEstG[1],GEstG[2], gyro[0], gyro[1], gyro[2]);
-        }
-    }
+            accel[axis] = accel[axis] * ( ACC_1G / accmag);
+        }       
+        float filtcoeff = lpfcalc_hz( looptime, 1.0f/(float)FILTERTIME);
+        for (int x = 0; x < 3; x++)
+          {
+              lpf(&GEstG[x], accel[x], filtcoeff);
+          }
+	  }
 
-#endif
-    
+
 	attitude[0] = atan2approx(GEstG[0], GEstG[2]) ;
 
 	attitude[1] = atan2approx(GEstG[1], GEstG[2])  ;
@@ -264,6 +186,8 @@ void imu_calc(void)
 }
 
 
+
+#define M_PI  3.14159265358979323846	/* pi */
 
 
 #define OCTANTIFY(_x, _y, _o)   do {                            \

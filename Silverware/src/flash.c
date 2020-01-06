@@ -8,30 +8,16 @@ extern void fmc_unlock(void);
 extern void fmc_lock(void);
 
 extern float accelcal[];
-extern float accelscal[3];
-extern unsigned char powerlevel;
-extern unsigned char channel;
 extern float * pids_array[3];
-extern  char motorDir[4];
+
 extern float hardcoded_pid_identifier;
-extern unsigned char rx_switch;
 
-extern unsigned char low_bat_l;
-extern unsigned char mode_l;
-extern unsigned char vol_l;
 
-extern unsigned char turtle_l;
-extern unsigned char low_battery;
-
-extern unsigned char profileAB;
-int save_motor_dir_identifier;
-extern unsigned int ratesValue;
-extern unsigned int ratesValueYaw;
 #define FMC_HEADER 0x12AA0001
 
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
-char save_motor_dir_temp[4] = {0};
+
 
 float flash_get_hard_coded_pid_identifier( void) {
 	float result = 0;
@@ -74,27 +60,7 @@ void flash_save( void) {
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
-    
-    fmc_write_float(addresscount++, ratesValue);
-    fmc_write_float(addresscount++, ratesValueYaw);
-   
-    writeword(30, powerlevel);
-    writeword(31, channel);
-    
-    writeword(32,rx_switch);
 
-    
-    writeword(34,(motorDir[0]|motorDir[1]|motorDir[2]|motorDir[3]));
-    writeword(35, motorDir[0] | (motorDir[1]<<8) |(motorDir[2]<<16) |(motorDir[3]<<24));
-   
-    
-    writeword(43,low_bat_l);
-    writeword(44,mode_l);
-    writeword(45,vol_l);
-
-    writeword(47,turtle_l);
-    writeword(48,low_battery);
-    writeword(49,profileAB);
    
 #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 // autobind info     
@@ -193,43 +159,11 @@ void flash_load( void) {
          addresscount+=9; 
      }    
 
-     accelcal[0] = fmc_read_float(addresscount++ );
-     accelcal[1] = fmc_read_float(addresscount++ );
-     accelcal[2] = fmc_read_float(addresscount++ );  
-    
-     ratesValue = fmc_read_float(addresscount++ );
-     ratesValueYaw = fmc_read_float(addresscount++ ); 
-     
-     powerlevel = fmc_read(30 );
-     channel = fmc_read(31); 
-     
-     rx_switch = fmc_read(32);	
+    accelcal[0] = fmc_read_float(addresscount++ );
+    accelcal[1] = fmc_read_float(addresscount++ );
+    accelcal[2] = fmc_read_float(addresscount++ );  
 
-     
-     save_motor_dir_identifier =  fmc_read(34);
-     
-     int temp = fmc_read(35);
-     for ( int i = 0 ; i < 4; i++)
-     {
-        save_motor_dir_temp[i] =  temp>>(i*8);        
-     }
-     if(save_motor_dir_temp[0]|save_motor_dir_temp[1]|save_motor_dir_temp[2]|save_motor_dir_temp[3] == save_motor_dir_identifier)
-     {
-        for(int i = 0 ; i < 4; i++)
-        {
-            motorDir[i] = save_motor_dir_temp[i];
-        }
-     }
-     
-     low_bat_l = fmc_read(43);
-     mode_l = fmc_read(44);
-     vol_l = fmc_read(45);
-
-     turtle_l = fmc_read(47);
-     low_battery = fmc_read(48);
-     profileAB = fmc_read(49);
-     
-        
+       
  #ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND  
 extern char rfchannel[4];
 extern char rxaddress[5];

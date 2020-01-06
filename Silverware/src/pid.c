@@ -66,9 +66,9 @@ float stickTransitionProfileB[3]  = { 0.3 , 0.3 , 0.0};           //keep values 
 
 //6mm & 7mm Abduction Pids for whoops (Team Alienwhoop)- set filtering ALIENWHOOP_ZERO_FILTERING or default beta filters
 //                         ROLL       PITCH     YAW
-//float pidkp[PIDNUMBER] = {21.5e-2 , 21.5e-2  , 10.5e-1 }; 
-//float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };	
-//float pidkd[PIDNUMBER] = { 7.4e-1 , 7.4e-1  , 5.5e-1 };
+float pidkp[PIDNUMBER] = {21.5e-2 , 21.5e-2  , 10.5e-1 }; 
+float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };	
+float pidkd[PIDNUMBER] = { 7.4e-1 , 7.4e-1  , 5.5e-1 };
 
 
 //BOSS 7 with 716 motors and 46mm Props - set filtering to BETA_FILTERING and adjust pass 1 and pass 2 for KALMAN_GYRO both to 70hz, set DTERM_LPF_2ND_HZ to 120hz, disable motor filtering
@@ -84,13 +84,6 @@ float stickTransitionProfileB[3]  = { 0.3 , 0.3 , 0.0};           //keep values 
 //float pidkp[PIDNUMBER] = {11.2e-2 , 12.6e-2  , 1.8e-1 }; 
 //float pidki[PIDNUMBER] = { 14e-1  , 15e-1 , 15e-1 };	
 //float pidkd[PIDNUMBER] = { 5.6e-1 , 6.7e-1  , 0.5e-1 };
-
-
-//Brushless 1s
-float pidkp[PIDNUMBER] = {0.1438  , 0.1438  , 0.2436 }; 
-float pidki[PIDNUMBER] = { 1.4    , 1.4     , 1.4    };	
-float pidkd[PIDNUMBER] = { 0.5666 , 0.5666  , 0.05   };
-
 
 //4in Brushless Pids - 1407 3600kv Motors, 4s - Gyro filters at 90hz, 1st order D at 70hz - PID_Vbat Comp seems ok here
 //                         ROLL       PITCH     YAW
@@ -193,7 +186,7 @@ extern float aux_analog[AUXNUMBER];
 extern char aux_analogchange[AUXNUMBER];
 extern float vbattfilt;
 
-extern unsigned char profileAB;
+
 
 // multiplier for pids at 3V - for PID_VOLTAGE_COMPENSATION - default 1.33f from H101 code
 #define PID_VC_FACTOR 1.33f
@@ -452,7 +445,7 @@ float pid(int x )
 				float transitionSetpointWeight[3];
 				float stickAccelerator[3];
 				float stickTransition[3];
-			if (profileAB){
+			if (aux[PIDPROFILE]){
 				stickAccelerator[x] = stickAcceleratorProfileB[x];
 				stickTransition[x] = stickTransitionProfileB[x];
 			}else{

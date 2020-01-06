@@ -95,7 +95,7 @@ THE SOFTWARE.
 
 #ifndef HW_I2C_PINS_PA910
 #ifndef HW_I2C_PINS_PB67
-//#define HW_I2C_PINS_PB67 
+#define HW_I2C_PINS_PB67
 #endif
 #endif
 
@@ -126,10 +126,7 @@ GPIO_Init(GPIOB, &gpioinitI2C1);
 gpioinitI2C1.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
 GPIO_Init(GPIOA, &gpioinitI2C1);
 #endif
-#ifdef HW_I2C_PINS_PF01	
-gpioinitI2C1.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
-GPIO_Init(GPIOF, &gpioinitI2C1);
-#endif
+	
 
 
 #ifdef HW_I2C_PINS_PB67
@@ -141,10 +138,7 @@ GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_1);
 GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_4);
 GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_4);
 #endif
-#ifdef HW_I2C_PINS_PF01
-GPIO_PinAFConfig(GPIOF, GPIO_PinSource0, GPIO_AF_1);
-GPIO_PinAFConfig(GPIOF, GPIO_PinSource1, GPIO_AF_1);
-#endif
+
 
 RCC_APB1PeriphClockCmd( RCC_APB1Periph_I2C1, ENABLE);
 
@@ -159,12 +153,7 @@ RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 SYSCFG_I2CFastModePlusConfig(SYSCFG_I2CFastModePlus_PA9 , ENABLE);
 SYSCFG_I2CFastModePlusConfig(SYSCFG_I2CFastModePlus_PA10 , ENABLE);
 #endif
-//#ifdef HW_I2C_PINS_PF01
-//#PF0 & PF1 no SYSCFG
-//RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-//SYSCFG_I2CFastModePlusConfig(SYSCFG_I2CFastModePlus_PB6 , ENABLE);
-//SYSCFG_I2CFastModePlusConfig(SYSCFG_I2CFastModePlus_PB7 , ENABLE);
-//#endif
+
 RCC_I2CCLKConfig(RCC_I2C1CLK_SYSCLK);
 
 I2C_InitTypeDef initI2C1;

@@ -179,20 +179,8 @@ uint8_t led_pwm( uint8_t pwmval)
 		}	
 return 0;	
 }
-#ifdef  ENABLE_Board_RX 
-void SET_RX_PSW(unsigned char PSW_State)    //state=1,ENABLE Board RX power
-{
-    switch(PSW_State)
-    {
-        case 0:GPIO_ResetBits( RX_PSW_PORT, RX_PSW_PIN);break;
-        case 1:GPIO_SetBits( RX_PSW_PORT, RX_PSW_PIN);  break;
-    }
-}
-#else
-void SET_RX_PSW(unsigned char PSW_State)
-{
-}
-#endif
+
+
 
 
 

@@ -46,19 +46,14 @@ THE SOFTWARE.
 #include "drv_i2c.h"
 #include "drv_softi2c.h"
 #include "drv_serial.h"
-#include "drv_dshot.h"
 #include "buzzer.h"
 #include "drv_fmc2.h"
+#include "gestures.h"
 #include "binary.h"
-#include "osd.h"
-#include "IIR_filter.h"
-//#include "sensor.h"
-
 
 #include <stdio.h>
 #include <math.h>
 #include <inttypes.h>
-#include "rx_sbus_dsmx_bayang_switch.h"
 
 #ifdef USE_SERIAL_4WAY_BLHELI_INTERFACE
 #include "drv_softserial.h"
@@ -84,23 +79,10 @@ debug_type debug;
 // hal
 void clk_init(void);
 void imu_init(void);
-void (*pFun)(void);
 extern void flash_load( void);
 extern void flash_hard_coded_pid_identifier(void);
-extern void flash_save( void);
 
-//lite osd
-unsigned char cal=0;
-unsigned char osd_data[12] = {0};
-unsigned int osd_count = 0;
-unsigned int pwm_count = 0;
-unsigned int vol = 0;
-unsigned char flip_start = 0;
-unsigned char flip_finish = 0;
-extern int sbus_dsmx_flag;
-extern unsigned char motorDir[4];
-extern unsigned char rx_switch;
-extern unsigned char showcase;
+
 // looptime in seconds
 float looptime;
 // filtered battery in volts
@@ -134,9 +116,6 @@ char aux_analogchange[AUXNUMBER];
 
 // bind / normal rx mode
 extern int rxmode;
-
-
-
 // failsafe on / off
 extern int failsafe;
 extern float hardcoded_pid_identifier;
@@ -171,73 +150,16 @@ int main(void)
 
 
 #ifdef ENABLE_OVERCLOCK
-    clk_init();
+clk_init();
 #endif
-    
-#if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
-    switch_key(); 
-    if(KEY ==0)
-    {	
-       lite_2S_rx_spektrum_bind();
-        rx_switch = 1;
-        while(KEY == 0); 
-        unsigned long time=0;
-        while(time < 4000000)       
-        {
-            if(KEY == 0)
-            {
-                rx_switch++;
-                while(KEY == 0);
-            }
-            if(rx_switch >= 3)
-            {
-                rx_switch = 3;
-            }
-            time++;
-        }
-        flash_save();
-    }
-#else    
-#ifdef RX_BAYANG_PROTOCOL_BLE_BEACON
-rx_switch = 1 ;
-#endif
-#ifdef RX_SBUS
-rx_switch = 2 ;
-#endif
-
-#ifdef RX_DSMX_2048
-rx_switch = 3;
-#endif
-
-#ifdef RX_DSMX_1024
-rx_switch = 4;
-#endif
-#endif
-    
+	
   gpio_init();	
-    
-    
-  ledon(255);		//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
+  ledon(255);									//Turn on LED during boot so that if a delay is used as part of using programming pins for other functions, the FC does not appear inactive while programming times out
 	spi_init();
 	
   time_init();
 
- #ifdef Lite_OSD
-    
-  osdMenuInit();
-  
-#ifndef debug_uart
-  UART2_init(4800);
-#endif
 
- #endif  
- 
- #ifdef debug_uart
-    
-  UART2_init(115200);
-    
- #endif   
-   
 #if defined(RX_DSMX_2048) || defined(RX_DSM2_1024)    
 		rx_spektrum_bind(); 
 #endif
@@ -284,43 +206,14 @@ aux[CH_AUX1] = 1;
     flash_load( );
 #endif
 
-    // init receiver
-#ifdef RX_SBUS_DSMX_BAYANG_SWITCH
-    if(rx_switch == 0)
-    {
-        rx_init();
-        pFun =checkrx;
-    }    
-    else if(rx_switch == 1)
-    {
-        SET_RX_PSW(1);
-        sbus_rx_init();
-        sbus_dsmx_flag = 1;
-        pFun = sbus_checkrx;
-    }
-    else if(rx_switch == 2)
-    {
-        SET_RX_PSW(0);
-        sbus_rx_init();
-        sbus_dsmx_flag = 1;
-        pFun = sbus_checkrx;
-    }
-    else if(rx_switch == 3)    //DSMX 2048
-    {
-        SET_RX_PSW(0);
-        dsmx_rx_init();
-        sbus_dsmx_flag = 0;
-        pFun = dsmx_checkrx;
-    }
-#else
-	rx_init();
-    pFun =checkrx;
-#endif
 
 #ifdef USE_ANALOG_AUX
   // saves initial pid values - after flash loading
   pid_init();
 #endif
+
+
+	rx_init();
 
 	
 int count = 0;
@@ -358,7 +251,7 @@ for ( int i = 6 ; i > 0 ; i--)
 if ( vbattfilt/lipo_cell_count < 3.3f) failloop(2);
 #endif
 
-    IIRFilter_Init();
+
 
 	gyro_cal();
 
@@ -388,8 +281,7 @@ if ( liberror )
 }
 
 
-    
-    
+
  lastlooptime = gettime();
 
 
@@ -443,8 +335,6 @@ if ( liberror )
 
         // read acd and scale based on processor voltage
 		float battadc = adc_read(0)*vreffilt; 
-
-        
         // read and filter internal reference
         lpf ( &vreffilt , adc_read(1)  , 0.9968f);	
   
@@ -535,6 +425,17 @@ if( thrfilt > 0.1f )
     vbatt_comp = tempvolt + (float) VDROP_FACTOR * thrfilt; 	
 
            
+#ifdef DEBUG
+	debug.vbatt_comp = vbatt_comp ;
+#endif		
+// check gestures
+    if ( onground )
+	{
+	 gestures( );
+	}
+
+   
+
 
 if ( LED_NUMBER > 0)
 {
@@ -657,130 +558,9 @@ rgb_dma_start();
 #endif
 
 // receiver function
-	pFun();
-    
-    
-#ifdef debug_uart
-
-    if(!aux[ARMING])
-    {
-        if(!cal && aux[CHAN_7] )
-        {
-            cal = 1;
-//            gyro_cal();
-//            acc_cal();
-//			imu_init();
-            ImuOrientationDetect();
-            AccCalibration();
-            lastlooptime = gettime();
-        }
-        if(cal && !aux[CHAN_7])
-        {
-            cal = 0;
-        }
-	}
+checkrx();
 
 
-#endif
-    
-
-    
-#ifdef Lite_OSD   
-
-    osd_count ++;
-
-    vol = (int)(vbattfilt*100);
-
-    if(aux[ARMING] && showcase == 0)
-    {
-        if(osd_count == 200)
-        {
-            osd_data[0] = 0x0f;
-            osd_data[0] |=0 << 4;
-            osd_data[1] = aux[CHAN_5];
-            osd_data[2] = 0;
-            osd_data[3] = vol >> 8;
-            osd_data[4] = vol & 0xFF;
-            osd_data[5] = rx_switch;
-            
-            osd_data[6] = 0;
-            osd_data[6] = (aux[CHAN_6] << 0) | (aux[CHAN_7] << 1) | (aux[CHAN_8] << 2);
-
-            osd_data[7] = 0;
-            osd_data[8] = 0;
-            osd_data[9] = 0;
-            osd_data[10] = 0;
-            osd_data[11] = 0;
-            for (uint8_t i = 0; i < 11; i++)
-                osd_data[11] += osd_data[i];  
-            
-            UART2_DMA_Send();
-            osd_count = 0;
-        }
-    }
-    else
-    {
-//        if(!cal && !aux[CHAN_6] && aux[CHAN_8] )
-//        {
-//            cal = 1;
-//            ImuOrientationDetect();
-//            AccCalibration();
-//            lastlooptime = gettime();
-//        }
-//        if(cal && (aux[CHAN_6] || !aux[CHAN_8]))
-//        {
-//            cal = 0;
-//        }
-
-        osd_setting();
-#ifdef BRUSHLESS_TARGET
-         pwm_count ++;
-         if(pwm_count ==30)
-         {
-            if (aux[LEVELMODE])
-            {
-                for(int i=20;i>0;i--)
-                {
-                  motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                  motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                  motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                  motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                }
-
-            }
-            else
-            {
-                if (!aux[RACEMODE])
-                {
-                    for(int i=20;i>0;i--)
-                    {
-                      motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                      motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                      motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                      motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_REVERSE : DSHOT_CMD_ROTATE_NORMAL));
-                    }
-                }
-                else if(aux[RACEMODE])
-                {
-                    for(int i=20;i>0;i--)
-                    {
-                      motor_dir(0,(motorDir[0] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-                      motor_dir(1,(motorDir[1] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-                      motor_dir(2,(motorDir[2] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-                      motor_dir(3,(motorDir[3] ? DSHOT_CMD_ROTATE_NORMAL : DSHOT_CMD_ROTATE_REVERSE));
-                    }
-                }
-                        
-            }
-            pwm_count = 0;
-        }
-#endif        
-    }
-
-	
-#endif 
-    
-    
 #ifdef DEBUG
 	debug.cpu_load = (gettime() - lastlooptime )*1e-3f;
 #endif
@@ -792,8 +572,6 @@ while ( (gettime() - time) < LOOPTIME );
 	
 
 }
-
-
 
 // 2 - low battery at powerup - if enabled by config
 // 3 - radio chip not detected

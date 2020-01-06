@@ -32,7 +32,6 @@ THE SOFTWARE.
 #include "led.h"
 #include "drv_serial.h"
 #include "drv_i2c.h"
-#include "IIR_filter.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -69,35 +68,30 @@ void sixaxis_init( void)
 	
 	i2c_writereg(  107 , 128);
 	 
-    delay(40000);
+ delay(40000);
 	
-    i2c_writereg( 25 , 0);
+
 // set pll to 1, clear sleep bit old type gyro (mpu-6050)	
-	i2c_writereg(  107 , 0x03);
-	i2c_writereg( 55 , 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
+	i2c_writereg(  107 , 1);
+	
 	int newboard = !(0x68 == i2c_readreg(117) );
 
     delay(100);
-    
-    // Gyro DLPF low pass filter
-	i2c_writereg( 26 , GYRO_LOW_PASS_FILTER);
-    
-	i2c_writereg(  28, B00010000);	// 8G scale
+	
+	i2c_writereg(  28, B00011000);	// 16G scale
 
     
 // acc lpf for the new gyro type
 //       0-6 ( same as gyro)
 	if (newboard) i2c_writereg( 29, ACC_LOW_PASS_FILTER);
 	
-// gyro scale 1000 deg (FS =2)
+// gyro scale 2000 deg (FS =3)
 
-	i2c_writereg( 27 , B00010000);
-    
- //SMPLRT_DIV = 1, gyro_sample_rate = 8kHz/(1+ SMPLRT_DIV) = 8/2 kHz = 4kHz
- // for Gyro with i2c protocol, use 4KHz, for SPI protocol use 8KHz.
- 
-    
+	i2c_writereg( 27 , 24);
+	
+// Gyro DLPF low pass filter
 
+	i2c_writereg( 26 , GYRO_LOW_PASS_FILTER);
 }
 
 
@@ -118,105 +112,23 @@ int sixaxis_check( void)
 }
 
 
-//unsigned k = 0,l=0;
+
 
 
 float accel[3];
-//float accelraw[3];
 float gyro[3];
-float accelraw[3];
-float accelcal[3] = {0,0,0};
+
+float accelcal[3];
 float gyrocal[3];
-float gyronew[3];
+
 
 float lpffilter(float in, int num);
 float lpffilter2(float in, int num);
 
-void acc_read(void)
-{
-    int data[6];
-
-	i2c_readdata( 59 , data , 6 );
-		
-#ifdef SENSOR_ROTATE_90_CW	         
-        accel[0] = (int16_t) ((data[2] << 8) + data[3]);
-        accel[1] = -(int16_t) ((data[0] << 8) + data[1]);
-        accel[2] = (int16_t) ((data[4] << 8) + data[5]);
-#else
-        
-	accelraw[0] = -(int16_t) ((data[0] << 8) + data[1]);
-	accelraw[1] = -(int16_t) ((data[2] << 8) + data[3]);
-	accelraw[2] = (int16_t) ((data[4] << 8) + data[5]);  
-        
-#endif
-  
-
-#ifdef SENSOR_ROTATE_90_CW_deleted
-		{//
-		float temp = accel[1];
-		accel[1] = accel[0];
-		accel[0] = -temp;	
-		}
-#endif       
-        
-// this is the value of both cos 45 and sin 45 = 1/sqrt(2)
-#define INVSQRT2 0.707106781f
-		
-#ifdef SENSOR_ROTATE_45_CCW
-		{
-		float temp = accel[0];
-		accel[0] = (accel[0] * INVSQRT2 + accel[1] * INVSQRT2);
-		accel[1] = -(temp * INVSQRT2 - accel[1] * INVSQRT2);	
-		}
-#endif
-        
-#ifdef SENSOR_ROTATE_45_CW
-		{
-		float temp = accel[1];
-		accel[1] = (accel[1] * INVSQRT2 + accel[0] * INVSQRT2);
-		accel[0] = -(temp * INVSQRT2 - accel[0] * INVSQRT2);	
-		}
-#endif
-	
-		
-#ifdef SENSOR_ROTATE_90_CCW
-		{
-		float temp = accelraw[1];
-		accelraw[1] = -accelraw[0];
-		accelraw[0] = temp;	
-		}
-#endif
-				
-#ifdef SENSOR_ROTATE_180
-		{
-		accel[1] = -accel[1];
-		accel[0] = -accel[0];	
-		}
-#endif		
-		
-#ifdef SENSOR_FLIP_180
-		{
-		accelraw[2] = -accelraw[2];
-		accelraw[0] = -accelraw[0];	
-		}
-#endif	
-        
-        // reduce to accel in G
-    for (int i = 0; i < 3; i++)
-      {
-        //  accelraw[i] = accel[i]*( 1/ 2048.0f);
-          accelraw[i] *= ( 1/ 4096.0f);
-      }
-  
-    
-}
-
-//unsigned k = 0,l=0;
-
 void sixaxis_read(void)
 {
 	int data[16];
-	
+	float gyronew[3];
 	
 	i2c_readdata( 59 , data , 14 );
 		
@@ -226,9 +138,9 @@ void sixaxis_read(void)
         accel[2] = (int16_t) ((data[4] << 8) + data[5]);
 #else
         
-	accelraw[0] = -(int16_t) ((data[0] << 8) + data[1]);
-	accelraw[1] = -(int16_t) ((data[2] << 8) + data[3]);
-	accelraw[2] = (int16_t) ((data[4] << 8) + data[5]);  
+	accel[0] = -(int16_t) ((data[0] << 8) + data[1]);
+	accel[1] = -(int16_t) ((data[2] << 8) + data[3]);
+	accel[2] = (int16_t) ((data[4] << 8) + data[5]);  
         
 #endif
   
@@ -263,9 +175,9 @@ void sixaxis_read(void)
 		
 #ifdef SENSOR_ROTATE_90_CCW
 		{
-		float temp = accelraw[1];
-		accelraw[1] = -accelraw[0];
-		accelraw[0] = temp;	
+		float temp = accel[1];
+		accel[1] = -accel[0];
+		accel[0] = temp;	
 		}
 #endif
 				
@@ -278,19 +190,10 @@ void sixaxis_read(void)
 		
 #ifdef SENSOR_FLIP_180
 		{
-		accelraw[2] = -accelraw[2];
-		accelraw[0] = -accelraw[0];	
+		accel[2] = -accel[2];
+		accel[0] = -accel[0];	
 		}
 #endif	
-        
-                // reduce to accel in G
-    for (int i = 0; i < 3; i++)
-      {
-        //  accelraw[i] = accel[i]*( 1/ 2048.0f);
-          accelraw[i] *= ( 1/ 4096.0f);
-      }
-
-        
 //order
 	gyronew[1] = (int16_t) ((data[8] << 8) + data[9]);
 	gyronew[0] = (int16_t) ((data[10] << 8) + data[11]);
@@ -356,7 +259,7 @@ gyronew[2] = - gyronew[2];
 
 	for (int i = 0; i < 3; i++)
 	  {
-		  gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
+		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
 			
 		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
@@ -375,6 +278,7 @@ gyronew[2] = - gyronew[2];
 		  gyro[i] = gyronew[i];
 #endif
 	  }
+
 
 }
 
@@ -457,7 +361,7 @@ gyronew[2] = - gyronew[2];
 	
 for (int i = 0; i < 3; i++)
 	  {
-		  gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
+		  gyronew[i] = gyronew[i] * 0.061035156f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
 			
 		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
@@ -583,18 +487,18 @@ if ( time - timestart < CAL_TIME )
 
 void acc_cal(void)
 {
-	accelcal[2] = 4096;
+	accelcal[2] = 2048;
 	for (int y = 0; y < 500; y++)
 	  {
-		  acc_read();
+		  sixaxis_read();
 		  for (int x = 0; x < 3; x++)
 		    {
-			    lpf(&accelcal[x], accelraw[x], 0.92);
+			    lpf(&accelcal[x], accel[x], 0.92);
 		    }
 		  gettime();	// if it takes too long time will overflow so we call it here
 
 	  }
-	accelcal[2] -= 4096;
+	accelcal[2] -= 2048;
 		
 
 #ifdef FLASH_SAVE2

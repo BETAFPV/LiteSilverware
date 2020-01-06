@@ -15,7 +15,6 @@ void auxledflash( uint32_t period , int duty );
 uint8_t led_pwm( uint8_t pwmval);
 
 
-void SET_RX_PSW(unsigned char PSW_State); 
 
 
 
