@@ -6,7 +6,7 @@
 4. Support external receiver SBUS and DSMX protocol.
 5. Built in Bayang receiver or Frsky D8 protocol
 
-The full [user manual](https://github.com/BETAFPV/LiteSilverware/tree/f042_1s_bl/docs) is here.
+The full [user manual](https://github.com/BETAFPV/LiteSilverware/tree/master/docs) is here.
 
 _end LiteSilverware notes_
 

@@ -14,10 +14,13 @@
 //#define E011
 //#define H8mini_blue_board
 //#define Silverlite_Brushless
-#define Alienwhoop_ZERO  
+//#define Alienwhoop_ZERO  
+//#define Lite_Brushless
+#define Lite_BrushlessRX
 
-
-
+//#define f042_1s_bl
+#define f042_2s_bl
+//#define f042_1s_b
 
 //**********************************************************************************************************************
 //***********************************************RATES & EXPO SETTINGS**************************************************
@@ -75,10 +78,12 @@
 
 // *************Radio protocol selection
 // *************select only one
-#define RX_SBUS
+
+//#define RX_SBUS
 //#define RX_CRSF                                           //Requires tbs firmware v2.88 or newer for failsafe to operate properly
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
+#define RX_SBUS_DSMX_BAYANG_SWITCH
 //#define RX_NRF24_BAYANG_TELEMETRY
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
@@ -110,6 +115,11 @@
 #define PIDPROFILE CHAN_9                //For switching stickAccelerator & stickTransition profiles on pid.c page
 #define RATES CHAN_ON
 #define LEDS_ON CHAN_10
+
+#define Roll     0   
+#define Pitch    1   
+#define Yaw      2   
+#define Throttle 3   
 
 // *************switch for fpv / other, requires fet
 // *************comment out to disable
@@ -275,6 +285,11 @@
 
 //**********************************************************************************************************************
 //***********************************************ADDITIONAL FEATURES****************************************************
+
+//#define ENABLE_UART1_TX
+//#define SERIAL_RX_SWD
+
+
 
 // *************lost quad beeps using motors (30 sec timeout) - pulses motors after timeout period to help find a lost model
 //#define MOTOR_BEEPS

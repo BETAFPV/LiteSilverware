@@ -64,6 +64,8 @@
 #include "util.h"
 #include "drv_dshot.h"
 
+extern float rx[];
+extern char aux[16];
 
 // IDLE_OFFSET is added to the throttle. Adjust its value so that the motors
 // still spin at minimum throttle.
@@ -107,7 +109,7 @@
 
 extern int failsafe;
 extern int onground;
-
+extern unsigned char showcase;
 int pwmdir = 0;
 static unsigned long pwm_failsafe_time = 1;
 
@@ -197,13 +199,18 @@ void pwm_init()
 	TIM_OC1Init(TIM1, &TIM_OCInitStructure);
 	TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
 
-	/* Timing Mode configuration: Channel 4 */
+	/* Timing Mode configuration: Channel 2 or 4 */
 	TIM_OCInitStructure.TIM_OCMode = 							TIM_OCMode_Timing;
 	TIM_OCInitStructure.TIM_OutputState = 				TIM_OutputState_Disable;
 	TIM_OCInitStructure.TIM_Pulse = 							DSHOT_T1H_TIME;
+#ifdef UART_TX_DMA    
+	TIM_OC2Init(TIM1, &TIM_OCInitStructure);
+	TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
+#else
 	TIM_OC4Init(TIM1, &TIM_OCInitStructure);
 	TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
 
+#endif
 	DMA_InitTypeDef DMA_InitStructure;
 
 	DMA_StructInit(&DMA_InitStructure);
@@ -239,6 +246,23 @@ void pwm_init()
 	DMA_InitStructure.DMA_M2M = 									DMA_M2M_Disable;
 	DMA_Init(DMA1_Channel2, &DMA_InitStructure);
 
+#ifdef UART_TX_DMA
+	/* DMA1 Channel3 configuration ----------------------------------------------*/
+	DMA_DeInit(DMA1_Channel3);
+	DMA_InitStructure.DMA_PeripheralBaseAddr = 		(uint32_t)&GPIOA->BRR;
+	DMA_InitStructure.DMA_MemoryBaseAddr = 				(uint32_t)dshot_portA;
+	DMA_InitStructure.DMA_DIR = 									DMA_DIR_PeripheralDST;
+	DMA_InitStructure.DMA_BufferSize = 						16;
+	DMA_InitStructure.DMA_PeripheralInc = 				DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc = 						DMA_MemoryInc_Disable;
+	DMA_InitStructure.DMA_PeripheralDataSize = 		DMA_PeripheralDataSize_HalfWord;
+	DMA_InitStructure.DMA_MemoryDataSize = 				DMA_MemoryDataSize_HalfWord;
+	DMA_InitStructure.DMA_Mode = 									DMA_Mode_Normal;
+	DMA_InitStructure.DMA_Priority = 							DMA_Priority_High;
+	DMA_InitStructure.DMA_M2M = 									DMA_M2M_Disable;
+	DMA_Init(DMA1_Channel3, &DMA_InitStructure);
+    TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, ENABLE);
+#else
 	/* DMA1 Channel4 configuration ----------------------------------------------*/
 	DMA_DeInit(DMA1_Channel4);
 	DMA_InitStructure.DMA_PeripheralBaseAddr = 		(uint32_t)&GPIOA->BRR;
@@ -255,8 +279,18 @@ void pwm_init()
 	DMA_Init(DMA1_Channel4, &DMA_InitStructure);
 
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, ENABLE);
+#endif
 
 	NVIC_InitTypeDef NVIC_InitStructure;
+#ifdef UART_TX_DMA    
+	/* configure DMA1 Channel3 interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = 					DMA1_Channel2_3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 	(uint8_t)DMA_Priority_High;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = 			ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	/* enable DMA1 Channel3 transfer complete interrupt */
+	DMA_ITConfig(DMA1_Channel3, DMA_IT_TC, ENABLE);
+#else
 	/* configure DMA1 Channel4 interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = 					DMA1_Channel4_5_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 	(uint8_t)DMA_Priority_High;
@@ -265,6 +299,7 @@ void pwm_init()
 	/* enable DMA1 Channel4 transfer complete interrupt */
 	DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
 
+#endif
 	// set failsafetime so signal is off at start
 	pwm_failsafe_time = gettime() - 100000;
 	pwmdir = FORWARD;
@@ -276,22 +311,39 @@ void dshot_dma_portA()
 	DMA1_Channel5->CMAR = (uint32_t)dshot_portA;
 	DMA1_Channel2->CPAR = (uint32_t)&GPIOA->BRR;
 	DMA1_Channel2->CMAR = (uint32_t)motor_data_portA;
+#ifdef UART_TX_DMA    
+	DMA1_Channel3->CPAR = (uint32_t)&GPIOA->BRR;
+	DMA1_Channel3->CMAR = (uint32_t)dshot_portA;
+    
+    DMA_ClearFlag( DMA1_FLAG_GL2 | DMA1_FLAG_GL3 | DMA1_FLAG_GL5 );
+#else
 	DMA1_Channel4->CPAR = (uint32_t)&GPIOA->BRR;
 	DMA1_Channel4->CMAR = (uint32_t)dshot_portA;
 
 	DMA_ClearFlag( DMA1_FLAG_GL2 | DMA1_FLAG_GL4 | DMA1_FLAG_GL5 );
+#endif
 
 	DMA1_Channel5->CNDTR = 16;
 	DMA1_Channel2->CNDTR = 16;
+#ifdef UART_TX_DMA   
+	DMA1_Channel3->CNDTR = 16;
+#else
 	DMA1_Channel4->CNDTR = 16;
+#endif    
 
 	TIM1->SR = 0;
 
 	DMA_Cmd(DMA1_Channel2, ENABLE);
+	DMA_Cmd(DMA1_Channel5, ENABLE);    
+#ifdef UART_TX_DMA   
+	DMA_Cmd(DMA1_Channel3, ENABLE);
+    TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, ENABLE);
+#else
 	DMA_Cmd(DMA1_Channel4, ENABLE);
-	DMA_Cmd(DMA1_Channel5, ENABLE);
+    
 
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, ENABLE);
+#endif
 
 	TIM_SetCounter( TIM1, DSHOT_BIT_TIME );
 	TIM_Cmd( TIM1, ENABLE );
@@ -303,6 +355,22 @@ void dshot_dma_portB()
 	DMA1_Channel5->CMAR = (uint32_t)dshot_portB;
 	DMA1_Channel2->CPAR = (uint32_t)&GPIOB->BRR;
 	DMA1_Channel2->CMAR = (uint32_t)motor_data_portB;
+#ifdef UART_TX_DMA     
+	DMA1_Channel3->CPAR = (uint32_t)&GPIOB->BRR;
+	DMA1_Channel3->CMAR = (uint32_t)dshot_portB;
+
+	DMA_ClearFlag( DMA1_FLAG_GL2 | DMA1_FLAG_GL3 | DMA1_FLAG_GL5 );
+    DMA1_Channel5->CNDTR = 16;
+	DMA1_Channel2->CNDTR = 16;
+	DMA1_Channel3->CNDTR = 16;
+    TIM1->SR = 0;
+
+	DMA_Cmd(DMA1_Channel2, ENABLE);
+	DMA_Cmd(DMA1_Channel3, ENABLE);
+	DMA_Cmd(DMA1_Channel5, ENABLE);
+
+	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, ENABLE);
+#else
 	DMA1_Channel4->CPAR = (uint32_t)&GPIOB->BRR;
 	DMA1_Channel4->CMAR = (uint32_t)dshot_portB;
 
@@ -319,6 +387,7 @@ void dshot_dma_portB()
 	DMA_Cmd(DMA1_Channel5, ENABLE);
 
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, ENABLE);
+ #endif   
 
 	TIM_SetCounter( TIM1, DSHOT_BIT_TIME );
 	TIM_Cmd( TIM1, ENABLE );
@@ -429,16 +498,62 @@ void pwm_set( uint8_t number, float pwm )
 	}
 
 #else
-
-	// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
-	value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
+        
+    // maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
+    value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
 
 #endif
-
-	if ( onground ) {
+    if ( onground ) {
 		value = 0; // stop the motors
 	}
 
+    if(!showcase && !aux[ARMING] && !aux[LEVELMODE] && aux[RACEMODE])
+    {
+        if((rx[Roll] > 0.3f))
+        {
+            if(number > 1)
+            {
+                value = 0 + rx[Roll]*1000  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }
+        }
+        if((rx[Roll] < -0.3f)) 
+        {
+            if(number <2 )
+            {
+                value = 0 + rx[Roll]*(-1000)  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }
+        }
+        if((rx[Pitch] > 0.3f))
+        {
+            if(number==1 || number==3)
+            {
+                value = 0 + rx[Pitch]*1000  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }							
+        }
+        if((rx[Pitch] < -0.3f))
+        {
+            if(number==0 || number==2)
+            {
+                value = 0 + rx[Pitch]*(-1000)  + 1000;
+            }
+            else
+            {
+                 value = 0;
+            }						
+        }
+    }
 	if ( failsafe ) {
 		if ( ! pwm_failsafe_time ) {
 			pwm_failsafe_time = gettime();
@@ -515,7 +630,16 @@ void motorbeep()
 
 
 #if defined(USE_DSHOT_DMA_DRIVER)
+#ifdef UART_TX_DMA
+void DMA1_Channel2_3_IRQHandler(void)
+{
+	DMA_Cmd(DMA1_Channel5, DISABLE);
+	DMA_Cmd(DMA1_Channel2, DISABLE);
+	DMA_Cmd(DMA1_Channel3, DISABLE);
 
+	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, DISABLE);
+	DMA_ClearITPendingBit(DMA1_IT_TC3);
+#else
 void DMA1_Channel4_5_IRQHandler(void)
 {
 	DMA_Cmd(DMA1_Channel5, DISABLE);
@@ -524,6 +648,7 @@ void DMA1_Channel4_5_IRQHandler(void)
 
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, DISABLE);
 	DMA_ClearITPendingBit(DMA1_IT_TC4);
+#endif    
 	TIM_Cmd( TIM1, DISABLE );
 
 
@@ -555,6 +680,13 @@ void DMA1_Channel4_5_IRQHandler(void)
 	rgb_dma_phase = 0;
 #endif
 
+}
+void motor_dir(unsigned char  number, unsigned char value)
+{
+    make_packet(number,value,true);
+	if ( number == 3 ) {
+			dshot_dma_start();
+	}
 }
 #endif
 

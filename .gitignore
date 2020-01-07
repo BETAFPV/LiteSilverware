@@ -66,6 +66,7 @@
 *.sct
 *.sfd
 *.sfr
+*.orig
 
 # Miscellaneous
 *.tra

@@ -39,6 +39,8 @@ return ga;
 }
 
 
+
+
 // calculates the coefficient for lpf filter 
 float lpfcalc_hz(float sampleperiod, float filterhz) {
 float ga = 1.0f - sampleperiod * filterhz;
@@ -48,7 +50,10 @@ if (ga < 0.0f)
 	ga = 0.0f;
 return ga;
 }
-
+void hpf( float *out, float delta_in, float coeff)
+{
+    *out = ( *out + delta_in ) * coeff;
+}
 
 float mapf(float x, float in_min, float in_max, float out_min, float out_max)
 {
@@ -95,7 +100,11 @@ void TE( void)
 	timeend =( gettime() - timestart );	
 }
 
-
+void constrain(float *out, float min, float max)
+{
+    if (*out < min) *out = min;
+    else if (*out > max) *out = max;
+}
 
 float fastsin( float x )
 {
