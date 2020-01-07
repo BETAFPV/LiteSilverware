@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>NFE_Silverware</TargetName>
+      <TargetName>LiteSilverware</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>nfe_silverware</OutputName>
+          <OutputName>lite_silverware</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -660,6 +660,36 @@
               <FileName>rx_sbus_dsmx_bayang_switch.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\rx_sbus_dsmx_bayang_switch.h</FilePath>
+            </File>
+            <File>
+              <FileName>altitude.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\altitude.c</FilePath>
+            </File>
+            <File>
+              <FileName>altitude.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\altitude.h</FilePath>
+            </File>
+            <File>
+              <FileName>barometer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\barometer.c</FilePath>
+            </File>
+            <File>
+              <FileName>barometer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\barometer.h</FilePath>
+            </File>
+            <File>
+              <FileName>drv_dps310.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drv_dps310.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_dps310.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\drv_dps310.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -103,8 +103,11 @@
 	#define USE_PWM_DRIVER
 #endif
 
+// baro type
+#define USE_BARO_DPS310
 
-
+// baro I2C address
+#define DPS310_I2C_ADDRESS 0x76
 
 
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS

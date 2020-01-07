@@ -52,7 +52,8 @@ THE SOFTWARE.
 #include "binary.h"
 #include "osd.h"
 #include "IIR_filter.h"
-
+#include "altitude.h"
+#include "barometer.h"
 
 #include <stdio.h>
 #include <math.h>
@@ -270,6 +271,20 @@ rx_switch = 4;
 		failloop(4);
 	}
 	
+ #ifdef ENABLE_BARO
+    barometer_init();
+    if (barometer_check())
+    {
+    }
+    else
+    {
+        //barometer not found
+        failloop(9);
+    }
+#endif 
+    
+    
+    
 	adc_init();
 //set always on channel to on
 aux[CH_ON] = 1;	
@@ -461,7 +476,10 @@ if ( liberror )
  		extern void imu_calc(void);		
 		imu_calc(); 
        
-      
+    #ifdef ENABLE_BARO 
+        altitude_read(); 
+    #endif 
+        
 // battery low logic
 
         // read acd and scale based on processor voltage

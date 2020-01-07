@@ -37,7 +37,7 @@ THE SOFTWARE.
 #include "flip_sequencer.h"
 #include "gestures.h"
 #include "led.h"
-
+#include "altitude.h"
 
 
 float	throttle;
@@ -183,11 +183,30 @@ float rate_multiplier = 1.0;
 		if ( fabsf( rxcopy[ i ] ) <= STICKS_DEADBAND ) {
 			rxcopy[ i ] = 0.0f;
 		} else {
-			if ( rxcopy[ i ] >= 0 ) {
-				rxcopy[ i ] = mapf( rxcopy[ i ], STICKS_DEADBAND, 1, 0, 1 );
-			} else {
-				rxcopy[ i ] = mapf( rxcopy[ i ], -STICKS_DEADBAND, -1, 0, -1 );
-			}
+        
+        #ifdef ENABLE_BARO
+			if(aux[HORIZON])
+            {
+                if ( rxcopy[ i ] >= 0 ) {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], STICKS_DEADBAND, 1, 0, 0.15 );
+                } else {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], -STICKS_DEADBAND, -1, 0, -0.15 );
+                }
+            }else{
+          
+                if ( rxcopy[ i ] >= 0 ) {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], STICKS_DEADBAND, 1, 0, 1 );
+                } else {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], -STICKS_DEADBAND, -1, 0, -1 );
+                }
+            }
+        #else
+            if ( rxcopy[ i ] >= 0 ) {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], STICKS_DEADBAND, 1, 0, 1 );
+                } else {
+                    rxcopy[ i ] = mapf( rxcopy[ i ], -STICKS_DEADBAND, -1, 0, -1 );
+                }
+        #endif
 		}
 		#endif
 	 }
@@ -241,7 +260,7 @@ if (aux[LEVELMODE]&&!acro_override){
 	yawerror[1] = - GEstG[0] * rates[2];
 	yawerror[2] = GEstG[2] * rates[2];
 	
-	
+#ifndef ENABLE_BARO	
 	// *************************************************************************
 	//horizon modes tuning variables
 	// *************************************************************************
@@ -341,7 +360,11 @@ if (aux[LEVELMODE]&&!acro_override){
 			// yaw
 			error[2] = yawerror[2]  - gyro[2];  
 			
-	}else{ //standard level mode
+	}else{ 
+#endif        
+        
+        //standard level mode
+        
 	    // pitch and roll
 			for ( int i = 0 ; i <=1; i++){
 					angleerror[i] = errorvect[i] ;    
@@ -349,7 +372,11 @@ if (aux[LEVELMODE]&&!acro_override){
 			}
       // yaw
 			error[2] = yawerror[2]  - gyro[2];
+            
+#ifndef ENABLE_BARO
 		} 
+#endif
+        
 }else{	// rate mode
 
     setpoint[0] = rates[0];
@@ -441,7 +468,25 @@ if (aux[CH_AUX1]){
 }
 #endif
 
+#ifdef ENABLE_BARO
+    extern int rxmode;
+    int rx_good = 0;
+    extern float altitude, alt_target;
 
+    if (aux[LEVELMODE] && aux[HORIZON])
+    {
+        rx_good = (rx_good || !(rx[0]==0 && rx[1]==0 && rx[2]==0 && rx[3]==0));
+        if (rx_good && aux[ARMING])
+        {
+            throttle = altitude_hold();
+            throttle_smooth(&throttle);
+        }
+        else
+        {
+            alt_target = altitude;
+        }
+    }
+#endif
 
 // turn motors off if throttle is off and pitch / roll sticks are centered
 	if ( showcase || failsafe || (throttle < 0.001f && (!ENABLESTIX || !onground_long || aux[LEVELMODE] || (fabsf(rx[ROLL]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[PITCH]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[YAW]) < (float) ENABLESTIX_TRESHOLD ) ) ) ) 
