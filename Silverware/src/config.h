@@ -18,8 +18,8 @@
 //#define Lite_Brushless
 #define Lite_BrushlessRX
 
-//#define f042_1s_bl
-#define f042_2s_bl
+#define f042_1s_bl
+//#define f042_2s_bl
 //#define f042_1s_b
 
 //**********************************************************************************************************************

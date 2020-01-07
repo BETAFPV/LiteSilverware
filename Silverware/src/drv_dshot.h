@@ -1,4 +1,10 @@
 //set the dshot pins based on defines in hardware.h
+#include "targets.h"
+#define DSHOT_CMD_ROTATE_NORMAL 20
+#define DSHOT_CMD_ROTATE_REVERSE 21
+void motor_dir(unsigned char number, unsigned char value);
+
+
 
 // motor0
 

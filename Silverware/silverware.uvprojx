@@ -632,74 +632,34 @@
               <FilePath>.\src\rx_sbus_dsmx_bayang_switch.c</FilePath>
             </File>
             <File>
+              <FileName>osd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\osd.c</FilePath>
+            </File>
+            <File>
+              <FileName>osd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\osd.h</FilePath>
+            </File>
+            <File>
+              <FileName>IIR_filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\IIR_filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>IIR_filter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\IIR_filter.h</FilePath>
+            </File>
+            <File>
+              <FileName>rx.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\rx.h</FilePath>
+            </File>
+            <File>
               <FileName>rx_sbus_dsmx_bayang_switch.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\rx_sbus_dsmx_bayang_switch.h</FilePath>
-            </File>
-            <File>
-              <FileName>osd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\osd.c</FilePath>
-            </File>
-            <File>
-              <FileName>osd.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\osd.h</FilePath>
-            </File>
-            <File>
-              <FileName>sensor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\sensor.c</FilePath>
-            </File>
-            <File>
-              <FileName>sensor.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\sensor.h</FilePath>
-            </File>
-            <File>
-              <FileName>LevenbergMarquardt.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\LevenbergMarquardt.c</FilePath>
-            </File>
-            <File>
-              <FileName>LevenbergMarquardt.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\LevenbergMarquardt.h</FilePath>
-            </File>
-            <File>
-              <FileName>mathTool.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\mathTool.h</FilePath>
-            </File>
-            <File>
-              <FileName>IIR_filter.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\IIR_filter.c</FilePath>
-            </File>
-            <File>
-              <FileName>IIR_filter.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\IIR_filter.h</FilePath>
-            </File>
-            <File>
-              <FileName>IIR_filter.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\IIR_filter.c</FilePath>
-            </File>
-            <File>
-              <FileName>IIR_filter.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\IIR_filter.h</FilePath>
-            </File>
-            <File>
-              <FileName>osd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\osd.c</FilePath>
-            </File>
-            <File>
-              <FileName>osd.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\osd.h</FilePath>
             </File>
           </Files>
         </Group>
