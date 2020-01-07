@@ -177,3 +177,9 @@ float LPF2pApply_3(float sample)
         return output;
     }
 }
+void IIRFilter_Init(void)
+{
+    LPF2pSetCutOffFreq_1(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+    LPF2pSetCutOffFreq_2(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+    LPF2pSetCutOffFreq_3(IMU_SAMPLE_RATE, IMU_FILTER_CUTOFF_FREQ);
+}

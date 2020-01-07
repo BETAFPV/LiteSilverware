@@ -128,8 +128,6 @@ extern int onground;
 void imu_calc(void)
 {
 
-
-
 // remove bias
     accel[0] = (accelraw[0] - accelcal[0]);
     accel[1] = (accelraw[1] - accelcal[1]);
@@ -215,7 +213,11 @@ void imu_calc(void)
                lpf(&GEstG[x], accel[x], filtcoeff);
             }
     }
-
+    extern char aux[16];
+    if(aux[RACEMODE] || aux[HORIZON]){
+        attitude[0] = atan2approx(GEstG[0], GEstG[2]) ;
+        attitude[1] = atan2approx(GEstG[1], GEstG[2])  ;
+    }
 }
 
 

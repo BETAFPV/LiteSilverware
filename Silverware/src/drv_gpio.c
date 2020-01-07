@@ -15,7 +15,10 @@ void gpio_init(void)
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	
-	
+#ifdef ENABLE_Board_RX 
+  GPIO_InitStructure.GPIO_Pin = RX_PSW_PIN;	
+  GPIO_Init(RX_PSW_PORT, &GPIO_InitStructure); 
+#endif	
 #ifdef ENABLE_VREG_PIN	
 	GPIO_InitStructure.GPIO_Pin = VREG_PIN_1;	
   GPIO_Init(VREG_PORT_1, &GPIO_InitStructure); 

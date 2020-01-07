@@ -105,7 +105,6 @@
 
 
 
-// PWM PINS DEFINITIONS
 
 
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS

@@ -53,9 +53,12 @@ extern float gyro[3];
 extern int failsafe;
 extern float pidoutput[PIDNUMBER];
 extern float setpoint[3];
-
+extern unsigned char showcase;
 extern float angleerror[];
 extern float attitude[];
+
+extern unsigned int ratesValue;
+extern unsigned int ratesValueYaw;
 
 int onground = 1;
 int onground_long = 1;
@@ -217,9 +220,9 @@ pid_precalc();
 	float rates[3];
 
 #ifndef BETAFLIGHT_RATES
-    rates[0] = rate_multiplier * rxcopy[0] * (float) MAX_RATE * DEGTORAD;
-    rates[1] = rate_multiplier * rxcopy[1] * (float) MAX_RATE * DEGTORAD;
-    rates[2] = rate_multiplier * rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
+    rates[0] = rate_multiplier * rxcopy[0] * (float) ratesValue * DEGTORAD;
+    rates[1] = rate_multiplier * rxcopy[1] * (float) ratesValue * DEGTORAD;
+    rates[2] = rate_multiplier * rxcopy[2] * (float) ratesValueYaw * DEGTORAD;
 #else
     rates[0] = rate_multiplier * calcBFRatesRad(0);
     rates[1] = rate_multiplier * calcBFRatesRad(1);
@@ -441,7 +444,7 @@ if (aux[CH_AUX1]){
 
 
 // turn motors off if throttle is off and pitch / roll sticks are centered
-	if ( failsafe || (throttle < 0.001f && (!ENABLESTIX || !onground_long || aux[LEVELMODE] || (fabsf(rx[ROLL]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[PITCH]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[YAW]) < (float) ENABLESTIX_TRESHOLD ) ) ) ) 
+	if ( showcase || failsafe || (throttle < 0.001f && (!ENABLESTIX || !onground_long || aux[LEVELMODE] || (fabsf(rx[ROLL]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[PITCH]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[YAW]) < (float) ENABLESTIX_TRESHOLD ) ) ) ) 
 	{	// motors off
 
 		if ( onground_long )
@@ -688,7 +691,7 @@ else
          static int mixScaling;
          if (onground) mixScaling = 0;
          // only enable once really in the air
-         else if (in_air) mixScaling = 1;
+         else mixScaling = in_air;
          if (mixScaling) {
 						 //ledcommand=1;
              float minMix = 1000.0f;
@@ -986,7 +989,14 @@ thrsum = 0;		//reset throttle sum for voltage monitoring logic in main loop
 		#ifndef NOMOTORS
 		#ifndef MOTORS_TO_THROTTLE
 		//normal mode
-		pwm_set( i ,motormap( mix[i] ) );
+        if(!aux[CHAN_5])
+        {
+            
+        }
+        else
+        {
+            pwm_set( i ,mix[i]);
+        }
 		#else
 		// throttle test mode
 		ledcommand = 1;

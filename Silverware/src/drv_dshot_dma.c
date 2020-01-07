@@ -498,16 +498,62 @@ void pwm_set( uint8_t number, float pwm )
 	}
 
 #else
-
-	// maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
-	value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
+        
+    // maps 0.0 .. 0.999 to 48 + IDLE_OFFSET * 2 .. 2047
+    value = 48 + IDLE_OFFSET * 2 + (uint16_t)( pwm * ( 2001 - IDLE_OFFSET * 2 ) );
 
 #endif
-
-	if ( onground ) {
+    if ( onground ) {
 		value = 0; // stop the motors
 	}
 
+    if(!showcase && !aux[ARMING] && !aux[LEVELMODE] && aux[RACEMODE])
+    {
+        if((rx[Roll] > 0.3f))
+        {
+            if(number > 1)
+            {
+                value = 0 + rx[Roll]*1000  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }
+        }
+        if((rx[Roll] < -0.3f)) 
+        {
+            if(number <2 )
+            {
+                value = 0 + rx[Roll]*(-1000)  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }
+        }
+        if((rx[Pitch] > 0.3f))
+        {
+            if(number==1 || number==3)
+            {
+                value = 0 + rx[Pitch]*1000  + 1000;
+            }
+            else
+            {
+                    value = 0;
+            }							
+        }
+        if((rx[Pitch] < -0.3f))
+        {
+            if(number==0 || number==2)
+            {
+                value = 0 + rx[Pitch]*(-1000)  + 1000;
+            }
+            else
+            {
+                 value = 0;
+            }						
+        }
+    }
 	if ( failsafe ) {
 		if ( ! pwm_failsafe_time ) {
 			pwm_failsafe_time = gettime();
