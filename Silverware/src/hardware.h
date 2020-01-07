@@ -61,7 +61,10 @@
 // pins for hw i2c , select one only
 // select pins PB6 and PB7 OR select pins PA9 and PA10
 //#define HW_I2C_PINS_PB67
-#define HW_I2C_PINS_PA910
+//#define HW_I2C_PINS_PA910
+#define HW_I2C_PINS_PF01
+
+
 
 // pins for software i2c
 #define SOFTI2C_SDAPIN GPIO_Pin_10
@@ -102,6 +105,7 @@
 
 
 
+// PWM PINS DEFINITIONS
 
 
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS
@@ -118,16 +122,22 @@
 //#define PWM_PA1
 //#define PWM_PA2
 //#define PWM_PA3
-#define PWM_PA4
+//#define PWM_PA4
 //#define PWM_PA5
-#define PWM_PA6
-#define PWM_PA7
+//#define PWM_PA6
+//#define PWM_PA7
 //#define PWM_PA8
 //#define PWM_PA9
 //#define PWM_PA10
 //#define PWM_PA11
-//#define PWM_PB0
+#define PWM_PA15
+#define PWM_PB0
 #define PWM_PB1
+//#define PWM_PB3
+#define PWM_PB4
+//#define PWM_PB5
+//#define PWM_PB6
+//#define PWM_PB7
 
 
 // RGB led type ws2812 - ws2813
