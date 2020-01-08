@@ -125,7 +125,7 @@ void getIndex()
 
 void osd_setting()
 {
-    if(showcase_cnt<810)
+    if(showcase_cnt < 1610)
     {
         showcase_cnt++;
         showcase =6;

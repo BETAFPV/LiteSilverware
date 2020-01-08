@@ -43,9 +43,9 @@ THE SOFTWARE.
 // Define minimum low_throttle_time before motors off
 #define LOW_THROTTLE_TIMEOUT    1.0f
 
-#define KP 40.0f
-#define KI 60.0f
-#define KD 40.0f
+#define KP 20.0f
+#define KI 40.0f
+#define KD 5.0f
 
 #define ALT_P 0.1f
 #define ALT_I 0.1f
@@ -203,10 +203,10 @@ float altitude_hold(void)
 
         float newrx = mapf(rx[3], 0, 1.0f, -1.0f, 1.0f);  // Zero center throttle
 
-        if (fabs(newrx) > 0.4f)
+        if (fabs(newrx) > 0.6f)
         {
-            if (newrx > 0) newrx -= 0.4f;
-            else newrx += 0.4f;
+            if (newrx > 0) newrx -= 0.6f;
+            else newrx += 0.6f;
 //            new_alt_target = altitude + newrx * FULL_THROTTLE_ALT_TARGET;     // Add +/- FULL_THROTTLE_ALT_TARGET meter to altitude for full throttle travel
 //            lpf(&alt_target, new_alt_target, lpfcalc(dt, 5.0f));             // Easy climbing and descending
 //            alt_target = new_alt_target;
@@ -226,7 +226,7 @@ float altitude_hold(void)
             }
         } else
         {
-            if (newrx < -0.45f)
+            if (newrx < -0.35f)
             {
                 if ((ah_time - low_throttle_time) * 1e-6f > LOW_THROTTLE_TIMEOUT) grounded = 1;
 
@@ -270,7 +270,7 @@ float altitude_hold(void)
             out = error * KP;
             out += ierror*0.8f;
             out += KD * (lastspeed - speed );
-            out += 0.25f;
+            out += 0.4f;
 //            out += 0.2 / (lrintf(vbattfilt*10)/10);
 
             lastspeed = speed;
