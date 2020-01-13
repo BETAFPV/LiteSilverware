@@ -45,7 +45,7 @@ THE SOFTWARE.
 
 #define KP 20.0f
 #define KI 40.0f
-#define KD 5.0f
+#define KD 15.0f
 
 #define ALT_P 0.1f
 #define ALT_I 0.1f
@@ -195,7 +195,7 @@ float altitude_hold(void)
     static float last_altitude;
     static float ierror = 0;
     static float lastspeed;
-
+    static unsigned char moveing;
     if (dt > 1.0f/AH_REFRESH_FREQ) {
 
         last_ah_time = ah_time;
@@ -203,16 +203,19 @@ float altitude_hold(void)
 
         float newrx = mapf(rx[3], 0, 1.0f, -1.0f, 1.0f);  // Zero center throttle
 
-        if (fabs(newrx) > 0.6f)
+        if (fabs(newrx) > 0.8f)
         {
-            if (newrx > 0) newrx -= 0.6f;
+            if (newrx > 0) newrx = 0.6f;
             else newrx += 0.6f;
+            
+            moveing = 1;
 //            new_alt_target = altitude + newrx * FULL_THROTTLE_ALT_TARGET;     // Add +/- FULL_THROTTLE_ALT_TARGET meter to altitude for full throttle travel
 //            lpf(&alt_target, new_alt_target, lpfcalc(dt, 5.0f));             // Easy climbing and descending
 //            alt_target = new_alt_target;
         }
         else{
-            newrx = 0.002;
+            newrx = 0.02;
+            moveing = 0;
         }
 
 
@@ -260,18 +263,23 @@ float altitude_hold(void)
 */
 
             // Velocity PI by Silverxxx
-            float desired_speed = newrx * 0.003f;
-            float speed = (alt_lpf - last_altitude);
+            float desired_speed = newrx * 0.002f;
+            float speed;
+            if(moveing){
+                speed = 0;
+            }
+            else{        
+               speed = (alt_lpf - last_altitude);
+            }
             float error = desired_speed - speed;
 
             ierror += KI * dt * error;
             limitf (&ierror, 0.5);
 
             out = error * KP;
-            out += ierror*0.8f;
+            out += ierror*0.95f;
             out += KD * (lastspeed - speed );
             out += 0.4f;
-//            out += 0.2 / (lrintf(vbattfilt*10)/10);
 
             lastspeed = speed;
 
