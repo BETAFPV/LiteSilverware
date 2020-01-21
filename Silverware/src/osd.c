@@ -46,13 +46,14 @@ unsigned char curr_l = 23;
 unsigned char turtle_l=18;
 char motorDir[4] = {0,0,0,0};
 
-#ifdef f042_1s_bl
+#if defined(f042_1s_bl) || defined(f042_1s_bayang) 
 unsigned char low_battery=33;
 #endif
 
-#ifdef f042_2s_bl
+#ifdef f042_2s_bl 
 unsigned char low_battery=68;
 #endif
+
 
 unsigned int ratesValue=860;
 unsigned int ratesValueYaw = 500;

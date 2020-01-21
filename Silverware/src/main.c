@@ -179,7 +179,7 @@ clk_init();
     {	
        lite_2S_rx_spektrum_bind();
         
-    #ifdef f042_1s_b
+    #ifdef f042_1s_bayang
         rx_switch = 0;
     #else
         rx_switch = 1;
@@ -747,10 +747,10 @@ rgb_dma_start();
     }
     else
     {
-         pwm_count ++;
-
         osd_setting();
-        
+ 
+    #ifdef BRUSHLESS_TARGET 
+         pwm_count ++;        
          if(pwm_count ==30)
          {
             if (aux[LEVELMODE])
@@ -790,6 +790,7 @@ rgb_dma_start();
             }
             pwm_count = 0;
         }
+    #endif   
     }
 
 	

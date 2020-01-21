@@ -132,25 +132,29 @@
 //#define PWM_PA9
 //#define PWM_PA10
 //#define PWM_PA11
-#define PWM_PA15
-#define PWM_PB0
-#define PWM_PB1
+//#define PWM_PA15
+//#define PWM_PB0
+//#define PWM_PB1
 //#define PWM_PB3
-#define PWM_PB4
+//#define PWM_PB4
 //#define PWM_PB5
 //#define PWM_PB6
 //#define PWM_PB7
 
+#ifdef Lite_BrushlessRX
+#define PWM_PB0
+#define PWM_PB1
+#define PWM_PB4
+#define PWM_PA15
+#endif
 
-// RGB led type ws2812 - ws2813
-// numbers over 8 could decrease performance
-#define RGB_LED_NUMBER 0
-#define RGB_LED_DMA
+#ifdef Lite_BrushedRX
+#define PWM_PB1
+#define PWM_PB3
+#define PWM_PA7
+#define PWM_PA15
+#endif
 
-
-// pin / port for the RGB led ( programming port ok )
-#define RGB_PIN GPIO_Pin_11
-#define RGB_PORT GPIOA
 
 
 // pin for fpv switch ( turns off at failsafe )

@@ -87,8 +87,14 @@ void rgb_init()
 	TIM_OCInitStructure.TIM_OCMode = 							TIM_OCMode_Timing;
 	TIM_OCInitStructure.TIM_OutputState = 				TIM_OutputState_Disable;
 	TIM_OCInitStructure.TIM_Pulse = 							RGB_T1H_TIME;
+    
+#ifdef UART_TX_DMA    
+	TIM_OC2Init(TIM1, &TIM_OCInitStructure);
+	TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
+#else    
 	TIM_OC4Init(TIM1, &TIM_OCInitStructure);
 	TIM_OC4PreloadConfig(TIM1, TIM_OCPreload_Disable);
+#endif	
 		
 	DMA_InitTypeDef DMA_InitStructure;
 	
@@ -125,6 +131,23 @@ void rgb_init()
 	DMA_InitStructure.DMA_M2M = 									DMA_M2M_Disable;
 	DMA_Init(DMA1_Channel2, &DMA_InitStructure);
 	
+#ifdef UART_TX_DMA
+	/* DMA1 Channel3 configuration ----------------------------------------------*/
+	DMA_DeInit(DMA1_Channel3);
+	DMA_InitStructure.DMA_PeripheralBaseAddr = 		(uint32_t)&GPIOA->BRR;
+	DMA_InitStructure.DMA_MemoryBaseAddr = 				(uint32_t)rgb_portX;
+	DMA_InitStructure.DMA_DIR = 									DMA_DIR_PeripheralDST;
+	DMA_InitStructure.DMA_BufferSize = 						16;
+	DMA_InitStructure.DMA_PeripheralInc = 				DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc = 						DMA_MemoryInc_Disable;
+	DMA_InitStructure.DMA_PeripheralDataSize = 		DMA_PeripheralDataSize_HalfWord;
+	DMA_InitStructure.DMA_MemoryDataSize = 				DMA_MemoryDataSize_HalfWord;
+	DMA_InitStructure.DMA_Mode = 									DMA_Mode_Normal;
+	DMA_InitStructure.DMA_Priority = 							DMA_Priority_High;
+	DMA_InitStructure.DMA_M2M = 									DMA_M2M_Disable;
+	DMA_Init(DMA1_Channel3, &DMA_InitStructure);
+    TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, ENABLE);
+#else	
 	/* DMA1 Channel4 configuration ----------------------------------------------*/
 	DMA_DeInit(DMA1_Channel4);
 	DMA_InitStructure.DMA_PeripheralBaseAddr = 		(uint32_t)&RGB_PORT->BRR;
@@ -141,8 +164,19 @@ void rgb_init()
 	DMA_Init(DMA1_Channel4, &DMA_InitStructure);
 	
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, ENABLE);
+#endif
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
+    
+#ifdef UART_TX_DMA    
+	/* configure DMA1 Channel3 interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = 					DMA1_Channel2_3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 	(uint8_t)DMA_Priority_High;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = 			ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	/* enable DMA1 Channel3 transfer complete interrupt */
+	DMA_ITConfig(DMA1_Channel3, DMA_IT_TC, ENABLE);
+#else
 	/* configure DMA1 Channel4 interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = 					DMA1_Channel4_5_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 	(uint8_t)DMA_Priority_High;
@@ -150,6 +184,7 @@ void rgb_init()
 	NVIC_Init(&NVIC_InitStructure);
 	/* enable DMA1 Channel4 transfer complete interrupt */
 	DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
+#endif
 #endif
 
 	for (int i=0;i<RGB_LED_NUMBER;i++) {
@@ -193,33 +228,46 @@ void rgb_dma_trigger()
 {
 	TIM1->ARR 	= RGB_BIT_TIME;
 	TIM1->CCR1 	= RGB_T0H_TIME;
-	TIM1->CCR4 	= RGB_T1H_TIME;
-		
-    
+#ifdef UART_TX_DMA 
+	TIM1->CCR3 	= RGB_T1H_TIME;
+#else
+    TIM1->CCR4 	= RGB_T1H_TIME;    
+#endif	
     DMA1_Channel5->CPAR = (uint32_t)&RGB_PORT->BSRR;
 	DMA1_Channel5->CMAR = (uint32_t)rgb_portX;
 	DMA1_Channel2->CPAR = (uint32_t)&RGB_PORT->BRR+offset;
 	DMA1_Channel2->CMAR = (uint32_t)rgb_data_portA;
+#ifdef UART_TX_DMA 
+    DMA1_Channel3->CPAR = (uint32_t)&RGB_PORT->BRR;
+	DMA1_Channel3->CMAR = (uint32_t)rgb_portX;
+#else
 	DMA1_Channel4->CPAR = (uint32_t)&RGB_PORT->BRR;
 	DMA1_Channel4->CMAR = (uint32_t)rgb_portX;
-	
+#endif	
 	DMA1_Channel2->CCR &= ~(DMA_CCR_MSIZE_0 | DMA_CCR_MSIZE_1 
                             | DMA_CCR_PSIZE_0 | DMA_CCR_PSIZE_1);		// switch from halfword to byte
-	
+#ifdef UART_TX_DMA 	
+	DMA_ClearFlag( DMA1_FLAG_GL2 | DMA1_FLAG_GL3 | DMA1_FLAG_GL5 );
+    DMA1_Channel3->CNDTR = RGB_LED_NUMBER*24;    
+#else
 	DMA_ClearFlag( DMA1_FLAG_GL2 | DMA1_FLAG_GL4 | DMA1_FLAG_GL5 );
-	
+    DMA1_Channel4->CNDTR = RGB_LED_NUMBER*24;
+#endif
 	DMA1_Channel5->CNDTR = RGB_LED_NUMBER*24;
 	DMA1_Channel2->CNDTR = RGB_LED_NUMBER*24;
-	DMA1_Channel4->CNDTR = RGB_LED_NUMBER*24;
-	
+
+
 	TIM1->SR = 0;
 		
 	DMA_Cmd(DMA1_Channel2, ENABLE);
-	DMA_Cmd(DMA1_Channel4, ENABLE);
 	DMA_Cmd(DMA1_Channel5, ENABLE);	
-	
+#ifdef UART_TX_DMA	
+    DMA_Cmd(DMA1_Channel3, ENABLE);
+	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, ENABLE);
+#else
+    DMA_Cmd(DMA1_Channel4, ENABLE);
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, ENABLE);
-	
+#endif
 	TIM_SetCounter( TIM1, RGB_BIT_TIME );
 	TIM_Cmd( TIM1, ENABLE );
 }
@@ -253,38 +301,53 @@ void rgb_send( int data )
 
 // if dshot dma is used the routine is in that file
 #if !defined(USE_DSHOT_DMA_DRIVER) && defined(RGB_LED_DMA) && (RGB_LED_NUMBER>0) 
-
-void DMA1_Channel4_5_IRQHandler(void)
-{	
+#ifdef UART_TX_DMA
+void DMA1_Channel2_3_IRQHandler(void)
+{
 	DMA_Cmd(DMA1_Channel5, DISABLE);
 	DMA_Cmd(DMA1_Channel2, DISABLE);
-	DMA_Cmd(DMA1_Channel4, DISABLE);		
-	
+	DMA_Cmd(DMA1_Channel3, DISABLE);
+
+	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_CC1, DISABLE);
+	DMA_ClearITPendingBit(DMA1_IT_TC3);
+#else
+void DMA1_Channel4_5_IRQHandler(void)
+{
+	DMA_Cmd(DMA1_Channel5, DISABLE);
+	DMA_Cmd(DMA1_Channel2, DISABLE);
+	DMA_Cmd(DMA1_Channel4, DISABLE);
+
 	TIM_DMACmd(TIM1, TIM_DMA_Update | TIM_DMA_CC4 | TIM_DMA_CC1, DISABLE);
-	DMA_ClearITPendingBit(DMA1_IT_TC4);		
-	TIM_Cmd( TIM1, DISABLE );
+	DMA_ClearITPendingBit(DMA1_IT_TC4);
 
     rgb_dma_phase = 0;
-}
+#endif	
+	TIM_Cmd( TIM1, DISABLE );
+
+
+
+#if defined(RGB_LED_DMA) && (RGB_LED_NUMBER>0)
+//        extern int rgb_dma_phase;
+        extern void rgb_dma_trigger();
+
+        if( rgb_dma_phase == 2 ) 
+        {
+            rgb_dma_phase = 1;
+            rgb_dma_trigger();
+        }
+#if defined(RGB_LED_DMA) && (RGB_LED_NUMBER>0)
+//	extern int rgb_dma_phase;
+	rgb_dma_phase = 0;
+#endif        
 #endif
-
-
+}    
+#endif
 
 #else
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+#define gpioset( port , pin) port->BSRR = pin
+#define gpioreset( port , pin) port->BRR = pin
 
 // sets all leds to a brightness
 void rgb_init(void)

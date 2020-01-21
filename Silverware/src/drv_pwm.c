@@ -193,6 +193,17 @@
 #endif
 #endif
 
+#ifdef PWM_PA15
+#define PWM_PA15_PIN GPIO_Pin_15
+#define PWM_PA15_PORT GPIOA
+#define PWM_PA15_AF GPIO_AF_2
+#define PWM_PA15_PINSOURCE GPIO_PinSource15
+#define PWM_PA15_TIMER TIM2
+#define PWM_PA15_CHANNEL CH1
+#ifndef ENABLE_TIM2 
+	#define ENABLE_TIM2
+#endif
+#endif
 
 
 #ifdef PWM_PB0
@@ -216,6 +227,62 @@
 #define PWM_PB1_CHANNEL CH4
 #ifndef ENABLE_TIM3 
 	#define ENABLE_TIM3
+#endif
+#endif
+
+#ifdef PWM_PB3
+#define PWM_PB3_PIN GPIO_Pin_3
+#define PWM_PB3_PORT GPIOB
+#define PWM_PB3_AF GPIO_AF_2
+#define PWM_PB3_PINSOURCE GPIO_PinSource3
+#define PWM_PB3_TIMER TIM2
+#define PWM_PB3_CHANNEL CH2
+#ifndef ENABLE_TIM2 
+	#define ENABLE_TIM2
+#endif
+#endif
+#ifdef PWM_PB4
+#define PWM_PB4_PIN GPIO_Pin_4
+#define PWM_PB4_PORT GPIOB
+#define PWM_PB4_AF GPIO_AF_1
+#define PWM_PB4_PINSOURCE GPIO_PinSource4
+#define PWM_PB4_TIMER TIM3
+#define PWM_PB4_CHANNEL CH1
+#ifndef ENABLE_TIM3 
+	#define ENABLE_TIM3
+#endif
+#endif
+#ifdef PWM_PB5
+#define PWM_PB5_PIN GPIO_Pin_5
+#define PWM_PB5_PORT GPIOB
+#define PWM_PB5_AF GPIO_AF_1
+#define PWM_PB5_PINSOURCE GPIO_PinSource5
+#define PWM_PB5_TIMER TIM3
+#define PWM_PB5_CHANNEL CH2
+#ifndef ENABLE_TIM3 
+	#define ENABLE_TIM3
+#endif
+#endif
+#ifdef PWM_PB6
+#define PWM_PB6_PIN GPIO_Pin_6
+#define PWM_PB6_PORT GPIOB
+#define PWM_PB6_AF GPIO_AF_2
+#define PWM_PB6_PINSOURCE GPIO_PinSource6
+#define PWM_PB6_TIMER TIM16
+#define PWM_PB6_CHANNEL CH1
+#ifndef ENABLE_TIM16 
+	#define ENABLE_TIM16
+#endif
+#endif
+#ifdef PWM_PB7
+#define PWM_PB7_PIN GPIO_Pin_7
+#define PWM_PB7_PORT GPIOB
+#define PWM_PB7_AF GPIO_AF_2
+#define PWM_PB7_PINSOURCE GPIO_PinSource7
+#define PWM_PB7_TIMER TIM17
+#define PWM_PB7_CHANNEL CH1
+#ifndef ENABLE_TIM17
+	#define ENABLE_TIM17
 #endif
 #endif
 
@@ -248,6 +315,9 @@ void pwm_init(void)
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
 
+#if defined(PWM_PB3) ||  defined(PWM_PB4)
+    //Disable JTAG ?STM32F042 has JTAG function?
+#endif    
 	
 // timer clock enable 
 #ifdef ENABLE_TIM1	
@@ -511,6 +581,23 @@ void pwm_init(void)
 #endif
 #endif
 
+#ifdef PWM_PA15
+  GPIO_InitStructure.GPIO_Pin = PWM_PA15_PIN;
+	GPIO_Init(PWM_PA15_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PA15_PORT, PWM_PA15_PINSOURCE, PWM_PA15_AF);
+	
+#if (PWM_PA15_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PA15_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PA15_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PA15_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PA15_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PA15_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PA15_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PA15_TIMER, &TIM_OCInitStructure);
+#endif
+#endif
+
 
 #ifdef PWM_PB0
   GPIO_InitStructure.GPIO_Pin = PWM_PB0_PIN;
@@ -549,6 +636,93 @@ void pwm_init(void)
 #endif
 
 #endif
+
+#ifdef PWM_PB3
+  GPIO_InitStructure.GPIO_Pin = PWM_PB3_PIN;
+	GPIO_Init(PWM_PB3_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PB3_PORT, PWM_PB3_PINSOURCE, PWM_PB3_AF);
+	
+#if (PWM_PB3_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PB3_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB3_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PB3_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB3_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PB3_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB3_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PB3_TIMER, &TIM_OCInitStructure);
+#endif
+
+#endif
+#ifdef PWM_PB4
+  GPIO_InitStructure.GPIO_Pin = PWM_PB4_PIN;
+	GPIO_Init(PWM_PB4_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PB4_PORT, PWM_PB4_PINSOURCE, PWM_PB4_AF);
+	
+#if (PWM_PB4_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PB4_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB4_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PB4_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB4_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PB4_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB4_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PB4_TIMER, &TIM_OCInitStructure);
+#endif
+
+#endif
+#ifdef PWM_PB5
+  GPIO_InitStructure.GPIO_Pin = PWM_PB5_PIN;
+	GPIO_Init(PWM_PB5_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PB5_PORT, PWM_PB5_PINSOURCE, PWM_PB5_AF);
+	
+#if (PWM_PB5_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PB5_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB5_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PB5_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB5_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PB5_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB5_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PB5_TIMER, &TIM_OCInitStructure);
+#endif
+
+#endif
+#ifdef PWM_PB6
+  GPIO_InitStructure.GPIO_Pin = PWM_PB6_PIN;
+	GPIO_Init(PWM_PB6_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PB6_PORT, PWM_PB6_PINSOURCE, PWM_PB6_AF);
+	
+#if (PWM_PB6_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PB6_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB6_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PB6_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB6_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PB6_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB6_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PB6_TIMER, &TIM_OCInitStructure);
+#endif
+
+#endif
+#ifdef PWM_PB7
+  GPIO_InitStructure.GPIO_Pin = PWM_PB7_PIN;
+	GPIO_Init(PWM_PB7_PORT, &GPIO_InitStructure);
+
+  GPIO_PinAFConfig(PWM_PB7_PORT, PWM_PB7_PINSOURCE, PWM_PB7_AF);
+	
+#if (PWM_PB7_CHANNEL==CH1) 
+  TIM_OC1Init(PWM_PB7_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB7_CHANNEL==CH2) 
+  TIM_OC2Init(PWM_PB7_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB7_CHANNEL==CH3) 
+  TIM_OC3Init(PWM_PB7_TIMER, &TIM_OCInitStructure);
+#elif (PWM_PB7_CHANNEL==CH4) 
+  TIM_OC4Init(PWM_PB7_TIMER, &TIM_OCInitStructure);
+#endif
+
+#endif
+
 
 #ifdef PWM_PB8
   GPIO_InitStructure.GPIO_Pin = PWM_PB8_PIN;
@@ -715,12 +889,30 @@ if ( pwm > PWMTOP ) pwm = PWMTOP;
 			#ifdef MOTOR0_PIN_PA11
 			TIM1->CCR4 = (uint16_t) pwm;
 			#endif
+			#ifdef MOTOR0_PIN_PA15
+			TIM2->CCR1 = (uint16_t) pwm;
+            #endif
             #ifdef MOTOR0_PIN_PB0
 			TIM3->CCR3 = (uint16_t) pwm;
 			#endif	
             #ifdef MOTOR0_PIN_PB1
 			TIM3->CCR4 = (uint16_t) pwm;
-			#endif		
+			#endif
+            #ifdef MOTOR0_PIN_PB3
+			TIM2->CCR2 = (uint16_t) pwm;
+			#endif	
+            #ifdef MOTOR0_PIN_PB4
+			TIM3->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR0_PIN_PB5
+			TIM3->CCR2 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR0_PIN_PB6
+			TIM16->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR0_PIN_PB7
+			TIM17->CCR1 = (uint16_t) pwm;
+			#endif            
             #ifdef MOTOR0_PIN_PB8
 			TIM16->CCR1 = (uint16_t) pwm;
 			#endif	            
@@ -762,13 +954,31 @@ if ( pwm > PWMTOP ) pwm = PWMTOP;
 			#endif	
 			#ifdef MOTOR1_PIN_PA11
 			TIM1->CCR4 = (uint16_t) pwm;
-			#endif	
+			#endif
+			#ifdef MOTOR1_PIN_PA15
+			TIM2->CCR1 = (uint16_t) pwm;
+            #endif
             #ifdef MOTOR1_PIN_PB0
 			TIM3->CCR3 = (uint16_t) pwm;
 			#endif	
             #ifdef MOTOR1_PIN_PB1
 			TIM3->CCR4 = (uint16_t) pwm;
             #endif
+            #ifdef MOTOR1_PIN_PB3
+			TIM2->CCR2 = (uint16_t) pwm;
+			#endif	
+            #ifdef MOTOR1_PIN_PB4
+			TIM3->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR1_PIN_PB5
+			TIM3->CCR2 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR1_PIN_PB6
+			TIM16->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR1_PIN_PB7
+			TIM17->CCR1 = (uint16_t) pwm;
+			#endif             
             #ifdef MOTOR1_PIN_PB8
 			TIM16->CCR1 = (uint16_t) pwm;
 			#endif	      
@@ -810,13 +1020,31 @@ if ( pwm > PWMTOP ) pwm = PWMTOP;
 			#endif	
 			#ifdef MOTOR2_PIN_PA11
 			TIM1->CCR4 = (uint16_t) pwm;
-			#endif	
+			#endif
+			#ifdef MOTOR2_PIN_PA15
+			TIM2->CCR1 = (uint16_t) pwm;
+			#endif	            
             #ifdef MOTOR2_PIN_PB0
 			TIM3->CCR3 = (uint16_t) pwm;
 			#endif	
             #ifdef MOTOR2_PIN_PB1
 			TIM3->CCR4 = (uint16_t) pwm; 
-            #endif  
+            #endif
+            #ifdef MOTOR2_PIN_PB3
+			TIM2->CCR2 = (uint16_t) pwm;
+			#endif	
+            #ifdef MOTOR2_PIN_PB4
+			TIM3->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR2_PIN_PB5
+			TIM3->CCR2 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR2_PIN_PB6
+			TIM16->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR2_PIN_PB7
+			TIM17->CCR1 = (uint16_t) pwm;
+			#endif             
             #ifdef MOTOR2_PIN_PB8
 			TIM16->CCR1 = (uint16_t) pwm;
 			#endif	      
@@ -859,12 +1087,30 @@ if ( pwm > PWMTOP ) pwm = PWMTOP;
 			#ifdef MOTOR3_PIN_PA11
 			TIM1->CCR4 = (uint16_t) pwm;
             #endif
+			#ifdef MOTOR3_PIN_PA15
+			TIM2->CCR1 = (uint16_t) pwm;
+            #endif
             #ifdef MOTOR3_PIN_PB0
 			TIM3->CCR3 = (uint16_t) pwm;
 			#endif	
             #ifdef MOTOR3_PIN_PB1
 			TIM3->CCR4 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR3_PIN_PB3
+			TIM2->CCR2 = (uint16_t) pwm;
 			#endif	
+            #ifdef MOTOR3_PIN_PB4
+			TIM3->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR3_PIN_PB5
+			TIM3->CCR2 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR3_PIN_PB6
+			TIM16->CCR1 = (uint16_t) pwm;
+			#endif
+            #ifdef MOTOR3_PIN_PB7
+			TIM17->CCR1 = (uint16_t) pwm;
+			#endif             
             #ifdef MOTOR3_PIN_PB8
 			TIM16->CCR1 = (uint16_t) pwm;
 			#endif	
