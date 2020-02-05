@@ -36,7 +36,7 @@ unsigned char channeltmp = 0;
 unsigned char mode = 0;
 unsigned char sa_flag = 0;
 unsigned char showcase = 0;
-unsigned char rx_switch = 1;
+unsigned char rx_switch = 0;
 int showcase_cnt = 0;
 unsigned char showcase_init=0;
 unsigned char low_bat_l=16;
@@ -44,7 +44,8 @@ unsigned char mode_l=21;
 unsigned char vol_l=23;
 unsigned char curr_l = 23;
 unsigned char turtle_l=18;
-char motorDir[4] = {0,0,0,0};
+unsigned char tx_config=0;
+unsigned char mode_config=0;
 
 #if defined(f042_1s_bl) || defined(f042_1s_bayang) 
 unsigned char low_battery=33;
@@ -161,11 +162,6 @@ void osd_setting()
                     pidMenu = pidMenu->next;
                 }
                 
-                for(i=0; i<4; i++)
-                {
-                    motorMenu->uvalue = motorDir[i];
-                    motorMenu = motorMenu->next;
-                }
                 pidMenu = pidMenuHead;
                 motorMenu = motorMenuHead;
                 channeltmp = channel;
@@ -378,10 +374,15 @@ void osd_setting()
         
             if((rx[Roll] > 0.6f) && right_flag == 1)
             {
-                if(currentMenu->index <4)
+                if(currentMenu->index ==0)
                 {
-                    currentMenu->uvalue = !currentMenu->uvalue;
-                    motorDir[currentMenu->index] = currentMenu->uvalue;
+                    tx_config = !tx_config;
+                }
+                else if(currentMenu->index ==1)
+                {
+                    mode_config++;
+                    if(mode_config>3)
+                        mode_config=0;
                 }
                 else{
                     showcase = 1;
@@ -396,8 +397,8 @@ void osd_setting()
                 osd_data[0] =0x0f;
                 osd_data[0] |=showcase << 4;
                 osd_data[1] = currentMenu->index;
-                osd_data[2] = motorDir[0] | (motorDir[1] <<1) | (motorDir[2] << 2) | (motorDir[3] <<3);
-                osd_data[3] = 0;
+                osd_data[2] = tx_config;
+                osd_data[3] = mode_config;
                 osd_data[4] = 0;
                 osd_data[5] = 0;
                 osd_data[6] = 0;
@@ -842,7 +843,7 @@ void osdMenuInit(void)
     pidMenu = createMenu(9,1);
     pidMenuHead = pidMenu;
     
-    motorMenu = createMenu(4,2);
+    motorMenu = createMenu(2,2);
     motorMenuHead = motorMenu;
     
     receiverMenu = createMenu(0,3);

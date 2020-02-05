@@ -11,7 +11,8 @@ extern float accelcal[];
 extern unsigned char powerlevel;
 extern unsigned char channel;
 extern float * pids_array[3];
-extern  char motorDir[4];
+extern  unsigned char tx_config;
+extern  unsigned char mode_config;
 extern float hardcoded_pid_identifier;
 extern unsigned char rx_switch;
 
@@ -80,8 +81,8 @@ void flash_save( void) {
     
     writeword(addresscount++, powerlevel);
     writeword(addresscount++, channel);
-    writeword(40,(motorDir[0]|motorDir[1]|motorDir[2]|motorDir[3]));
-    writeword(41, motorDir[0] | (motorDir[1]<<8) |(motorDir[2]<<16) |(motorDir[3]<<24));
+    writeword(40,tx_config);
+    writeword(41,mode_config);
     writeword(42,rx_switch);
     writeword(43,low_bat_l);
     writeword(44,mode_l);
@@ -203,21 +204,9 @@ void flash_load( void) {
     
      powerlevel = fmc_read(addresscount++ );
      channel = fmc_read(addresscount++ ); 
-     
-     save_motor_dir_identifier =  fmc_read(40);
-     
-     int temp = fmc_read(41);
-     for ( int i = 0 ; i < 4; i++)
-     {
-        save_motor_dir_temp[i] =  temp>>(i*8);        
-     }
-     if(save_motor_dir_temp[0]|save_motor_dir_temp[1]|save_motor_dir_temp[2]|save_motor_dir_temp[3] == save_motor_dir_identifier)
-     {
-        for(int i = 0 ; i < 4; i++)
-        {
-            motorDir[i] = save_motor_dir_temp[i];
-        }
-     }
+
+     tx_config = fmc_read(40);
+     mode_config = fmc_read(41);
      rx_switch = fmc_read(42);	
      
      low_bat_l = fmc_read(43);

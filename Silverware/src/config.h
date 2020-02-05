@@ -88,20 +88,12 @@
 //#define RX_CRSF                                           //Requires tbs firmware v2.88 or newer for failsafe to operate properly
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
-#if defined(f042_1s_bl) || defined(f042_2s_bl)
-
 #define RX_SBUS_DSMX_BAYANG_SWITCH
-
-#endif
-
 //#define RX_NRF24_BAYANG_TELEMETRY
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
+//#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 
-#ifdef f042_1s_bayang
 
-#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
-
-#endif
 // *************Transmitter Type Selection
 //#define USE_STOCK_TX
 //#define USE_DEVO
