@@ -59,7 +59,13 @@ int rxmode = 0;
 int rx_ready = 0;
 int bind_safety = 0;
 int rx_bind_enable = 0;
-int sbus_dsmx_flag = 0;     
+int sbus_dsmx_flag = 0; 
+
+extern unsigned char tx_config;
+extern unsigned char mode_config;
+extern unsigned char showcase;
+extern unsigned char led_config;
+extern unsigned char T8SG_config;
 
 #define DSM_SCALE_PERCENT 100	
 float dsm2_scalefactor = (0.29354210f/DSM_SCALE_PERCENT);
@@ -723,6 +729,7 @@ float packettodata( int *  data)
 	return ( ( ( data[0]&0x0003) * 256 + data[1] ) - 512 ) * 0.001953125 ;	
 }
 
+static char temp11=0;
 
 static int decodepacket( void)
 {
@@ -752,52 +759,105 @@ static int decodepacket( void)
 		}
 
 //
-					aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan
-						
-					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
-												
-					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan				
-		
-							
-			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
-
-			    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
-
-			    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
-
-			    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
-					
-							if (aux[LEVELMODE])    //8
-							{			//2                     7
-									if (aux[RACEMODE] && !aux[HORIZON])
-									{
-											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											
-									}
-									else if (aux[HORIZON])
-									{
-											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-											if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											
-									}
-									else
-									{
-											if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-											if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-											if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-											
-									}
-							}
-							else
-							{
-									if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-									
-							}		
+            if(tx_config){
+                if(showcase==0 && rx[3]>0.01f){
+                    aux[ARMING] = 1;
+                }
+                else{
+                   aux[ARMING] = 0; 
+                }
+                aux[11] = (rxdata[2] & 0x04) ? 1 : 0;
+                aux[12] = (rxdata[2] & 0x40) ? 1 : 0;
+                
+                if(aux[11] != temp11)
+                {
+                    temp11 = aux[11];
+                    
+                    mode_config ++;
+                    if(mode_config>4)
+                        mode_config=0;
+                }
+                
+                if(mode_config==0){
+                    aux[LEVELMODE] = 0;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==1){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==2){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 1;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==3){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 1;
+                    aux[HORIZON] = 1;
+                }
+                else{
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 1;
+                }
+            }
+            else{
+                if(T8SG_config){
+                    aux[CH_RTH] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+                    aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+                    aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+                    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+                    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+                    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+                    aux[CH_INV] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
+                }
+                else{
+                    aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+                    aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+                    aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+                    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+                    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+                    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+                    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
+                }
+            }	
+            
+			aux[LEDS_ON] = led_config;	
+            
+            if (aux[LEVELMODE])    //8
+            {			//2                     7
+                    if (aux[RACEMODE] && !aux[HORIZON])
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                            if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+                    else if (aux[HORIZON])
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                            if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+                    else
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                            if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+            }
+            else
+            {
+                    if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                    if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                    if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+                    
+            }		
 
 			for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
 			{

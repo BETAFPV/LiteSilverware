@@ -13,6 +13,8 @@ extern unsigned char channel;
 extern float * pids_array[3];
 extern  unsigned char tx_config;
 extern  unsigned char mode_config;
+extern unsigned char led_config;
+extern unsigned char T8SG_config;
 extern float hardcoded_pid_identifier;
 extern unsigned char rx_switch;
 
@@ -81,6 +83,9 @@ void flash_save( void) {
     
     writeword(addresscount++, powerlevel);
     writeword(addresscount++, channel);
+    
+    writeword(38,led_config);
+    writeword(39,T8SG_config);
     writeword(40,tx_config);
     writeword(41,mode_config);
     writeword(42,rx_switch);
@@ -204,9 +209,18 @@ void flash_load( void) {
     
      powerlevel = fmc_read(addresscount++ );
      channel = fmc_read(addresscount++ ); 
-
+     
+     led_config = fmc_read(38);
+     if(led_config>1)
+         led_config=0;
+     T8SG_config = fmc_read(39);  
+     if(T8SG_config>1)
+         T8SG_config=0;
      tx_config = fmc_read(40);
+     if(tx_config>1)
+         tx_config=0;
      mode_config = fmc_read(41);
+     
      rx_switch = fmc_read(42);	
      
      low_bat_l = fmc_read(43);

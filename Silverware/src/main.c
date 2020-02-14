@@ -52,8 +52,7 @@ THE SOFTWARE.
 #include "binary.h"
 #include "osd.h"
 #include "IIR_filter.h"
-#include "altitude.h"
-#include "barometer.h"
+
 
 #include <stdio.h>
 #include <math.h>
@@ -270,7 +269,8 @@ rx_switch = 4;
         //gyro not found   
 		failloop(4);
 	}
-	
+
+    
  #ifdef ENABLE_BARO
     barometer_init();
     if (barometer_check())
@@ -476,6 +476,7 @@ if ( liberror )
  		extern void imu_calc(void);		
 		imu_calc(); 
        
+        
     #ifdef ENABLE_BARO 
         altitude_read(); 
     #endif 
@@ -713,40 +714,40 @@ rgb_dma_start();
     cur = (int)(electricCur*10);
 #endif
 
-    if(aux[ARMING] && showcase == 0)
-    {
-        if(osd_count == 400)
-        {
-            osd_data[0] = 0x0f;
-            osd_data[0] |=0 << 4;
-            osd_data[1] = aux[CHAN_5];
-            osd_data[2] = 0;
-            osd_data[3] = vol >> 8;
-            osd_data[4] = vol & 0xFF;
-            osd_data[5] = rx_switch;
-            
-            osd_data[6] = 0;
-            osd_data[6] = (aux[CHAN_6] << 0) | (aux[CHAN_7] << 1) | (aux[CHAN_8] << 2);
+//    if(aux[ARMING] && showcase == 0)
+//    {
+//        if(osd_count == 400)
+//        {
+//            osd_data[0] = 0x0f;
+//            osd_data[0] |=0 << 4;
+//            osd_data[1] = aux[CHAN_5];
+//            osd_data[2] = 0;
+//            osd_data[3] = vol >> 8;
+//            osd_data[4] = vol & 0xFF;
+//            osd_data[5] = rx_switch;
+//            
+//            osd_data[6] = 0;
+//            osd_data[6] = (aux[CHAN_6] << 0) | (aux[CHAN_7] << 1) | (aux[CHAN_8] << 2);
 
-            osd_data[7] = 0;
-            osd_data[8] = 0;
-            osd_data[9] = 0;
-        #ifdef CURR_ADC
-            osd_data[8] = cur >> 8;
-            osd_data[9] = cur & 0xFF;
-        #endif
-            
-            osd_data[10] = 0;
-            osd_data[11] = 0;
-            for (uint8_t i = 0; i < 11; i++)
-                osd_data[11] += osd_data[i];  
-            
-            UART2_DMA_Send();
-            osd_count = 0;
-        }
-    }
-    else
-    {
+//            osd_data[7] = 0;
+//            osd_data[8] = 0;
+//            osd_data[9] = 0;
+//        #ifdef CURR_ADC
+//            osd_data[8] = cur >> 8;
+//            osd_data[9] = cur & 0xFF;
+//        #endif
+//            
+//            osd_data[10] = 0;
+//            osd_data[11] = 0;
+//            for (uint8_t i = 0; i < 11; i++)
+//                osd_data[11] += osd_data[i];  
+//            
+//            UART2_DMA_Send();
+//            osd_count = 0;
+//        }
+//    }
+//    else
+//    {
         osd_setting();
  
     #ifdef BRUSHLESS_TARGET 
@@ -791,7 +792,7 @@ rgb_dma_start();
             pwm_count = 0;
         }
     #endif   
-    }
+//    }
 
 	
 #endif 

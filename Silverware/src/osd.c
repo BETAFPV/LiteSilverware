@@ -4,7 +4,8 @@
 #include "math.h"
 #include <stdlib.h>
 
-#define AETR  ((-0.4f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.4f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
+#define AETR  ((-0.6f > rx[Yaw]) && (0.3f < rx[Throttle]) && (0.7f > rx[Throttle]) && (0.6f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
+#define toy_AETR  ((-0.6f > rx[Yaw]) && (0.3f > rx[Throttle]) && (0.6f < rx[Pitch]) && (-0.3f < rx[Roll]) && (0.3f > rx[Roll]))
 
 #define POLYGEN 0xd5
 
@@ -46,6 +47,9 @@ unsigned char curr_l = 23;
 unsigned char turtle_l=18;
 unsigned char tx_config=0;
 unsigned char mode_config=0;
+unsigned char led_config=0;
+unsigned char T8SG_config=0;
+
 
 #if defined(f042_1s_bl) || defined(f042_1s_bayang) 
 unsigned char low_battery=33;
@@ -58,10 +62,11 @@ unsigned char low_battery=68;
 
 unsigned int ratesValue=860;
 unsigned int ratesValueYaw = 500;
-
+unsigned char setCahnnel=0;
+unsigned char initChannel = 32;
 
 unsigned char main_version = 1;
-unsigned char modify_version = 1;
+unsigned char modify_version = 0;
 char down_flag = 0;
 char up_flag = 0;
 char right_flag = 0;
@@ -127,6 +132,40 @@ void getIndex()
 
 void osd_setting()
 {
+    if(tx_config)
+    {
+        if(aux[12] != setCahnnel)
+        {
+            setCahnnel = aux[12];
+            
+            initChannel ++;
+            
+            if(initChannel > 39)
+                initChannel = 32;
+            
+            channel = initChannel;
+            
+
+            osd_data[0] =0xAA;
+            osd_data[1] = 0x55;
+            osd_data[2] = 0x07;
+            osd_data[3] = 0x01;
+            osd_data[4] = channel;
+            osd_data[5] = CRC8(osd_data,5);
+            osd_data[6] = 0;
+            osd_data[7] = 0;
+            osd_data[8] = 0;
+            osd_data[9] = 0;
+            osd_data[10] = 0;
+            osd_data[11] = 0;
+
+            flash_save();
+            extern unsigned long lastlooptime;
+            lastlooptime = gettime();
+            UART2_DMA_Send();   
+        }   
+    }
+    
     if(showcase_cnt < 1610)
     {
         showcase_cnt++;
@@ -140,32 +179,63 @@ void osd_setting()
     switch(showcase)
     {
         case 0:
-            if(AETR)
-            {
-                showcase = 1;
-                unsigned char i = 0;
-                for(i=0; i<3; i++)
+            if(tx_config){
+                if(toy_AETR)
                 {
-                    pidMenu->fvalue = pidkp[i];
-                    pidMenu = pidMenu->next;
+                    showcase = 1;
+                    unsigned char i = 0;
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidkp[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidki[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidkd[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    pidMenu = pidMenuHead;
+                    motorMenu = motorMenuHead;
+                    channeltmp = channel;
+                    powerleveltmp = powerlevel;
                 }
-                
-                for(i=0; i<3; i++)
+            }
+            else{
+                if(AETR)
                 {
-                    pidMenu->fvalue = pidki[i];
-                    pidMenu = pidMenu->next;
+                    showcase = 1;
+                    unsigned char i = 0;
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidkp[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidki[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    for(i=0; i<3; i++)
+                    {
+                        pidMenu->fvalue = pidkd[i];
+                        pidMenu = pidMenu->next;
+                    }
+                    
+                    pidMenu = pidMenuHead;
+                    motorMenu = motorMenuHead;
+                    channeltmp = channel;
+                    powerleveltmp = powerlevel;
                 }
-                
-                for(i=0; i<3; i++)
-                {
-                    pidMenu->fvalue = pidkd[i];
-                    pidMenu = pidMenu->next;
-                }
-                
-                pidMenu = pidMenuHead;
-                motorMenu = motorMenuHead;
-                channeltmp = channel;
-                powerleveltmp = powerlevel;
             }
             if(osd_count >= 200)
             {
@@ -381,8 +451,15 @@ void osd_setting()
                 else if(currentMenu->index ==1)
                 {
                     mode_config++;
-                    if(mode_config>3)
+                    if(mode_config>4)
                         mode_config=0;
+                }
+                else if(currentMenu->index ==2)
+                {
+                    led_config = !led_config;
+                }
+                else if(currentMenu->index ==3){
+                    T8SG_config =!T8SG_config;
                 }
                 else{
                     showcase = 1;
@@ -399,8 +476,8 @@ void osd_setting()
                 osd_data[1] = currentMenu->index;
                 osd_data[2] = tx_config;
                 osd_data[3] = mode_config;
-                osd_data[4] = 0;
-                osd_data[5] = 0;
+                osd_data[4] = led_config;
+                osd_data[5] = T8SG_config;
                 osd_data[6] = 0;
                 osd_data[7] = 0;
                 osd_data[8] = 0;
@@ -589,6 +666,20 @@ void osd_setting()
                         if(vol_l>32)
                             vol_l=0;
                         break;
+                #ifdef f042_1s_bayang
+                    case 3:
+                        low_battery++;
+                        if(low_battery>40)
+                            low_battery=28;
+                        break;
+                        
+                    case 4:
+                        showcase = 1;
+                        displayMenu = displayMenuHead;
+                        currentMenu = setMenuHead;
+                        break;  
+                        
+                #endif
                 #ifdef f042_1s_bl
                     case 3:
                         turtle_l++;
@@ -662,6 +753,13 @@ void osd_setting()
                         else
                             vol_l--;
                         break;
+                #ifdef f042_1s_bayang
+                    case 3:
+                        low_battery--;
+                        if(low_battery<28)
+                            low_battery=40;
+                        break;
+                #endif
                 #ifdef f042_1s_bl
                     case 3:
                         if(turtle_l==0)
@@ -843,7 +941,7 @@ void osdMenuInit(void)
     pidMenu = createMenu(9,1);
     pidMenuHead = pidMenu;
     
-    motorMenu = createMenu(2,2);
+    motorMenu = createMenu(4,2);
     motorMenuHead = motorMenu;
     
     receiverMenu = createMenu(0,3);
@@ -858,6 +956,10 @@ void osdMenuInit(void)
     
 #ifdef f042_2s_bl
     displayMenu = createMenu(6,5);
+#endif
+
+#ifdef f042_1s_bayang
+    displayMenu = createMenu(4,5);
 #endif
 
     displayMenuHead = displayMenu;
