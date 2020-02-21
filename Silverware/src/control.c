@@ -37,7 +37,6 @@ THE SOFTWARE.
 #include "flip_sequencer.h"
 #include "gestures.h"
 #include "led.h"
-#include "altitude.h"
 
 
 float	throttle;
@@ -409,7 +408,7 @@ if (aux[LEVELMODE]&&!acro_override){
 #ifndef THROTTLE_SAFETY
 	#define THROTTLE_SAFETY .15f
 #endif
-
+extern unsigned char tx_config;
 		
 #ifndef ARMING
  armed_state = 1;																							 									 // if arming feature is disabled - quad is always armed
@@ -419,8 +418,14 @@ if (aux[LEVELMODE]&&!acro_override){
 		if (rx_ready ==1)	binding_while_armed = 0;																			//                        rx is bound and has been disarmed so clear binding while armed flag
 	}else{ 																				   						  										// 						CONDITION: switch is ARMED
 		if (((rx[3] > THROTTLE_SAFETY) && (arming_release == 0)) || (binding_while_armed == 1)){ 		//				   CONDITION: (throttle is above safety limit and ARMING RELEASE FLAG IS NOT CLEARED) OR (bind just took place with transmitter armed)		
-			armed_state = 0;																				 										  //                         	 				override to disarmed state and rapid blink the leds
-		  ledcommand = 1;
+			if(tx_config){
+                armed_state = 1;                                        										  //                      					  arm the quad by setting armed state variable to 1
+                arming_release = 1;      
+            }
+            else{
+                armed_state = 0;																				 										  //                         	 				override to disarmed state and rapid blink the leds
+                ledcommand = 1;
+            }
 		}else{																									  										  //            					 CONDITION: quad is being armed in a safe state 																		
 			armed_state = 1;                                        										  //                      					  arm the quad by setting armed state variable to 1
 		  arming_release = 1;																														//                       						clear the arming release flag - the arming release flag being cleared

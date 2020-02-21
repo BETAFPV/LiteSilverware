@@ -729,7 +729,6 @@ float packettodata( int *  data)
 	return ( ( ( data[0]&0x0003) * 256 + data[1] ) - 512 ) * 0.001953125 ;	
 }
 
-static char temp11=0;
 
 static int decodepacket( void)
 {
@@ -768,15 +767,6 @@ static int decodepacket( void)
                 }
                 aux[11] = (rxdata[2] & 0x04) ? 1 : 0;
                 aux[12] = (rxdata[2] & 0x40) ? 1 : 0;
-                
-                if(aux[11] != temp11)
-                {
-                    temp11 = aux[11];
-                    
-                    mode_config ++;
-                    if(mode_config>4)
-                        mode_config=0;
-                }
                 
                 if(mode_config==0){
                     aux[LEVELMODE] = 0;

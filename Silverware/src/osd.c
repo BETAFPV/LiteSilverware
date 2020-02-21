@@ -62,8 +62,7 @@ unsigned char low_battery=68;
 
 unsigned int ratesValue=860;
 unsigned int ratesValueYaw = 500;
-unsigned char setCahnnel=0;
-unsigned char initChannel = 32;
+
 
 unsigned char main_version = 1;
 unsigned char modify_version = 0;
@@ -132,40 +131,6 @@ void getIndex()
 
 void osd_setting()
 {
-    if(tx_config)
-    {
-        if(aux[12] != setCahnnel)
-        {
-            setCahnnel = aux[12];
-            
-            initChannel ++;
-            
-            if(initChannel > 39)
-                initChannel = 32;
-            
-            channel = initChannel;
-            
-
-            osd_data[0] =0xAA;
-            osd_data[1] = 0x55;
-            osd_data[2] = 0x07;
-            osd_data[3] = 0x01;
-            osd_data[4] = channel;
-            osd_data[5] = CRC8(osd_data,5);
-            osd_data[6] = 0;
-            osd_data[7] = 0;
-            osd_data[8] = 0;
-            osd_data[9] = 0;
-            osd_data[10] = 0;
-            osd_data[11] = 0;
-
-            flash_save();
-            extern unsigned long lastlooptime;
-            lastlooptime = gettime();
-            UART2_DMA_Send();   
-        }   
-    }
-    
     if(showcase_cnt < 1610)
     {
         showcase_cnt++;

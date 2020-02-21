@@ -251,7 +251,7 @@
 #define MOTOR_MIN_COMMAND  5.0
 
 // *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
-#define INVERT_YAW_PID
+//#define INVERT_YAW_PID
 
 // *************pwm frequency for motor control
 // *************a higher frequency makes the motors more linear
