@@ -758,6 +758,7 @@ static int decodepacket( void)
 		}
 
 //
+        #ifdef f042_1s_bayang
             if(tx_config){
                 if(showcase==0 && rx[3]>0.01f){
                     aux[ARMING] = 1;
@@ -816,7 +817,15 @@ static int decodepacket( void)
             }	
             
 			aux[LEDS_ON] = led_config;	
-            
+        #else
+            aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+            aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+            aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+            aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+            aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel 
+        #endif
             if (aux[LEVELMODE])    //8
             {			//2                     7
                     if (aux[RACEMODE] && !aux[HORIZON])

@@ -17,7 +17,7 @@ extern unsigned char led_config;
 extern unsigned char T8SG_config;
 extern float hardcoded_pid_identifier;
 extern unsigned char rx_switch;
-
+extern  char motorDir[4];
 extern unsigned char low_bat_l;
 extern unsigned char mode_l;
 extern unsigned char vol_l;
@@ -84,10 +84,15 @@ void flash_save( void) {
     writeword(addresscount++, powerlevel);
     writeword(addresscount++, channel);
     
+#ifdef f042_1s_bayang
     writeword(38,led_config);
     writeword(39,T8SG_config);
     writeword(40,tx_config);
     writeword(41,mode_config);
+#else 
+    writeword(40,(motorDir[0]|motorDir[1]|motorDir[2]|motorDir[3]));
+    writeword(41, motorDir[0] | (motorDir[1]<<8) |(motorDir[2]<<16) |(motorDir[3]<<24));
+#endif
     writeword(42,rx_switch);
     writeword(43,low_bat_l);
     writeword(44,mode_l);
@@ -210,6 +215,7 @@ void flash_load( void) {
      powerlevel = fmc_read(addresscount++ );
      channel = fmc_read(addresscount++ ); 
      
+#ifdef f042_1s_bayang
      led_config = fmc_read(38);
      if(led_config>1)
          led_config=0;
@@ -220,7 +226,22 @@ void flash_load( void) {
      if(tx_config>1)
          tx_config=0;
      mode_config = fmc_read(41);
+#else
+     save_motor_dir_identifier =  fmc_read(40);
      
+     int temp = fmc_read(41);
+     for ( int i = 0 ; i < 4; i++)
+     {
+        save_motor_dir_temp[i] =  temp>>(i*8);        
+     }
+     if(save_motor_dir_temp[0]|save_motor_dir_temp[1]|save_motor_dir_temp[2]|save_motor_dir_temp[3] == save_motor_dir_identifier)
+     {
+        for(int i = 0 ; i < 4; i++)
+        {
+            motorDir[i] = save_motor_dir_temp[i];
+        }
+     }
+#endif
      rx_switch = fmc_read(42);	
      
      low_bat_l = fmc_read(43);

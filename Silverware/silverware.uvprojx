@@ -661,36 +661,6 @@
               <FileType>5</FileType>
               <FilePath>.\src\rx_sbus_dsmx_bayang_switch.h</FilePath>
             </File>
-            <File>
-              <FileName>altitude.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\altitude.c</FilePath>
-            </File>
-            <File>
-              <FileName>altitude.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\altitude.h</FilePath>
-            </File>
-            <File>
-              <FileName>barometer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\barometer.c</FilePath>
-            </File>
-            <File>
-              <FileName>barometer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\barometer.h</FilePath>
-            </File>
-            <File>
-              <FileName>drv_dps310.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\drv_dps310.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_dps310.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\drv_dps310.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

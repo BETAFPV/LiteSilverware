@@ -184,7 +184,7 @@ float altitude_hold(void)
 
     static float ah_throttle = HOVER_THROTTLE_MIN;
     static float last_ah_time;
-    static float new_alt_target = 0;
+//    static float new_alt_target = 0;
 
     float ah_time = gettime();
     float dt = (ah_time - last_ah_time) * 1e-6f; // dt in seconds

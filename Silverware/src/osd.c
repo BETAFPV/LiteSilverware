@@ -49,7 +49,7 @@ unsigned char tx_config=0;
 unsigned char mode_config=0;
 unsigned char led_config=0;
 unsigned char T8SG_config=0;
-
+char motorDir[4] = {0,0,0,0};
 
 #if defined(f042_1s_bl) || defined(f042_1s_bayang) 
 unsigned char low_battery=33;
@@ -196,6 +196,11 @@ void osd_setting()
                         pidMenu = pidMenu->next;
                     }
                     
+                for(i=0; i<4; i++)
+                {
+                    motorMenu->uvalue = motorDir[i];
+                    motorMenu = motorMenu->next;
+                }
                     pidMenu = pidMenuHead;
                     motorMenu = motorMenuHead;
                     channeltmp = channel;
