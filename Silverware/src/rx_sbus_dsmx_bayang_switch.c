@@ -1425,7 +1425,21 @@ void lite_2S_BINDKEY_init(void)
 
 void switch_key(void)
 {
-		lite_2S_BINDKEY_init();
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBENR_GPIOFEN , ENABLE);
+
+  GPIO_InitTypeDef  GPIO_InitStructure;
+
+
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	
+
+  GPIO_InitStructure.GPIO_Pin = RX_PSW_PIN;	
+  GPIO_Init(RX_PSW_PORT, &GPIO_InitStructure);
+    
+    lite_2S_BINDKEY_init();
 }
 
  //Send Spektrum bind pulses
