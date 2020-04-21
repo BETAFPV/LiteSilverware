@@ -135,7 +135,7 @@ char aux_analogchange[AUXNUMBER];
 // bind / normal rx mode
 extern int rxmode;
 
-
+unsigned char aux6=0;
 
 // failsafe on / off
 extern int failsafe;
@@ -270,6 +270,7 @@ rx_switch = 4;
 	adc_init();
 //set always on channel to on
 aux[CH_ON] = 1;	
+aux6 = aux[CHAN_6];
 	
 #ifdef AUX1_START_ON
 aux[CH_AUX1] = 1;
@@ -720,17 +721,19 @@ rgb_dma_start();
     }
     else
     {
-//        if(!cal && !aux[CHAN_6] && aux[CHAN_8] )
-//        {
-//            cal = 1;
-//            ImuOrientationDetect();
-//            AccCalibration();
-//            lastlooptime = gettime();
-//        }
-//        if(cal && (aux[CHAN_6] || !aux[CHAN_8]))
-//        {
-//            cal = 0;
-//        }
+        if(rx[1] < -0.6f)
+        {           
+            if(aux6 != aux[CHAN_6])
+            {
+                aux6 = aux[CHAN_6];
+                
+                gyro_cal();
+                acc_cal();
+                
+				flash_save();
+                lastlooptime = gettime();
+            }           
+        }
 
         osd_setting();
 #ifdef BRUSHLESS_TARGET
