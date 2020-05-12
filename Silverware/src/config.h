@@ -16,12 +16,12 @@
 //#define Silverlite_Brushless
 //#define Alienwhoop_ZERO  
 //#define Lite_Brushless
-#define Lite_BrushlessRX
-//#define Lite_BrushedRX
+//#define Lite_BrushlessRX
+#define Lite_BrushedRX
 
-#define f042_1s_bl
+//#define f042_1s_bl
 //#define f042_2s_bl
-//#define f042_1s_bayang
+#define f042_1s_bayang
 
 //#define ENABLE_BARO
 

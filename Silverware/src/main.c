@@ -162,10 +162,65 @@ static void setup_4way_external_interrupt(void);
 #endif									   
 int random_seed = 0;
 
+#define ApplicationAddress 0x1FFFC400
+  
+typedef void (*pFunction)(void);
+
+
+//copy from AN2606.pdf
+/*
+Due to empty check mechanism present on this product, it is not possible to jump from user 
+code to system bootloader. 
+Such jump will result in a jump back to user flash space.
+But if the first 4 bytes of User Flash (at 0x0800 0000) are empty at the moment of jump (ie. 
+erase first sector before jump or execute code from SRAM while Flash is empty), then 
+system bootloader will be executed when jumped to.
+*/
+void flashErase( void) {
+
+    FLASH_Unlock();
+    
+	int test = FLASH_ErasePage( 0X08000000 );
+    test = FLASH_ErasePage( 0X08007C00 );
+	if ( test != FLASH_COMPLETE ) FLASH_Lock();
+    else return ;
+
+    FLASH_ProgramWord(0x8000000, 0);
+    FLASH_ProgramWord(0x8000000 +2, 0);
+    FLASH_ProgramWord(0x8000000 + 4, 0);
+    FLASH_ProgramWord(0x8000000 + 6, 0);  
+    FLASH_ProgramWord(0x8000000 + 8, 0);  
+
+    FLASH_Lock();
+}
+
+
 int main(void)
 {
 	
 	delay(1000);
+    
+#ifdef f042_1s_bayang
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;	
+    SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+    delay(1000);
+    gpiopa_init();
+    
+    if( KEY11 ==0 || KEY12 == 0)
+    {
+        flashErase();
+
+        delay(1000);
+        uint32_t JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
+
+        pFunction Jump_To_Boot = (pFunction) JumpAddress;
+
+        __set_MSP(*(__IO uint32_t*) ApplicationAddress);
+
+        Jump_To_Boot();
+    }
+    
+#endif    
 
 
 #ifdef ENABLE_OVERCLOCK

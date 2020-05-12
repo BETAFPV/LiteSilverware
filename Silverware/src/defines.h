@@ -24,6 +24,8 @@
 // this should be precalculated by the compiler as it's a constant
 #define FILTERCALC( sampleperiod, filtertime) (1.0f - ( 6.0f*(float)sampleperiod) / ( 3.0f *(float)sampleperiod + (float)filtertime))
 
+#define KEY11 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_11)
+#define KEY12 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_12)
 
 #define RXMODE_BIND 0
 #define RXMODE_NORMAL (!RXMODE_BIND)

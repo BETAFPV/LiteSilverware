@@ -2,6 +2,26 @@
 #include "drv_gpio.h"
 #include "defines.h"
 
+void gpiopa_init(void)
+{
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+    GPIO_InitTypeDef    GPIO_InitStructure,GPIO_InitStructure1;
+    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   
+    GPIO_Init(GPIOA, &GPIO_InitStructure); 
+    
+    GPIO_InitStructure1.GPIO_Pin = GPIO_Pin_12;
+    GPIO_InitStructure1.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_InitStructure1.GPIO_PuPd = GPIO_PuPd_UP;    
+    GPIO_InitStructure1.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure1); 
+    
+    
+}
+
 void gpio_init(void)
 {
 // clocks on to all ports			
