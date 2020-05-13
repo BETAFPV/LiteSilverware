@@ -206,6 +206,9 @@ int main(void)
     delay(1000);
     gpiopa_init();
     
+    delay(100000);
+    
+    //judge PA11 OR PA12 whther pull down by pluging a usb
     if( KEY11 ==0 || KEY12 == 0)
     {
         flashErase();
