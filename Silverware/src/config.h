@@ -16,12 +16,12 @@
 //#define Silverlite_Brushless
 //#define Alienwhoop_ZERO  
 //#define Lite_Brushless
-//#define Lite_BrushlessRX
-#define Lite_BrushedRX
+#define Lite_BrushlessRX
+//#define Lite_BrushedRX
 
-//#define f042_1s_bl
+#define f042_1s_bl
 //#define f042_2s_bl
-#define f042_1s_bayang
+//#define f042_1s_bayang
 
 //#define ENABLE_BARO
 
@@ -251,8 +251,11 @@
 #define MOTOR_MIN_COMMAND  5.0
 
 // *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
-//#define INVERT_YAW_PID
-
+#ifdef f042_1s_bayang
+    //#define INVERT_YAW_PID
+#else
+    #define INVERT_YAW_PID
+#endif
 // *************pwm frequency for motor control
 // *************a higher frequency makes the motors more linear
 // *************in Hz

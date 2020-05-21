@@ -814,6 +814,18 @@ rgb_dma_start();
          pwm_count ++;        
          if(pwm_count ==30)
          {
+             if(showcase==0){                
+                 if(((motorDir[0]==0)&&(motorDir[1]==0)&&(motorDir[2]==0)&&(motorDir[3]==0)) || ((motorDir[0]==1)&&(motorDir[1]==1)&&(motorDir[2]==1)&&(motorDir[3]==1)))
+                 {     
+                     
+                 }
+                 else{
+                     motorDir[0]=0;
+                     motorDir[1]=0;
+                     motorDir[2]=0;
+                     motorDir[3]=0;
+                 }                
+             }
             if (aux[LEVELMODE])
             {
                 for(int i=20;i>0;i--)
