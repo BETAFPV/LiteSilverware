@@ -207,7 +207,7 @@ void osd_setting()
                 }   
             }
             else{
-                if(AETR)
+                if(!aux[ARMING] && AETR)
                 {
                     showcase = 1;
                     unsigned char i = 0;
