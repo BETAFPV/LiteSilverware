@@ -424,6 +424,8 @@ extern unsigned char tx_config;
                 arming_release = 1;      
             }
             else{
+                armed_state = 0;																				 										  //                         	 				override to disarmed state and rapid blink the leds
+                ledcommand = 1;
          #else
                 armed_state = 0;																				 										  //                         	 				override to disarmed state and rapid blink the leds
                 ledcommand = 1;

@@ -37,7 +37,6 @@ unsigned char channeltmp = 0;
 unsigned char mode = 0;
 unsigned char sa_flag = 0;
 unsigned char showcase = 0;
-unsigned char rx_switch = 1;
 int showcase_cnt = 0;
 unsigned char showcase_init=0;
 unsigned char low_bat_l=16;
@@ -59,6 +58,11 @@ unsigned char low_battery=33;
 unsigned char low_battery=68;
 #endif
 
+#ifdef f042_1s_bayang
+    unsigned char rx_switch = 0;
+#else
+    unsigned char rx_switch = 1;
+#endif
 
 unsigned int ratesValue=860;
 unsigned int ratesValueYaw = 500;

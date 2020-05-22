@@ -16,12 +16,12 @@
 //#define Silverlite_Brushless
 //#define Alienwhoop_ZERO  
 //#define Lite_Brushless
-#define Lite_BrushlessRX
+//#define Lite_BrushlessRX
 //#define Lite_BrushedRX
 
-#define f042_1s_bl
+//#define f042_1s_bl
 //#define f042_2s_bl
-//#define f042_1s_bayang
+#define f042_1s_bayang
 
 //#define ENABLE_BARO
 
@@ -88,11 +88,17 @@
 //#define RX_CRSF                                           //Requires tbs firmware v2.88 or newer for failsafe to operate properly
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
-#define RX_SBUS_DSMX_BAYANG_SWITCH
+//#define RX_SBUS_DSMX_BAYANG_SWITCH
 //#define RX_NRF24_BAYANG_TELEMETRY
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
-
+#ifdef f042_1s_bayang
+    #define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
+    #define Lite_BrushedRX
+#else
+    #define RX_SBUS_DSMX_BAYANG_SWITCH
+    #define Lite_BrushlessRX
+#endif
 
 // *************Transmitter Type Selection
 //#define USE_STOCK_TX
@@ -248,13 +254,15 @@
 //***********************************************MOTOR OUTPUT SETTINGS**************************************************
 
 // minimum motor output: *for brushed a % value (0.0 - 100.0)   *for brushless this sets digital idle % for DSHOT for any selection
-#define MOTOR_MIN_COMMAND  5.0
+
 
 // *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
 #ifdef f042_1s_bayang
     //#define INVERT_YAW_PID
+    #define MOTOR_MIN_COMMAND  10.0
 #else
     #define INVERT_YAW_PID
+    #define MOTOR_MIN_COMMAND  5.0
 #endif
 // *************pwm frequency for motor control
 // *************a higher frequency makes the motors more linear

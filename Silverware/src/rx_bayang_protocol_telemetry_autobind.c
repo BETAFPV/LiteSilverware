@@ -575,7 +575,14 @@ void checkrx(void)
 											
                       rxmode = RX_MODE_NORMAL;
 											 
-
+                      extern int rx_bind_enable;
+                      rx_bind_enable=1;
+                      
+                      extern void flash_save(void);
+                      flash_save();
+                      extern unsigned long lastlooptime;
+                      lastlooptime = gettime();
+                      
 #ifdef SERIAL
                       printf(" BIND \n");
 #endif

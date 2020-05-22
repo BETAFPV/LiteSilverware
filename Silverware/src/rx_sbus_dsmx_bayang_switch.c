@@ -1469,23 +1469,7 @@ void dsm_init(void)
 }
 
 
-// Initialize the binding button
-void lite_2S_BINDKEY_init(void)
-{
-			GPIO_InitTypeDef    GPIO_InitStructure;
- 	    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);
-	
-      GPIO_InitStructure.GPIO_Pin = LED1PIN;
-      GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-      GPIO_Init(LED1PORT, &GPIO_InitStructure); 
-	
-        GPIO_SetBits(LED1PORT,LED1PIN);
-}
 
-void switch_key(void)
-{
-		lite_2S_BINDKEY_init();
-}
 
  //Send Spektrum bind pulses
 void lite_2S_rx_spektrum_bind(void)

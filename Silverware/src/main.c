@@ -229,6 +229,8 @@ int main(void)
 #ifdef ENABLE_OVERCLOCK
 clk_init();
 #endif
+    
+
 	
 #if defined(RX_SBUS_DSMX_BAYANG_SWITCH) 
     switch_key(); 
@@ -260,8 +262,14 @@ clk_init();
         flash_save();
     }
 #else    
-#ifdef RX_BAYANG_PROTOCOL_BLE_BEACON
-rx_switch = 1 ;
+#ifdef RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
+    switch_key(); 
+    if(KEY ==0)
+    {	        
+        extern int rx_bind_enable;
+        rx_bind_enable=0;
+        flash_save();
+    }
 #endif
 #ifdef RX_SBUS
 rx_switch = 2 ;
