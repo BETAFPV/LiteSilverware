@@ -76,7 +76,6 @@ THE SOFTWARE.
 debug_type debug;
 #endif
 
-
 // hal
 void clk_init(void);
 void imu_init(void);
@@ -133,8 +132,8 @@ char aux_analogchange[AUXNUMBER];
 // bind / normal rx mode
 extern int rxmode;
 
-
-
+unsigned char aux7=0;
+extern unsigned char tx_config;
 // failsafe on / off
 extern int failsafe;
 extern float hardcoded_pid_identifier;
@@ -165,8 +164,8 @@ int random_seed = 0;
 #define ApplicationAddress 0x1FFFC400
   
 typedef void (*pFunction)(void);
-
-
+float tempvolt;
+float hyst;
 //copy from AN2606.pdf
 /*
 Due to empty check mechanism present on this product, it is not possible to jump from user 
@@ -580,7 +579,7 @@ if ( liberror )
 // zero to bypass
 #define CF1 0.25f
 
-        float tempvolt = vbattfilt*( 1.00f + CF1 )  - vbattfilt_corr* ( CF1 );
+        tempvolt = vbattfilt*( 1.00f + CF1 )  - vbattfilt_corr* ( CF1 );
 
 #ifdef AUTO_VDROP_FACTOR
 
@@ -634,7 +633,7 @@ if( thrfilt > 0.1f )
 #define VDROP_FACTOR  minindex * 0.1f
 #endif
 
-    float hyst;
+    
     if ( lowbatt ) hyst = HYST;
     else hyst = 0.0f;
 
@@ -817,7 +816,29 @@ rgb_dma_start();
     {
 #endif
         osd_setting();
- 
+      
+    #ifdef f042_1s_bayang
+        if(tx_config && showcase ==0)
+        {
+            if(aux7 !=aux[RACEMODE]){
+                aux7 = aux[RACEMODE];                
+                channel++; 
+                if(channel>15) channel=8;                   
+                osd_data[0] = 0xAA;
+                osd_data[1] = 0x55;
+                osd_data[2] = 0x07;
+                osd_data[3] = 0x01;
+                osd_data[4] = channel;
+                osd_data[5] = CRC8(osd_data,5);
+                osd_data[6] = 0;                     
+                UART2_DMA_Send();
+            }
+        }
+        else{
+            aux7 = aux[RACEMODE];
+        }
+    #endif
+        
     #ifdef BRUSHLESS_TARGET 
          pwm_count ++;        
          if(pwm_count ==30)

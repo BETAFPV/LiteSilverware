@@ -30,7 +30,7 @@ extern unsigned long lastlooptime;
 unsigned char profileAB =0;
 
 unsigned char powerlevel = 0;
-unsigned char channel = 0;
+unsigned char channel = 8;
 unsigned char powerleveltmp = 0;
 unsigned char channeltmp = 0;
 
@@ -147,6 +147,7 @@ void osd_setting()
     
     switch(showcase)
     {
+        #ifdef f042_1s_bayang
         case 0:
             if(tx_config){
                 if(toy_AETR)
@@ -176,6 +177,34 @@ void osd_setting()
                     channeltmp = channel;
                     powerleveltmp = powerlevel;
                 }
+                if(osd_count >= 200)
+                {
+                    osd_data[0] = 0x0f;
+                    osd_data[0] |=showcase << 4;
+                    osd_data[1] = aux[CHAN_5];
+                    osd_data[2] = 0;
+                    osd_data[3] = vol >> 8;
+                    osd_data[4] = vol & 0xFF;
+                    osd_data[5] = rx_switch;
+                    
+                    osd_data[6] = 0;
+                    osd_data[6] = (aux[CHAN_6] << 0);
+       
+                    osd_data[7] = 0;
+                    osd_data[8] = 0;
+                    osd_data[9] = 0;
+                #ifdef CURR_ADC
+                    osd_data[8] = cur >> 8;
+                    osd_data[9] = cur & 0xFF;
+                #endif
+                    osd_data[10] = 0;
+                    osd_data[11] = 0;
+                    for (uint8_t i = 0; i < 11; i++)
+                        osd_data[11] += osd_data[i];  
+                    
+                    UART2_DMA_Send();
+                    osd_count = 0;
+                }   
             }
             else{
                 if(AETR)
@@ -210,6 +239,70 @@ void osd_setting()
                     channeltmp = channel;
                     powerleveltmp = powerlevel;
                 }
+                if(osd_count >= 200)
+                {
+                    osd_data[0] = 0x0f;
+                    osd_data[0] |=showcase << 4;
+                    osd_data[1] = aux[CHAN_5];
+                    osd_data[2] = 0;
+                    osd_data[3] = vol >> 8;
+                    osd_data[4] = vol & 0xFF;
+                    osd_data[5] = rx_switch;
+                    
+                    osd_data[6] = 0;
+                    osd_data[6] = (aux[CHAN_6] << 0) | (aux[CHAN_7] << 1) | (aux[CHAN_8] << 2);
+       
+                    osd_data[7] = 0;
+                    osd_data[8] = 0;
+                    osd_data[9] = 0;
+                #ifdef CURR_ADC
+                    osd_data[8] = cur >> 8;
+                    osd_data[9] = cur & 0xFF;
+                #endif
+                    osd_data[10] = 0;
+                    osd_data[11] = 0;
+                    for (uint8_t i = 0; i < 11; i++)
+                        osd_data[11] += osd_data[i];  
+                    
+                    UART2_DMA_Send();
+                    osd_count = 0;
+                }   
+            }
+            
+            break;
+        #else
+            case 0:
+            if(AETR)
+            {
+                showcase = 1;
+                unsigned char i = 0;
+                for(i=0; i<3; i++)
+                {
+                    pidMenu->fvalue = pidkp[i];
+                    pidMenu = pidMenu->next;
+                }
+                
+                for(i=0; i<3; i++)
+                {
+                    pidMenu->fvalue = pidki[i];
+                    pidMenu = pidMenu->next;
+                }
+                
+                for(i=0; i<3; i++)
+                {
+                    pidMenu->fvalue = pidkd[i];
+                    pidMenu = pidMenu->next;
+                }
+                
+                for(i=0; i<4; i++)
+                {
+                    motorMenu->uvalue = motorDir[i];
+                    motorMenu = motorMenu->next;
+                }
+                pidMenu = pidMenuHead;
+                motorMenu = motorMenuHead;
+                channeltmp = channel;
+                powerleveltmp = powerlevel;
             }
             if(osd_count >= 200)
             {
@@ -227,10 +320,6 @@ void osd_setting()
                 osd_data[7] = (!aux[LEVELMODE] && aux[RACEMODE]);
                 osd_data[8] = 0;
                 osd_data[9] = 0;
-            #ifdef CURR_ADC
-                osd_data[8] = cur >> 8;
-                osd_data[9] = cur & 0xFF;
-            #endif
                 osd_data[10] = 0;
                 osd_data[11] = 0;
                 for (uint8_t i = 0; i < 11; i++)
@@ -240,7 +329,7 @@ void osd_setting()
                 osd_count = 0;
             }   
             break;
-            
+        #endif
         case 1:
             getIndex();
             if((rx[Roll] > 0.6f) && right_flag == 1)
@@ -425,7 +514,7 @@ void osd_setting()
                 else if(currentMenu->index ==1)
                 {
                     mode_config++;
-                    if(mode_config>4)
+                    if(mode_config>1)
                         mode_config=0;
                 }
                 else if(currentMenu->index ==2)

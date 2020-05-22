@@ -176,7 +176,7 @@
 #define STOP_LOWBATTERY
 
 // *************voltage per cell to start warning led blinking
-#define VBATTLOW 3.5
+#define VBATTLOW 3.1
 
 // *************automatic voltage telemetry correction/calibration factor - change the values below if voltage telemetry is inaccurate
 // *************Corrects for an offset error in the telemetry measurement (same offset across the battery voltage range)

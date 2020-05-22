@@ -67,6 +67,12 @@ extern float lastaux_analog[AUXNUMBER];
 extern char aux_analogchange[AUXNUMBER];
 
 
+extern unsigned char tx_config;
+extern unsigned char mode_config;
+extern unsigned char showcase;
+extern unsigned char led_config;
+extern unsigned char T8SG_config;
+
 char lasttrim[4];
 
 char rfchannel[4];
@@ -414,93 +420,96 @@ static int decodepacket(void)
                      rxdata[9]) * 0.000976562f;
 
 
-
-
-
-#ifdef USE_STOCK_TX
-                char trims[4];
-                trims[0] = rxdata[6] >> 2;
-                trims[1] = rxdata[4] >> 2;
-
-                for (int i = 0; i < 2; i++)
-                    if (trims[i] != lasttrim[i])
-                      {
-                          aux[CH_PIT_TRIM + i] = trims[i] > lasttrim[i];
-                          lasttrim[i] = trims[i];
-                      }
-#else
-                aux[CH_INV] = (rxdata[3] & 0x80) ? 1 : 0;   // inverted flag
-
-                aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
-
-                aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;
-#endif
-
-                aux[CH_TO] = (rxdata[3] & 0x20) ? 1 : 0;   // take off flag
-                      
-                aux[CH_EMG] = (rxdata[3] & 0x04) ? 1 : 0;   // emg stop flag
-                      
-                aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
-
-#ifdef USE_ANALOG_AUX
-                aux[CH_EXPERT] = (rxdata[1] > 0x7F) ? 1 : 0;
-#else
-                aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;
-#endif
-
-                aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;
-
-                aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;   // rth channel
-
-#ifdef USE_ANALOG_AUX
-                // Assign all analog versions of channels based on boolean channel data
-                for (int i = 0; i < AUXNUMBER - 2; i++)
-                {
-                  if (i == CH_ANA_AUX1)
-                    aux_analog[CH_ANA_AUX1] = bytetodata(rxdata[1]);
-                  else if (i == CH_ANA_AUX2)
-                    aux_analog[CH_ANA_AUX2] = bytetodata(rxdata[13]);
-                  else
-                    aux_analog[i] = aux[i] ? 1.0 : 0.0;
-                  aux_analogchange[i] = 0;
-                  if (lastaux_analog[i] != aux_analog[i])
-                    aux_analogchange[i] = 1;
-                  lastaux_analog[i] = aux_analog[i];
+#ifdef f042_1s_bayang
+            if(tx_config){
+                if(showcase==0 && rx[3]>0.01f){
+                    aux[ARMING] = 1;
                 }
-#endif
-
-							if (aux[LEVELMODE]){
-								if (aux[RACEMODE] && !aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else if (aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else{
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
-							}else{
-								if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-								if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-							}
-
-                for (int i = 0; i < AUXNUMBER - 2; i++)
-                  {
-                      auxchange[i] = 0;
-                      if (lastaux[i] != aux[i])
-                          auxchange[i] = 1;
-                      lastaux[i] = aux[i];
-                  }
-
-                return 1;       // valid packet 
+                else{
+                   aux[ARMING] = 0; 
+                }
+                aux[11] = (rxdata[2] & 0x04) ? 1 : 0;
+                aux[12] = (rxdata[2] & 0x40) ? 1 : 0;
+                
+                aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
+                aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan
+                aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan 
             }
-          return 0;             // sum fail
-      }
-    return 0;                   // first byte different
+            else{
+                if(T8SG_config){
+                    aux[CH_RTH] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+                    aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+                    aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+                    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+                    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+                    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+                    aux[CH_INV] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
+                }
+                else{
+                    aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+                    aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+                    aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+                    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+                    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+                    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+                    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel  //3chan
+                }
+            }	
+            
+			aux[LEDS_ON] = led_config;	
+        #else
+            aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan                
+            aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan                                       
+            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan										
+            aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
+            aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
+            aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
+            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel 
+        #endif
+            if (aux[LEVELMODE])    //8
+            {			//2                     7
+                    if (aux[RACEMODE] && !aux[HORIZON])
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                            if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+                    else if (aux[HORIZON])
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                            if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+                    else
+                    {
+                            if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                            if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+                            if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                            
+                    }
+            }
+            else
+            {
+                    if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                    if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                    if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+                    
+            }		
+
+			for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
+			{
+				auxchange[i] = 0;
+				if ( lastaux[i] != aux[i] ) auxchange[i] = 1;
+				lastaux[i] = aux[i];
+			}
+			
+			return 1;	// valid packet	
+		}
+	 return 0; // sum fail
+	}
+return 0; // first byte different
 }
 
 

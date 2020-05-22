@@ -215,6 +215,9 @@ void flash_load( void) {
      powerlevel = fmc_read(addresscount++ );
      channel = fmc_read(addresscount++ ); 
      
+     if(channel >39)
+         channel = 0;
+     
 #ifdef f042_1s_bayang
      led_config = fmc_read(38);
      if(led_config>1)
