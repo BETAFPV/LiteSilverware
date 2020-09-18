@@ -1,4 +1,4 @@
-// ltm protocol 
+// ltm protocol
 // This is currently non - standard in that it uses 115200 baudrate
 // Some of the data is also adjusted to work with current dev version of MWOSD
 // current = june '16
@@ -19,36 +19,36 @@ char crc;
 
 //extern int fputc(int ch, FILE * f);
 
-extern void buffer_add(int val );
+extern void buffer_add(int val);
 
 void Serial_print(char ch)
 {
-	buffer_add( (int) ch );
+    buffer_add((int) ch);
 }
 
 
-void sendbyte( char val)
+void sendbyte(char val)
 {
-  crc ^= val;
-  Serial_print((char) val ); 
+    crc ^= val;
+    Serial_print((char) val);
 }
 
-void sendint( int val)
+void sendint(int val)
 {
-  sendbyte( (char) (val) );
-  sendbyte( (char) (val>>8) );
+    sendbyte((char)(val));
+    sendbyte((char)(val >> 8));
 }
 
 void sendcrc()
 {
-Serial_print((char) (crc) ); 
+    Serial_print((char)(crc));
 }
 
 
 void sendheader()
 {
- sendbyte((char)'$');
- sendbyte((char)'T');
+    sendbyte((char)'$');
+    sendbyte((char)'T');
 }
 
 // a frame
@@ -61,13 +61,13 @@ extern float attitude[];
 
 void send_a_frame()
 {
- sendheader();
- Serial_print((char) 'A');
- crc = 0;
- sendint( attitude[0] + 0.5f );// 
- sendint( attitude[1] + 0.5f); // roll (pitch?)
- sendint(0); //heading
- sendcrc();
+    sendheader();
+    Serial_print((char) 'A');
+    crc = 0;
+    sendint(attitude[0] + 0.5f);  //
+    sendint(attitude[1] + 0.5f);  // roll (pitch?)
+    sendint(0); //heading
+    sendcrc();
 }
 
 // g frame
@@ -83,27 +83,27 @@ void send_a_frame()
 
 void send_g_frame()
 {
- sendheader();
- Serial_print( 'G');
- crc = 0;
-/*
- sendint( 0 ); // lat
- sendint( 0 ); // lat2
- sendint( 0 ); // long
- sendint( 0 ); // long2 
-	*/
- sendbyte(0); // groundspeed (m/s)
+    sendheader();
+    Serial_print('G');
+    crc = 0;
+    /*
+     sendint( 0 ); // lat
+     sendint( 0 ); // lat2
+     sendint( 0 ); // long
+     sendint( 0 ); // long2
+        */
+    sendbyte(0); // groundspeed (m/s)
 // sendint(0);  // alti (cm)
 // sendint(0);  // alti2
-	
+
 // sending all above dummy data in one go for optimization
-for ( int i = 0 ; i < 6; i++)
-	{
-		 sendint(0);
-	}
-	
- sendbyte(B00111111); // sats
- sendcrc();
+    for (int i = 0 ; i < 6; i++)
+    {
+        sendint(0);
+    }
+
+    sendbyte(B00111111); // sats
+    sendcrc();
 }
 // S frame
 // 7 bytes
@@ -125,17 +125,17 @@ extern struct rxdebug rxdebug;
 
 void send_s_frame()
 {
- sendheader();
- Serial_print('S');
- crc = 0;
- sendint( (unsigned int) vbattfilt *10 + 0.5f );// vbatt mV 126 = 12.6
- sendint( 1000 ); // current mA
-	
-int rssi = rxdebug.packetpersecond;
-if (rssi > 255) rssi = 255;
-	
- sendbyte(rssi); // rssi
- sendbyte(0); // airspeed
+    sendheader();
+    Serial_print('S');
+    crc = 0;
+    sendint((unsigned int) vbattfilt * 10 + 0.5f); // vbatt mV 126 = 12.6
+    sendint(1000);   // current mA
+
+    int rssi = rxdebug.packetpersecond;
+    if (rssi > 255) rssi = 255;
+
+    sendbyte(rssi); // rssi
+    sendbyte(0); // airspeed
 #define ARMED ( (rxmode!=RXMODE_BIND) )
 #define FAILSAFE failsafe
 #define MODE ( (aux[LEVELMODE])?3:4 )
@@ -145,11 +145,11 @@ if (rssi > 255) rssi = 255;
 //2 : Angle
 //3 : Horizon
 //4 : Acro
- char status = (ARMED<<0)|(FAILSAFE<<1)|(MODE<<2);
- 
- sendbyte(status); // status
- 
- sendcrc();
+    char status = (ARMED << 0) | (FAILSAFE << 1) | (MODE << 2);
+
+    sendbyte(status); // status
+
+    sendcrc();
 }
 
 
@@ -157,31 +157,31 @@ int osdcount = 0;
 
 void osdcycle()
 {
-	osdcount++;
-	if (osdcount%30 == 29)
-	{
-		send_a_frame();
-		return;
-	}
-	
-	if (osdcount%999 == 1)
-	{
-		send_g_frame();
-		return;
-	}
-	
-		if (osdcount%332 == 5)
-	{
-		send_s_frame();
-		return;
-	}
-	
+    osdcount++;
+    if (osdcount % 30 == 29)
+    {
+        send_a_frame();
+        return;
+    }
+
+    if (osdcount % 999 == 1)
+    {
+        send_g_frame();
+        return;
+    }
+
+    if (osdcount % 332 == 5)
+    {
+        send_s_frame();
+        return;
+    }
+
 }
 #else
 // ods disabled - dummy functions
 void osdcycle()
 {
-	
+
 }
 
 

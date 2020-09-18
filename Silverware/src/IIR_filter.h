@@ -5,7 +5,7 @@
 
 #define IMU_SAMPLE_RATE         200.0f
 
-#define IMU_FILTER_CUTOFF_FREQ	30.0f
+#define IMU_FILTER_CUTOFF_FREQ  30.0f
 
 #define M_PI_F                               3.1415926
 

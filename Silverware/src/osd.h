@@ -6,8 +6,10 @@
 
 #pragma anon_unions
 
-typedef struct menu{
-    union{
+typedef struct menu
+{
+    union
+    {
         unsigned char uvalue;
         float fvalue;
     };
@@ -15,9 +17,9 @@ typedef struct menu{
     char item;
     struct menu *next;
     struct menu *prior;
-}menu_node,*menu_list;
+} menu_node, *menu_list;
 
-menu_list createMenu(char len,char item);
+menu_list createMenu(char len, char item);
 
 void osdMenuInit(void);
 
