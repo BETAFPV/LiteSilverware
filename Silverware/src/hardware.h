@@ -25,7 +25,7 @@
 
 // the error codes indicate a failure that prevents normal operation
 // led flash codes - the quad will not fly / bind if flashing a code
-// 2 - low battery at powerup - if enabled by config.h "#define STOP_LOWBATTERY" 
+// 2 - low battery at powerup - if enabled by config.h "#define STOP_LOWBATTERY"
 // 3 - radio chip not found
 // 4 - Gyro not found - maybe i2c speed
 // 5 - clock , intterrupts , systick , gcc bad code , bad memory access (code issues like bad pointers)- this should not come up
@@ -43,7 +43,7 @@
 //#define USE_DUMMY_I2C
 
 
-// I2C speed: fast = no delays 
+// I2C speed: fast = no delays
 // slow1 = for i2c without pull-up resistors
 // slow2 = i2c failsafe speed
 #define SOFTI2C_SPEED_FAST
@@ -90,17 +90,17 @@
 // pins PA0 - PA11 , PB0 , PB1
 
 #ifdef BRUSHLESS_CONVERSION
-	#define BRUSHLESS_TARGET
+#define BRUSHLESS_TARGET
 #endif
 
 //**DO NOT ENABLE ESC DRIVER WITH BRUSHED MOTORS ATTACHED**
 
 #ifdef BRUSHLESS_TARGET
-	#define USE_DSHOT_DMA_DRIVER
-	//#define USE_DSHOT_DRIVER_BETA
-	//#define USE_ESC_DRIVER
+#define USE_DSHOT_DMA_DRIVER
+//#define USE_DSHOT_DRIVER_BETA
+//#define USE_ESC_DRIVER
 #else
-	#define USE_PWM_DRIVER
+#define USE_PWM_DRIVER
 #endif
 
 // baro type
@@ -112,8 +112,8 @@
 
 //FC must have MOSFETS and motor pulldown resistors removed. MAY NOT WORK WITH ALL ESCS
 //#define USE_SERIAL_4WAY_BLHELI_INTERFACE
-		
-		
+
+
 // pwm pins disable
 // disable all pwm pins / function
 //#define DISABLE_PWM_PINS
@@ -158,16 +158,16 @@
 
 
 // pin for fpv switch ( turns off at failsafe )
-// GPIO_Pin_13 // SWDAT - GPIO_Pin_14 // SWCLK  
+// GPIO_Pin_13 // SWDAT - GPIO_Pin_14 // SWCLK
 // if programming pin, will not flash after bind
 #define FPV_PIN GPIO_Pin_13
-#define FPV_PORT GPIOA 
+#define FPV_PORT GPIOA
 
 
 // BUZZER pin settings - buzzer active "high"
 // SWDAT and SWCLK pins OK here
-// GPIO_Pin_13 // SWDAT - GPIO_Pin_14 // SWCLK 
+// GPIO_Pin_13 // SWDAT - GPIO_Pin_14 // SWCLK
 #define BUZZER_PIN       GPIO_Pin_14
 #define BUZZER_PIN_PORT  GPIOA
 // x (micro)seconds after loss of tx or low bat before buzzer starts
-#define BUZZER_DELAY     30e6 
+#define BUZZER_DELAY     30e6

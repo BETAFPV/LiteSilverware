@@ -58,14 +58,16 @@ int rxdata[PACKET_SIZE];
 int rxmode = 0;
 
 
-void writeregs(const uint8_t data[], uint8_t size) {
+void writeregs(const uint8_t data[], uint8_t size)
+{
 
-	spi_cson();
-	for (uint8_t i = 0; i < size; i++) {
-		spi_sendbyte(data[i]);
-	}
-	spi_csoff();
-	delay(1000);
+    spi_cson();
+    for (uint8_t i = 0; i < size; i++)
+    {
+        spi_sendbyte(data[i]);
+    }
+    spi_csoff();
+    delay(1000);
 }
 
 static const uint8_t bbcal[6] = { 0x3f, 0x4c, 0x84, 0x6F, 0x9c, 0x20 };
@@ -76,9 +78,10 @@ static int rxaddress[5] = {0xcc, 0xcc, 0xcc, 0xcc, 0xcc};
 
 
 
-static const uint8_t H7_freq[] = {
-0x02, 0x48, 0x0C, 0x3e, 0x16, 0x34, 0x20, 0x2A,
-0x2A, 0x20, 0x34, 0x16, 0x3e, 0x0c, 0x48, 0x02
+static const uint8_t H7_freq[] =
+{
+    0x02, 0x48, 0x0C, 0x3e, 0x16, 0x34, 0x20, 0x2A,
+    0x2A, 0x20, 0x34, 0x16, 0x3e, 0x0c, 0x48, 0x02
 };
 
 int channeloffset;
@@ -86,102 +89,113 @@ int channel;
 
 
 
-void rx_init() {
-/*
-	writeregs(bbcal, sizeof(bbcal));
-	writeregs(rfcal, sizeof(rfcal));
-	writeregs(demodcal, sizeof(demodcal));
-*/
-	xn_writerxaddress(rxaddress);
+void rx_init()
+{
+    /*
+        writeregs(bbcal, sizeof(bbcal));
+        writeregs(rfcal, sizeof(rfcal));
+        writeregs(demodcal, sizeof(demodcal));
+    */
+    xn_writerxaddress(rxaddress);
 
-	xn_writereg( EN_AA, 0);	// aa disabled
-	xn_writereg( EN_RXADDR, 1); // pipe 0 only
-	xn_writereg( RF_SETUP, B00000001); // lna high current on ( better performance )
-	xn_writereg( RX_PW_P0, PACKET_SIZE); // payload size
-	xn_writereg( SETUP_RETR, 0); // no retransmissions ( redundant?)
-	xn_writereg( SETUP_AW, 3); // address size (5 bits)
-	xn_command( FLUSH_RX);
-	xn_writereg( RF_CH, 22);  // bind  channel
-	xn_writereg(0, B00001111); // power up, crc enabled
+    xn_writereg(EN_AA, 0);   // aa disabled
+    xn_writereg(EN_RXADDR, 1);  // pipe 0 only
+    xn_writereg(RF_SETUP, B00000001);  // lna high current on ( better performance )
+    xn_writereg(RX_PW_P0, PACKET_SIZE);  // payload size
+    xn_writereg(SETUP_RETR, 0);  // no retransmissions ( redundant?)
+    xn_writereg(SETUP_AW, 3);  // address size (5 bits)
+    xn_command(FLUSH_RX);
+    xn_writereg(RF_CH, 22);   // bind  channel
+    xn_writereg(0, B00001111); // power up, crc enabled
 
 }
 
-static char checkpacket() {
-	int status = xn_readreg( 7 );
-	if ((status & B00001110) != B00001110) {
-		// rx fifo not empty		
-		return 2;
-	}
+static char checkpacket()
+{
+    int status = xn_readreg(7);
+    if ((status & B00001110) != B00001110)
+    {
+        // rx fifo not empty
+        return 2;
+    }
 
-	return 0;
+    return 0;
 }
 
 
 uint8_t checksum_offset = 0;
 
-uint8_t calc_checksum( void) 
+uint8_t calc_checksum(void)
 {
-uint8_t result=checksum_offset;
-for(uint8_t i=0; i<8; i++)
-result += rxdata[i];
-return result & 0xFF;
+    uint8_t result = checksum_offset;
+    for (uint8_t i = 0; i < 8; i++)
+        result += rxdata[i];
+    return result & 0xFF;
 }
 
 void nextchannel(void)
 {
-	channel++;
-	if(channel > 15) channel = 0;
-	xn_writereg(0x25,  H7_freq[channel]+ channeloffset ); // Set channel frequency	
+    channel++;
+    if (channel > 15) channel = 0;
+    xn_writereg(0x25,  H7_freq[channel] + channeloffset); // Set channel frequency
 }
 
 
-int decode_h7(void) {		
-	if (rxdata[8] != calc_checksum() ) return 0;
-	
-		rx[3] = 0.0045000f * (225 - rxdata[0]);
+int decode_h7(void)
+{
+    if (rxdata[8] != calc_checksum()) return 0;
 
-		rx[1] = ( ((int)rxdata[3]) - 112) * 0.00888888f;
+    rx[3] = 0.0045000f * (225 - rxdata[0]);
 
-		rx[0] = ( ((int)rxdata[2]) - 112) * 0.00888888f; // roll
+    rx[1] = (((int)rxdata[3]) - 112) * 0.00888888f;
 
-		rx[2] = (-((int)rxdata[1]) + 112) * 0.00888888f;
+    rx[0] = (((int)rxdata[2]) - 112) * 0.00888888f;  // roll
 
-		//rxdata[4] L-R: default:32, (63..1)
-		//rxdata[5] F-B: default:32, (1..63)
-		//rxdata[6] default:0, 1: F/S, 128: flip
+    rx[2] = (-((int)rxdata[1]) + 112) * 0.00888888f;
 
-		aux[0] = (rxdata[6] & H7_FLIP_MASK)?1:0;
-	
-		aux[1] = (rxdata[6] & H7_FLAG_VIDEO)?1:0;
-	
-		aux[2] = (rxdata[6] & H7_F_S_MASK)?1:0; //??
+    //rxdata[4] L-R: default:32, (63..1)
+    //rxdata[5] F-B: default:32, (1..63)
+    //rxdata[6] default:0, 1: F/S, 128: flip
 
-		
+    aux[0] = (rxdata[6] & H7_FLIP_MASK) ? 1 : 0;
+
+    aux[1] = (rxdata[6] & H7_FLAG_VIDEO) ? 1 : 0;
+
+    aux[2] = (rxdata[6] & H7_F_S_MASK) ? 1 : 0; //??
+
+
 #ifndef DISABLE_EXPO
-							if (aux[LEVELMODE]){
-								if (aux[RACEMODE]){
-									rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else{
-									rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
-							}else{
-								rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-								rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-								rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-							}
+    if (aux[LEVELMODE])
+    {
+        if (aux[RACEMODE])
+        {
+            rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+            rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+            rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+        }
+        else
+        {
+            rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+            rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+            rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+        }
+    }
+    else
+    {
+        rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+        rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+        rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+    }
 #endif
-	
-		for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
-		{
-			auxchange[i] = 0;
-			if ( lastaux[i] != aux[i] ) auxchange[i] = 1;
-			lastaux[i] = aux[i];
-		}
-	
-		return 1;
+
+    for (int i = 0 ; i < AUXNUMBER - 2 ; i++)
+    {
+        auxchange[i] = 0;
+        if (lastaux[i] != aux[i]) auxchange[i] = 1;
+        lastaux[i] = aux[i];
+    }
+
+    return 1;
 }
 
 static unsigned long failsafetime;
@@ -192,61 +206,67 @@ int failcount = 0;
 int chan[16];
 #endif
 
-void checkrx(void) {
-	if (checkpacket()) 
-		{
-		unsigned long time = gettime();		
-		xn_readpayload(rxdata, PACKET_SIZE);
-		if (rxmode == RXMODE_BIND) {	// rx startup , bind mode
-			if (rxdata[0] == 0x20) {	// bind packet received				
-				rxaddress[0] = rxdata[4];
-				rxaddress[1] = rxdata[5];
-				rxaddress[2] = 0;
-				rxmode = RXMODE_NORMAL;
-				xn_writerxaddress(rxaddress);
+void checkrx(void)
+{
+    if (checkpacket())
+    {
+        unsigned long time = gettime();
+        xn_readpayload(rxdata, PACKET_SIZE);
+        if (rxmode == RXMODE_BIND)      // rx startup , bind mode
+        {
+            if (rxdata[0] == 0x20)      // bind packet received
+            {
+                rxaddress[0] = rxdata[4];
+                rxaddress[1] = rxdata[5];
+                rxaddress[2] = 0;
+                rxmode = RXMODE_NORMAL;
+                xn_writerxaddress(rxaddress);
 
-				channeloffset = (((rxdata[7] & 0xf0)>>4) + (rxdata[7] & 0x0f)) % 8;
-				xn_command( FLUSH_RX);
-				nextchannel();
-				checksum_offset = rxdata[7];
-			}
-		} else {	// normal mode	
-			if ( decode_h7() )
-			{
-				failsafetime = time;
-				lastrxtime = failsafetime;
-				failsafe = 0;
-				#ifdef DEBUG
-				chan[channel]++;
-				#endif
-				nextchannel();			
-			}
-			else
-			{
-				#ifdef DEBUG
-				failcount++;
-				#endif
-			}
-		}	// end normal rx mode
+                channeloffset = (((rxdata[7] & 0xf0) >> 4) + (rxdata[7] & 0x0f)) % 8;
+                xn_command(FLUSH_RX);
+                nextchannel();
+                checksum_offset = rxdata[7];
+            }
+        }
+        else        // normal mode
+        {
+            if (decode_h7())
+            {
+                failsafetime = time;
+                lastrxtime = failsafetime;
+                failsafe = 0;
+#ifdef DEBUG
+                chan[channel]++;
+#endif
+                nextchannel();
+            }
+            else
+            {
+#ifdef DEBUG
+                failcount++;
+#endif
+            }
+        }   // end normal rx mode
 
-	}	// end packet received
+    }   // end packet received
 
-unsigned long time = gettime();		
-	
-	if ( time - lastrxtime > SKIPCHANNELTIME && rxmode != RXMODE_BIND)
-	{
-		nextchannel();
-		lastrxtime= time;	
-	}
+    unsigned long time = gettime();
+
+    if (time - lastrxtime > SKIPCHANNELTIME && rxmode != RXMODE_BIND)
+    {
+        nextchannel();
+        lastrxtime = time;
+    }
 
 
-	if (time - failsafetime > FAILSAFETIME) {	//  failsafe
-		failsafe = 1;
-		rx[0] = 0;
-		rx[1] = 0;
-		rx[2] = 0;
-		rx[3] = 0;
-	}
+    if (time - failsafetime > FAILSAFETIME)     //  failsafe
+    {
+        failsafe = 1;
+        rx[0] = 0;
+        rx[1] = 0;
+        rx[2] = 0;
+        rx[3] = 0;
+    }
 }
 
 // end H7 proto

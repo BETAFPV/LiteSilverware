@@ -18,7 +18,7 @@ int main()
 {
     for ( int i = 0 ; i < 256 ; i++)
     {
-    cout << "#define B"; 
+    cout << "#define B";
     for ( int x = 7 ; x >= 0 ; x--)
     {
     if ( (i>>x)&1UL) cout << "1";
@@ -26,7 +26,7 @@ int main()
     }
     cout << " ";
     cout << i;
-    cout << endl; 
+    cout << endl;
     }
    return 0;
 }

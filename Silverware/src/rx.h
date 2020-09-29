@@ -1,6 +1,6 @@
 
 void rx_init(void);
-void checkrx( void);
+void checkrx(void);
 #ifdef RX_SBUS_DSMX_BAYANG_SWITCH
 void sbus_checkrx(void);
 void sbus_rx_init(void);

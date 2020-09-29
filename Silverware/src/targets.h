@@ -90,7 +90,7 @@
 #define SENSOR_ROTATE_90_CW
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF)
 #define SERIAL_RX_SWD
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_14
@@ -158,7 +158,7 @@
 #define SENSOR_ROTATE_180
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF)
 #define SERIAL_RX_SWD
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_14
@@ -221,11 +221,11 @@
 #define GYRO_ID_1 0x68
 #define GYRO_ID_2 0x98 // new id
 #define GYRO_ID_3 0x78
-#define GYRO_ID_4 0x72 
+#define GYRO_ID_4 0x72
 #define SENSOR_ROTATE_90_CCW
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF)
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_2
 #define SERIAL_RX_SPEKBIND_RX_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_3
@@ -297,7 +297,7 @@
 #define SENSOR_ROTATE_180
 
 // SPI PINS DEFINITONS & RADIO
-#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF) 
+#if defined(RX_SBUS) || defined(RX_DSMX_2048) || defined(RX_DSM2_1024) || defined(RX_CRSF)
 #define SERIAL_RX_SPEKBIND_BINDTOOL_PIN GPIO_Pin_2
 #define SERIAL_RX_SPEKBIND_RX_PIN GPIO_Pin_3
 #define SERIAL_RX_PIN GPIO_Pin_3
@@ -415,7 +415,7 @@
 
 
 #ifdef Lite_Brushless
-#ifdef ENABLE_UART1_TX 
+#ifdef ENABLE_UART1_TX
 #define SERIAL_TX_PIN GPIO_Pin_6
 #define SERIAL_TX_SOURCE GPIO_PinSource6
 #endif
@@ -493,7 +493,7 @@
 #endif
 
 #ifdef Lite_BrushlessRX
-#ifdef ENABLE_UART1_TX 
+#ifdef ENABLE_UART1_TX
 #define SERIAL_TX_PIN GPIO_Pin_6
 #define SERIAL_TX_SOURCE GPIO_PinSource6
 #endif
@@ -507,13 +507,13 @@
 #define UART2_RX_SOURCE     GPIO_PinSource3
 #define UART_TX_DMA
 #endif
-#define ENABLE_Board_RX 
-#ifdef  ENABLE_Board_RX 
+#define ENABLE_Board_RX
+#ifdef  ENABLE_Board_RX
 #define RX_PSW_PIN          GPIO_Pin_4
 #define RX_PSW_PORT         GPIOA
 #endif
 #define BRUSHLESS_TARGET
-//#define ENABLE_USB  
+//#define ENABLE_USB
 #define Lite_OSD
 //#define debug_uart
 //LEDS
@@ -569,26 +569,26 @@
 #define BATTERY_ADC_CHANNEL ADC_Channel_6
 
 #ifndef VOLTAGE_DIVIDER_R1
-    #ifdef f042_1s_bl
-        #define VOLTAGE_DIVIDER_R1 2000
-    #else
-        #define VOLTAGE_DIVIDER_R1 100000
-    #endif
+#ifdef f042_1s_bl
+#define VOLTAGE_DIVIDER_R1 2000
+#else
+#define VOLTAGE_DIVIDER_R1 100000
+#endif
 #endif
 
 #ifndef VOLTAGE_DIVIDER_R2
-    #ifdef f042_1s_bl
-        #define VOLTAGE_DIVIDER_R2 5550
-    #else
-        #define VOLTAGE_DIVIDER_R2 10000
-    #endif
+#ifdef f042_1s_bl
+#define VOLTAGE_DIVIDER_R2 5550
+#else
+#define VOLTAGE_DIVIDER_R2 10000
+#endif
 #endif
 #ifndef ADC_REF_VOLTAGE
 #define ADC_REF_VOLTAGE 3.3
 #endif
 
 #ifdef f042_2s_bl
-    #define CURR_ADC
+#define CURR_ADC
 #endif
 
 #ifdef  CURR_ADC
@@ -612,7 +612,7 @@
 
 #ifdef Lite_BrushedRX
 #define RX_Default 1 //1:BAYANG;  2:SBUS;  3:DSMX
-#ifdef ENABLE_UART1_TX 
+#ifdef ENABLE_UART1_TX
 #define SERIAL_TX_PIN GPIO_Pin_6
 #define SERIAL_TX_SOURCE GPIO_PinSource6
 #endif
@@ -626,12 +626,12 @@
 #define UART2_RX_SOURCE     GPIO_PinSource3
 #define UART_TX_DMA
 #endif
-//#define ENABLE_Board_RX 
-#ifdef  ENABLE_Board_RX 
+//#define ENABLE_Board_RX
+#ifdef  ENABLE_Board_RX
 #define RX_PSW_PIN          GPIO_Pin_4
 #define RX_PSW_PORT         GPIOA
 #endif
-//#define ENABLE_USB  
+//#define ENABLE_USB
 #define Lite_OSD
 //#define debug_uart
 //LEDS

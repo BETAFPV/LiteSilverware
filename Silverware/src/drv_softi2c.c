@@ -40,7 +40,7 @@ void delay(int);
 #ifndef SOFTI2C_SPEED_SLOW1
 #ifndef SOFTI2C_SPEED_SLOW2
 #ifndef SOFTI2C_SPEED_FAST
-	#define SOFTI2C_SPEED_FAST
+#define SOFTI2C_SPEED_FAST
 #endif
 #endif
 #endif
@@ -54,14 +54,14 @@ void delay(int);
 #ifdef __GNUC__
 void delayraw()
 {
-	volatile uint8_t count = 1;
-	while (count--);
+    volatile uint8_t count = 1;
+    while (count--);
 }
 #else
 void delayraw()
 {
-	uint8_t count = 1;
-	while (count--);
+    uint8_t count = 1;
+    while (count--);
 }
 #endif
 #define _delay  delayraw()
@@ -73,301 +73,304 @@ void delayraw()
 #define _delay2 //delay(1)
 #endif
 
-	#ifdef i2cdebug
-	int debug = 1;   		// prints error info, set in setup()
-	#endif
-	
-	int sda;
-	int scl;	
-	
-	void _sendstart(void);
-	void _sendstop(void);
-	void sdalow(void);
-	void sdahigh(void);
-	void scllow(void);
-	void sclhigh(void);
-	void _restart(void);	
-	int _readbyte( int); 
-	int _sendbyte( int);
-	int _readsda(void);
-	
-	int sdaout = 0;
+#ifdef i2cdebug
+int debug = 1;          // prints error info, set in setup()
+#endif
+
+int sda;
+int scl;
+
+void _sendstart(void);
+void _sendstop(void);
+void sdalow(void);
+void sdahigh(void);
+void scllow(void);
+void sclhigh(void);
+void _restart(void);
+int _readbyte(int);
+int _sendbyte(int);
+int _readsda(void);
+
+int sdaout = 0;
 void setoutput(void);
 
 ////////////////////////////////
 /////////I2C Routines//////////
 
 
- void sdalow()
+void sdalow()
 {
-	if(!sdaout) setoutput();	
-  SOFTI2C_SDAPORT->BRR = SOFTI2C_SDAPIN;
-  sda=0;
-	_delay;
+    if (!sdaout) setoutput();
+    SOFTI2C_SDAPORT->BRR = SOFTI2C_SDAPIN;
+    sda = 0;
+    _delay;
 }
 
 
-  void sdahigh()
+void sdahigh()
 {
-	if(!sdaout) setoutput();
-	SOFTI2C_SDAPORT->BSRR = SOFTI2C_SDAPIN;
-	_delay;
-  sda = 1; 
+    if (!sdaout) setoutput();
+    SOFTI2C_SDAPORT->BSRR = SOFTI2C_SDAPIN;
+    _delay;
+    sda = 1;
 }
 
 
-  void scllow()
+void scllow()
 {
- SOFTI2C_SCLPORT->BRR = SOFTI2C_SCLPIN;
-_delay;
- scl = 0;
+    SOFTI2C_SCLPORT->BRR = SOFTI2C_SCLPIN;
+    _delay;
+    scl = 0;
 }
 
-  void sclhigh()
+void sclhigh()
 {
-  SOFTI2C_SCLPORT->BSRR = SOFTI2C_SCLPIN;
-	_delay;
- scl = 1; 
+    SOFTI2C_SCLPORT->BSRR = SOFTI2C_SCLPIN;
+    _delay;
+    scl = 1;
 }
 
-  void sclhighlow()
+void sclhighlow()
 {
- SOFTI2C_SCLPORT->BSRR = SOFTI2C_SCLPIN;
-	_delay;
- SOFTI2C_SCLPORT->BRR = SOFTI2C_SCLPIN;
-_delay;
- scl = 0;
+    SOFTI2C_SCLPORT->BSRR = SOFTI2C_SCLPIN;
+    _delay;
+    SOFTI2C_SCLPORT->BRR = SOFTI2C_SCLPIN;
+    _delay;
+    scl = 0;
 }
 
 void setinput()
 {
-	sdaout = 0;
-  sdainit.GPIO_Mode = GPIO_Mode_IN;
-  GPIO_Init(SOFTI2C_SDAPORT, &sdainit);	
-	
-	_delay2;
- }
+    sdaout = 0;
+    sdainit.GPIO_Mode = GPIO_Mode_IN;
+    GPIO_Init(SOFTI2C_SDAPORT, &sdainit);
+
+    _delay2;
+}
 
 void setoutput()
 {
-	sdaout = 1;
-  sdainit.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_Init(SOFTI2C_SDAPORT, &sdainit);
-	_delay2;
+    sdaout = 1;
+    sdainit.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_Init(SOFTI2C_SDAPORT, &sdainit);
+    _delay2;
 }
 
 int _readsda()
 {
 #ifdef i2cdebug
-  if (!sda)  printf("_readsda: sda low");
+    if (!sda)  printf("_readsda: sda low");
 #endif
-//if ( sdaout) setinput();	
-//return ( GPIO_ReadInputDataBit(SOFTI2C_SDAPORT, SOFTI2C_SDAPIN) ); 
-return	SOFTI2C_SDAPORT->IDR & SOFTI2C_SDAPIN;
+//if ( sdaout) setinput();
+//return ( GPIO_ReadInputDataBit(SOFTI2C_SDAPORT, SOFTI2C_SDAPIN) );
+    return  SOFTI2C_SDAPORT->IDR & SOFTI2C_SDAPIN;
 }
 
 
 void _sendstart()
 {
- if (scl == 0) 
- {
- #ifdef i2cdebug
-   printf("_sendstart: scl low"); 
- #endif
-  sclhigh();
- } 
- if (sda == 1)
-{
-  if(!_readsda())
-	{
-	#ifdef i2cdebug
-	printf("_sendstart: sda pulled low by slave"); 
-	#endif
-	//error1 = 1;
-	}
-  sdalow();
-}
- else {
-	  #ifdef i2cdebug
-    printf("_sendstart: sda low"); 
-	  #endif
-       } 
+    if (scl == 0)
+    {
+#ifdef i2cdebug
+        printf("_sendstart: scl low");
+#endif
+        sclhigh();
+    }
+    if (sda == 1)
+    {
+        if (!_readsda())
+        {
+#ifdef i2cdebug
+            printf("_sendstart: sda pulled low by slave");
+#endif
+            //error1 = 1;
+        }
+        sdalow();
+    }
+    else
+    {
+#ifdef i2cdebug
+        printf("_sendstart: sda low");
+#endif
+    }
 }
 
 
 void _restart()
 {
- #ifdef i2cdebug 
- if (scl == 1) printf("_restart: scl high"); 
- #endif
- if (sda == 0) 
- {
-   sdahigh();
- }
- sclhigh();
- sdalow();
+#ifdef i2cdebug
+    if (scl == 1) printf("_restart: scl high");
+#endif
+    if (sda == 0)
+    {
+        sdahigh();
+    }
+    sclhigh();
+    sdalow();
 }
 
 void _sendstop()
 {
-  
-  if (sda == 1) 
-  {
-    if (!scl) sdalow(); else 
-		{
-		#ifdef i2cdebug
-		printf("stop: error");
-		#endif
-		}
-  }
-  if (scl == 0) sclhigh();
-  else {
-		#ifdef i2cdebug
-		printf("stop: scl high");
-		#endif
-		}
-  sdahigh();
- 
+
+    if (sda == 1)
+    {
+        if (!scl) sdalow();
+        else
+        {
+#ifdef i2cdebug
+            printf("stop: error");
+#endif
+        }
+    }
+    if (scl == 0) sclhigh();
+    else
+    {
+#ifdef i2cdebug
+        printf("stop: scl high");
+#endif
+    }
+    sdahigh();
+
 }
 
 
 
-int _sendbyte( int value )
+int _sendbyte(int value)
 {
-int i;
- if (scl == 1) 
- {
-  scllow();
- }
- 
- for ( i = 7; i >= 0 ;i--)
- {
- if ((value >> i)&1) 
- {
-  sdahigh();
- }
- else 
- {
-  sdalow();
- }
- //sclhigh();
- //scllow();
- sclhighlow();
- }
- 
- if (!sda) sdahigh(); // release the line
- //get ack
+    int i;
+    if (scl == 1)
+    {
+        scllow();
+    }
 
- sclhigh();
+    for (i = 7; i >= 0 ; i--)
+    {
+        if ((value >> i) & 1)
+        {
+            sdahigh();
+        }
+        else
+        {
+            sdalow();
+        }
+//sclhigh();
+//scllow();
+        sclhighlow();
+    }
+
+    if (!sda) sdahigh(); // release the line
+//get ack
+
+    sclhigh();
 // skip ack since it is not used here
- uint8_t ack;// = _readsda();
-	#ifdef i2cdebug
-  if (ack)
-	{
-	if (debug) Serial.println("NOT RECEIVED"); 
-	}
-	#endif
- scllow();
-return ack; 
+    uint8_t ack;// = _readsda();
+#ifdef i2cdebug
+    if (ack)
+    {
+        if (debug) Serial.println("NOT RECEIVED");
+    }
+#endif
+    scllow();
+    return ack;
 }
 
 int _readbyte(int ack)  //ACK 1 single byte ACK 0 multiple bytes
 {
- uint8_t data=0;
+    uint8_t data = 0;
 #ifdef i2cdebug
- if (scl == 1)
-	{	
-	printf("read: scl high");
-	}
+    if (scl == 1)
+    {
+        printf("read: scl high");
+    }
 #endif
- if ( sda == 0) 
- {
-   sdahigh();
- }
- if(!sdaout) setoutput();
- int i;
- for( i = 7; i>=0;i--)
- {
-  sclhigh(); 
- if (_readsda() ) data|=(1<<i);
-  scllow();
- }
+    if (sda == 0)
+    {
+        sdahigh();
+    }
+    if (!sdaout) setoutput();
+    int i;
+    for (i = 7; i >= 0; i--)
+    {
+        sclhigh();
+        if (_readsda()) data |= (1 << i);
+        scllow();
+    }
 
-if (ack)  
-{
-  sdahigh();
-} 
-else 
-{
-  sdalow();
-}
-  sclhigh();
-  scllow();
-if (sda) sdalow(); 
+    if (ack)
+    {
+        sdahigh();
+    }
+    else
+    {
+        sdalow();
+    }
+    sclhigh();
+    scllow();
+    if (sda) sdalow();
 
-return data;
-}
-
-
-int softi2c_write( int device_address , int address, int value)
-{
- _sendstart();
- _sendbyte((device_address<<1));
- _sendbyte(address);
-  uint8_t ack = _sendbyte(value);
-  _sendstop();
-  return ack;
+    return data;
 }
 
 
-int softi2c_read(int device_address , int register_address)  
+int softi2c_write(int device_address , int address, int value)
 {
- _sendstart();
- _sendbyte((device_address<<1));
- _sendbyte(register_address);
- _restart(); 
- _sendbyte((device_address<<1) + 1);
- uint8_t x = _readbyte(1); 
- _sendstop();
- return x; 
+    _sendstart();
+    _sendbyte((device_address << 1));
+    _sendbyte(address);
+    uint8_t ack = _sendbyte(value);
+    _sendstop();
+    return ack;
 }
 
 
-void softi2c_writedata(int device_address ,int register_address , int *data, int size ) 
+int softi2c_read(int device_address , int register_address)
 {
-	int index = 0;
- _sendstart();
- _sendbyte(device_address<<1);
- _sendbyte(register_address);
-  
-  _sendstop();
+    _sendstart();
+    _sendbyte((device_address << 1));
+    _sendbyte(register_address);
+    _restart();
+    _sendbyte((device_address << 1) + 1);
+    uint8_t x = _readbyte(1);
+    _sendstop();
+    return x;
+}
 
-	while(index<size)
-	{
-	_sendbyte(data[index]);
-	index++;	
-	}
- _sendstop();
+
+void softi2c_writedata(int device_address , int register_address , int *data, int size)
+{
+    int index = 0;
+    _sendstart();
+    _sendbyte(device_address << 1);
+    _sendbyte(register_address);
+
+    _sendstop();
+
+    while (index < size)
+    {
+        _sendbyte(data[index]);
+        index++;
+    }
+    _sendstop();
 
 }
 
 
-void softi2c_readdata(int device_address ,int register_address , int *data, int size ) 
+void softi2c_readdata(int device_address , int register_address , int *data, int size)
 {
-	int index = 0;
- _sendstart();
- _sendbyte(device_address<<1);
- _sendbyte(register_address);
- _restart();
- _sendbyte( (device_address<<1) + 1);
-	while(index<size-1)
-	{
-	data[index] = _readbyte(0);
-	index++;	
-	}
-  data[index] = _readbyte(1);
- _sendstop();
- 
+    int index = 0;
+    _sendstart();
+    _sendbyte(device_address << 1);
+    _sendbyte(register_address);
+    _restart();
+    _sendbyte((device_address << 1) + 1);
+    while (index < size - 1)
+    {
+        data[index] = _readbyte(0);
+        index++;
+    }
+    data[index] = _readbyte(1);
+    _sendstop();
+
 }
 
 
@@ -386,9 +389,9 @@ void softi2c_init()
 
     // some boards have no SCL pullup, we drive SCL pullup for better speed on those
     // the factory firmware does this too, so it must be ok
-    #ifdef SOFTI2C_PUSHPULL_CLK
+#ifdef SOFTI2C_PUSHPULL_CLK
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    #endif
+#endif
 
     GPIO_InitStructure.GPIO_Pin = SOFTI2C_SCLPIN;
     GPIO_Init(SOFTI2C_SDAPORT, &GPIO_InitStructure);

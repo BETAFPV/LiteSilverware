@@ -27,7 +27,7 @@ THE SOFTWARE.
 // original bluetooth LE idea by Dmitry Grinberg
 // http://dmitry.gr/index.php?r=05.Projects&proj=11.%20Bluetooth%20LE%20fakery
 
-// some bluetooth LE functions adapted from nrf24 code by Lijun 
+// some bluetooth LE functions adapted from nrf24 code by Lijun
 // http://doc.lijun.li/misc-nrf24-ble.html
 // https://github.com/lijunhw/nRF24_BLE/blob/master/Arduino/nRF24_BLE_advertizer_demo/nRF24_BLE_advertizer_demo.ino
 
@@ -71,7 +71,7 @@ THE SOFTWARE.
 // for their quad and don't have it powered on in the same time with yours inisde bluetooth range), otherwise TLM data WILL BE MIXED BETWEEN QUADS!
 // If this option is not enabled and set, different random number will be assigned to quad's MAC after EACH power-up - BUT THEN BE AWARE THAT ON SOME ANDROID DEVICES (NEXUS 5, 6 etc.)
 // THERE IS A BUG THAT, ACCORDING TO SOME INFORMATION AROUND INTERNET, MIGHT CAUSE BLUETOOTH TO STOP WORKING IF TOO MUCH DIFFERENT BLE DEVICES ARE SCANNED!
-// CHECK HERE: 
+// CHECK HERE:
 //    https://code.google.com/p/android/issues/detail?id=191831
 //    http://www.androidpolice.com/2014/05/20/bug-watch-bluetooth-will-begin-crashing-after-encountering-too-many-ble-devices-affects-kitkat-4-4-and-jelly-bean-4-3/
 //    https://play.google.com/store/apps/details?id=com.radiusnetworks.bluetoothcrashresolver
@@ -134,9 +134,9 @@ THE SOFTWARE.
 //#define ONE_CHANNEL 1 //commented by silverAG for SilverVISE - not used for now
 //SilverVISE - start:
 #ifdef USE_ALL_BLE_CHANNELS
-	#define ONE_CHANNEL 0
+#define ONE_CHANNEL 0
 #else
-	#define ONE_CHANNEL 1
+#define ONE_CHANNEL 1
 #endif
 //SilverVISE - end
 
@@ -185,18 +185,18 @@ unsigned int total_time_in_air = 0;
 unsigned int time_throttle_on = 0;
 int bound_for_BLE_packet;
 extern int random_seed;
-	
-void bleinit( void);
 
-void writeregs ( uint8_t data[] , uint8_t size )
+void bleinit(void);
+
+void writeregs(uint8_t data[] , uint8_t size)
 {
-spi_cson();
-for ( uint8_t i = 0 ; i < size ; i++)
-{
-	spi_sendbyte( data[i]);
-}
-spi_csoff();
-delay(1000);
+    spi_cson();
+    for (uint8_t i = 0 ; i < size ; i++)
+    {
+        spi_sendbyte(data[i]);
+    }
+    spi_csoff();
+    delay(1000);
 }
 
 char quad_name[6] = {'N' , 'O' , 'N' , 'A' , 'M' , 'E'};
@@ -204,13 +204,13 @@ char quad_name[6] = {'N' , 'O' , 'N' , 'A' , 'M' , 'E'};
 void rx_init()
 {
 
-	
+
 // always on (CH_ON) channel set 1
-aux[AUXNUMBER - 2] = 1;
+    aux[AUXNUMBER - 2] = 1;
 // always off (CH_OFF) channel set 0
-aux[AUXNUMBER - 1] = 0;
+    aux[AUXNUMBER - 1] = 0;
 #ifdef AUX1_START_ON
-aux[CH_AUX1] = 1;
+    aux[CH_AUX1] = 1;
 #endif
 
 
@@ -218,30 +218,30 @@ aux[CH_AUX1] = 1;
     aux[CH_AUX4] = 1;
 #endif
 
-	
+
 #ifdef RADIO_XN297L
 
 #ifndef TX_POWER
 #define TX_POWER 7
 #endif
- 	
+
 // Gauss filter amplitude - lowest
-static uint8_t demodcal[2] = { 0x39 , B00000001 };
-writeregs( demodcal , sizeof(demodcal) );
+    static uint8_t demodcal[2] = { 0x39 , B00000001 };
+    writeregs(demodcal , sizeof(demodcal));
 
 // powerup defaults
 //static uint8_t rfcal2[7] = { 0x3a , 0x45 , 0x21 , 0xef , 0xac , 0x3a , 0x50};
 //writeregs( rfcal2 , sizeof(rfcal2) );
 
-static uint8_t rfcal2[7] = { 0x3a , 0x45 , 0x21 , 0xef , 0x2c , 0x5a , 0x50};
-writeregs( rfcal2 , sizeof(rfcal2) );
+    static uint8_t rfcal2[7] = { 0x3a , 0x45 , 0x21 , 0xef , 0x2c , 0x5a , 0x50};
+    writeregs(rfcal2 , sizeof(rfcal2));
 
-static uint8_t regs_1f[6] = { 0x3f , 0x0a, 0x6d , 0x67 , 0x9c , 0x46 };
-writeregs( regs_1f , sizeof(regs_1f) );
+    static uint8_t regs_1f[6] = { 0x3f , 0x0a, 0x6d , 0x67 , 0x9c , 0x46 };
+    writeregs(regs_1f , sizeof(regs_1f));
 
 
-static uint8_t regs_1e[4] = { 0x3e , 0xf6 , 0x37 , 0x5d };
-writeregs( regs_1e , sizeof(regs_1e) );
+    static uint8_t regs_1e[4] = { 0x3e , 0xf6 , 0x37 , 0x5d };
+    writeregs(regs_1e , sizeof(regs_1e));
 
 
 #define XN_POWER B00000001|((TX_POWER&7)<<3)
@@ -249,21 +249,21 @@ writeregs( regs_1e , sizeof(regs_1e) );
 #define XN_TO_RX B10001111
 #define XN_TO_TX B10000010
 //#define XN_POWER B00111111
-	
+
 #endif
 
 
-	
-#ifdef RADIO_XN297
-static uint8_t bbcal[6] = { 0x3f , 0x4c , 0x84 , 0x6F , 0x9c , 0x20  };
-writeregs( bbcal , sizeof(bbcal) );
-// new values
-static uint8_t rfcal[8] = { 0x3e , 0xc9 , 0x9a , 0xA0 , 0x61 , 0xbb , 0xab , 0x9c  };
-writeregs( rfcal , sizeof(rfcal) );
 
-static uint8_t demodcal[6] = { 0x39 , 0x0b , 0xdf , 0xc4 , 0xa7 , 0x03};
+#ifdef RADIO_XN297
+    static uint8_t bbcal[6] = { 0x3f , 0x4c , 0x84 , 0x6F , 0x9c , 0x20  };
+    writeregs(bbcal , sizeof(bbcal));
+// new values
+    static uint8_t rfcal[8] = { 0x3e , 0xc9 , 0x9a , 0xA0 , 0x61 , 0xbb , 0xab , 0x9c  };
+    writeregs(rfcal , sizeof(rfcal));
+
+    static uint8_t demodcal[6] = { 0x39 , 0x0b , 0xdf , 0xc4 , 0xa7 , 0x03};
 //static uint8_t demodcal[6] = { 0x39 , 0x0b , 0xdf , 0xc4 , B00100111 , B00000000};
-writeregs( demodcal , sizeof(demodcal) );
+    writeregs(demodcal , sizeof(demodcal));
 
 
 #define XN_TO_RX B00001111
@@ -282,93 +282,94 @@ writeregs( demodcal , sizeof(demodcal) );
 
 
 
-bleinit();
+    bleinit();
 
-delay(100);
+    delay(100);
 
 
-int rxaddress[5] = { 0 , 0 , 0 , 0 , 0  };
-xn_writerxaddress( rxaddress);
+    int rxaddress[5] = { 0 , 0 , 0 , 0 , 0  };
+    xn_writerxaddress(rxaddress);
 
-	xn_writereg( EN_AA , 0 );	// aa disabled
-	xn_writereg( EN_RXADDR , 1 ); // pipe 0 only
-	xn_writereg( RF_SETUP , XN_POWER);  // lna high current on ( better performance )
-	xn_writereg( RX_PW_P0 , 15 ); // payload size
-	xn_writereg( SETUP_RETR , 0 ); // no retransmissions ( redundant?)
-	xn_writereg( SETUP_AW , 3 ); // address size (5 bits)
-	xn_command( FLUSH_RX);
-  xn_writereg( RF_CH , 0 );  // bind on channel 0
+    xn_writereg(EN_AA , 0);      // aa disabled
+    xn_writereg(EN_RXADDR , 1);   // pipe 0 only
+    xn_writereg(RF_SETUP , XN_POWER);   // lna high current on ( better performance )
+    xn_writereg(RX_PW_P0 , 15);   // payload size
+    xn_writereg(SETUP_RETR , 0);   // no retransmissions ( redundant?)
+    xn_writereg(SETUP_AW , 3);   // address size (5 bits)
+    xn_command(FLUSH_RX);
+    xn_writereg(RF_CH , 0);    // bind on channel 0
 
 
 #ifdef RADIO_XN297L
-xn_writereg( 0x1d, B00111000 ); // 64 bit payload , software ce
-spi_cson();
-spi_sendbyte( 0xFD); // internal CE high command
-spi_sendbyte( 0); // required for above
-spi_csoff();
+    xn_writereg(0x1d, B00111000);   // 64 bit payload , software ce
+    spi_cson();
+    spi_sendbyte(0xFD);  // internal CE high command
+    spi_sendbyte(0);  // required for above
+    spi_csoff();
 #endif
 
 #ifdef RADIO_XN297
-  xn_writereg( 0x1d, B00011000 ); // 64 bit payload , software ce
+    xn_writereg(0x1d, B00011000);   // 64 bit payload , software ce
 #endif
 
-  xn_writereg( 0 , XN_TO_RX ); // power up, crc enabled, rx mode
+    xn_writereg(0 , XN_TO_RX);   // power up, crc enabled, rx mode
 
 
 #ifdef RADIO_CHECK
-int	rxcheck = xn_readreg( 0x0f); // rx address pipe 5	
-	// should be 0xc6
-	extern void failloop( int);
-	if ( rxcheck != 0xc6) failloop(3);
-#endif	
+    int rxcheck = xn_readreg(0x0f);  // rx address pipe 5
+    // should be 0xc6
+    extern void failloop(int);
+    if (rxcheck != 0xc6) failloop(3);
+#endif
 
 //fill with characters from MY_QUAD_NAME (just first 6 chars)
-int string_len = 0;
-while (string_len< 6)
-	  {
-			if (MY_QUAD_NAME[string_len]=='\0') break;
-			quad_name[string_len] = (char) MY_QUAD_NAME[string_len];
-			string_len++;
-		}
+    int string_len = 0;
+    while (string_len < 6)
+    {
+        if (MY_QUAD_NAME[string_len] == '\0') break;
+        quad_name[string_len] = (char) MY_QUAD_NAME[string_len];
+        string_len++;
+    }
 
 //fill the rest (up to 6 bytes) with blanks
-for ( int i = string_len ; i < 6; i++)
-	{
-	quad_name[string_len] = ' '; //blank
-	}
+    for (int i = string_len ; i < 6; i++)
+    {
+        quad_name[string_len] = ' '; //blank
+    }
 }
 
 
 
 
-void btLeCrc( uint8_t* buf ,uint8_t len, uint8_t* dst ) {
-
-union
+void btLeCrc(uint8_t *buf , uint8_t len, uint8_t *dst)
 {
-  unsigned int int32;
-  uint8_t u8[4];
-} myint;
 
-myint.int32 = 0x00aaaaaa;
+    union
+    {
+        unsigned int int32;
+        uint8_t u8[4];
+    } myint;
 
-while (len--) 
-	{
-	uint8_t d = *(buf++);
-	for ( int i=8 ; i>0 ; i--) 
-		{
-		uint8_t t = myint.int32&1;			
-		myint.int32>>=1;
-		if (t != (d & 1)) 
-			{
-			myint.u8[2] ^= 0xDA;
-			myint.u8[1] ^= 0x60;
-			}
-		 d >>=1;
-		}
-	}
+    myint.int32 = 0x00aaaaaa;
 
-for ( int i = 0 ; i < 3 ; i++ )
-		dst[i] = (myint.u8[i]);
+    while (len--)
+    {
+        uint8_t d = *(buf++);
+        for (int i = 8 ; i > 0 ; i--)
+        {
+            uint8_t t = myint.int32 & 1;
+            myint.int32 >>= 1;
+            if (t != (d & 1))
+            {
+                myint.u8[2] ^= 0xDA;
+                myint.u8[1] ^= 0x60;
+            }
+            d >>= 1;
+        }
+    }
+
+    for (int i = 0 ; i < 3 ; i++)
+        dst[i] = (myint.u8[i]);
 
 }
 
@@ -376,36 +377,41 @@ for ( int i = 0 ; i < 3 ; i++ )
 
 
 // scrambling sequence for xn297
-const uint8_t xn297_scramble[] = {
+const uint8_t xn297_scramble[] =
+{
     0xe3, 0xb1, 0x4b, 0xea, 0x85, 0xbc, 0xe5, 0x66,
     0x0d, 0xae, 0x8c, 0x88, 0x12, 0x69, 0xee, 0x1f,
     0xc7, 0x62, 0x97, 0xd5, 0x0b, 0x79, 0xca, 0xcc,
     0x1b, 0x5d, 0x19, 0x10, 0x24, 0xd3, 0xdc, 0x3f,
-    0x8e, 0xc5, 0x2f};
+    0x8e, 0xc5, 0x2f
+};
 
 // bit reversed of above
-const uint8_t xn297_scramble_rev[] = { 
-		0xc7 , 0x8d , 0xd2 , 0x57 , 0xa1 , 0x3d , 0xa7 , 0x66 ,
-		0xb0 , 0x75 , 0x31 , 0x11 , 0x48 , 0x96 , 0x77 , 0xf8 , 
-		0xe3 , 0x46 , 0xe9 , 0xab , 0xd0 , 0x9e , 0x53 , 0x33 , 
-		0xd8 , 0xba , 0x98 , 0x8 , 0x24 , 0xcb , 0x3b , 0xfc , 
-		0x71 , 0xa3 , 0xf4 , 85  , 104  , 207  , 169  , 25   ,
-		108  ,  93  , 76   , 4   , 146  , 229  , 29  };
+const uint8_t xn297_scramble_rev[] =
+{
+    0xc7 , 0x8d , 0xd2 , 0x57 , 0xa1 , 0x3d , 0xa7 , 0x66 ,
+    0xb0 , 0x75 , 0x31 , 0x11 , 0x48 , 0x96 , 0x77 , 0xf8 ,
+    0xe3 , 0x46 , 0xe9 , 0xab , 0xd0 , 0x9e , 0x53 , 0x33 ,
+    0xd8 , 0xba , 0x98 , 0x8 , 0x24 , 0xcb , 0x3b , 0xfc ,
+    0x71 , 0xa3 , 0xf4 , 85  , 104  , 207  , 169  , 25   ,
+    108  ,  93  , 76   , 4   , 146  , 229  , 29
+};
 
-		// whitening sequence for adv channel 37 (rf chan 2402)
-		// for speed
-const uint8_t ble_whiten_37[] = { 
-	0x8D , 0xd2 , 0x57 , 0xa1 , 0x3d , 0xa7 , 0x66 , 0xb0 ,
-	0x75 , 0x31 , 0x11 , 0x48 , 0x96 , 0x77 , 0xf8 , 0xe3 ,
-	0x46 , 0xe9 , 0xab , 0xd0 , 0x9e , 0x53 , 0x33 , 0xd8 ,
-	0xba , 0x98 , 0x08 , 0x24 , 0xcb , 0x3b , 0xfc , 0x71 ,
-	0xa3 , 0xf4 , 0x55 , 0x68 , 0xCF , 0xA9 , 0x19 , 0x6C ,
-	0x5D , 0x4C
+// whitening sequence for adv channel 37 (rf chan 2402)
+// for speed
+const uint8_t ble_whiten_37[] =
+{
+    0x8D , 0xd2 , 0x57 , 0xa1 , 0x3d , 0xa7 , 0x66 , 0xb0 ,
+    0x75 , 0x31 , 0x11 , 0x48 , 0x96 , 0x77 , 0xf8 , 0xe3 ,
+    0x46 , 0xe9 , 0xab , 0xd0 , 0x9e , 0x53 , 0x33 , 0xd8 ,
+    0xba , 0x98 , 0x08 , 0x24 , 0xcb , 0x3b , 0xfc , 0x71 ,
+    0xa3 , 0xf4 , 0x55 , 0x68 , 0xCF , 0xA9 , 0x19 , 0x6C ,
+    0x5D , 0x4C
 }; // whitening sequence channel 37 ( 0 - index ; 2 - rf channel; 37 - ble spec)
 
 
-uint8_t chRf[3] = {2, 26,80};
-uint8_t chLe[3] = {37,38,39};
+uint8_t chRf[3] = {2, 26, 80};
+uint8_t chLe[3] = {37, 38, 39};
 uint8_t whitenstart[] = { 0xa6 , 0x66 , 0xe6};
 
 /*
@@ -434,27 +440,27 @@ return b;
 // cortex m3 intrinsic bitswap
 uint8_t swapbits_m3(uint8_t a)
 {
-return (unsigned int) __rbit( (unsigned int) a); 
+return (unsigned int) __rbit( (unsigned int) a);
 }
 */
 
-void btLeWhiten(uint8_t* data, uint8_t len, uint8_t whitenCoeff)
+void btLeWhiten(uint8_t *data, uint8_t len, uint8_t whitenCoeff)
 {
-	// Implementing whitening with LFSR
-	uint8_t m;
-	while(len--)
-		{
-		for(m = 1; m; m <<= 1)
-			{
-			if(whitenCoeff & 0x80)
-				{
-				whitenCoeff ^= 0x11;
-				(*data) ^= m;
-				}
-			whitenCoeff <<= 1;
-			}
-		data++;
-	}
+    // Implementing whitening with LFSR
+    uint8_t m;
+    while (len--)
+    {
+        for (m = 1; m; m <<= 1)
+        {
+            if (whitenCoeff & 0x80)
+            {
+                whitenCoeff ^= 0x11;
+                (*data) ^= m;
+            }
+            whitenCoeff <<= 1;
+        }
+        data++;
+    }
 }
 /*
 static inline uint8_t btLeWhitenStart(uint8_t chan){
@@ -464,29 +470,30 @@ return swapbits(chLe[chan]) | 2;
 */
 
 
-void btLePacketEncode(uint8_t* packet, uint8_t len, uint8_t chan){
+void btLePacketEncode(uint8_t *packet, uint8_t len, uint8_t chan)
+{
 // Assemble the packet to be transmitted
 // Length is of packet, including crc. pre-populate crc in packet with initial crc value!
-uint8_t i, dataLen = len - 3;
+    uint8_t i, dataLen = len - 3;
 
 
-packet[len - 3] = 0x55; //CRC start value: 0x555555
-packet[len - 2] = 0x55;
-packet[len - 1] = 0x55;
+    packet[len - 3] = 0x55; //CRC start value: 0x555555
+    packet[len - 2] = 0x55;
+    packet[len - 1] = 0x55;
 
-btLeCrc(packet, dataLen, packet + dataLen);
+    btLeCrc(packet, dataLen, packet + dataLen);
 
 //for(i = 0; i < 3; i++, dataLen++)
-//	packet[dataLen] = swapbits(packet[dataLen]);
+//  packet[dataLen] = swapbits(packet[dataLen]);
 
-if (ONE_CHANNEL)
-{	
+    if (ONE_CHANNEL)
+    {
 // faster array based whitening
-for(i = 0; i < len; i++) 
-	packet[i] ^=ble_whiten_37[i];
-}
-else // lfsr based
-btLeWhiten(packet, len, whitenstart[chan]);	
+        for (i = 0; i < len; i++)
+            packet[i] ^= ble_whiten_37[i];
+    }
+    else // lfsr based
+        btLeWhiten(packet, len, whitenstart[chan]);
 }
 
 #define RXDEBUG
@@ -507,11 +514,11 @@ int afterskip[12];
 
 
 
-#define MY_MAC_1	0x22
-#define MY_MAC_2	0x33
-#define MY_MAC_3	0x44
-#define MY_MAC_4	0x55
-#define MY_MAC_5	0xF6
+#define MY_MAC_1    0x22
+#define MY_MAC_2    0x33
+#define MY_MAC_3    0x44
+#define MY_MAC_4    0x55
+#define MY_MAC_5    0xF6
 
 
 uint8_t buf[48];
@@ -526,45 +533,45 @@ void bleinit()
 {
 // Set access addresses (TX address in nRF24L01) to BLE advertising 0x8E89BED6
 // Remember that both bit and byte orders are reversed for BLE packet format
-	
-int txaddr[5];
 
-/*	
-	// 4 byte address
-txaddr[0] = swapbits(0x8E)^xn297_scramble[3];
-txaddr[1] = swapbits(0x89)^xn297_scramble[2];
-txaddr[2] = swapbits(0xBE)^xn297_scramble[1];
-txaddr[3] = swapbits(0xD6)^xn297_scramble[0];
-txaddr[4] = 0;
-*/
+    int txaddr[5];
 
-/*	
-		// 4 byte address - optimized
-txaddr[0] = 0x71^0xea;
-txaddr[1] = 0x91^0x4b;
-txaddr[2] = 0x7d^0xb1;
-txaddr[3] = 0x6b^0xe3;
-txaddr[4] = 0;
-*/
+    /*
+        // 4 byte address
+    txaddr[0] = swapbits(0x8E)^xn297_scramble[3];
+    txaddr[1] = swapbits(0x89)^xn297_scramble[2];
+    txaddr[2] = swapbits(0xBE)^xn297_scramble[1];
+    txaddr[3] = swapbits(0xD6)^xn297_scramble[0];
+    txaddr[4] = 0;
+    */
+
+    /*
+            // 4 byte address - optimized
+    txaddr[0] = 0x71^0xea;
+    txaddr[1] = 0x91^0x4b;
+    txaddr[2] = 0x7d^0xb1;
+    txaddr[3] = 0x6b^0xe3;
+    txaddr[4] = 0;
+    */
 
 // using 5 byte address because it's shared with rx (rx protocol has 5 bytes)
 // saves changing the address size everytime we send
-txaddr[0] = 0x71^0x85;
-txaddr[1] = 0x91^0xea;
-txaddr[2] = 0x7d^0x4b;
-txaddr[3] = 0x6b^0xb1;
-txaddr[4] = 0xaa^0xe3;	// preamble
-
-	
-xn_writetxaddress( txaddr );	
+    txaddr[0] = 0x71 ^ 0x85;
+    txaddr[1] = 0x91 ^ 0xea;
+    txaddr[2] = 0x7d ^ 0x4b;
+    txaddr[3] = 0x6b ^ 0xb1;
+    txaddr[4] = 0xaa ^ 0xe3; // preamble
 
 
+    xn_writetxaddress(txaddr);
 
-//	xn_writereg( EN_AA , 0 );	// aa disabled -- duplicated
-//	xn_writereg( RF_SETUP , B00111011);  // high power xn297L only
-//	xn_writereg( SETUP_RETR , 0 ); // no retransmissions  -- duplicated
+
+
+//  xn_writereg( EN_AA , 0 );   // aa disabled -- duplicated
+//  xn_writereg( RF_SETUP , B00111011);  // high power xn297L only
+//  xn_writereg( SETUP_RETR , 0 ); // no retransmissions  -- duplicated
 // -- duplicated
-//	xn_writereg( SETUP_AW , XN297_ADDRESS_SIZE_BLE - 2 ); // address size (4 bytes for ble)
+//  xn_writereg( SETUP_AW , XN297_ADDRESS_SIZE_BLE - 2 ); // address size (4 bytes for ble)
 
 //  xn_writereg( 0x1d, B00111000 ); // 64 bit payload , software ce
 
@@ -581,83 +588,84 @@ int oldchan = 0;
 
 void beacon_sequence()
 {
-static int beacon_seq_state = 0;
-	
- switch ( beacon_seq_state )
- {
-	 case 0:
-		 // send data if enough time passed since last send
-	   if ( gettime() - ble_txtime > BLE_INTERVAL )
-		 {
-		 ble_send = 1;
-		 oldchan = rf_chan;
-			 
-			 //SilverVISE - start
-			 #ifdef TX_POWER_ON_TLM
-					xn_writereg( RF_SETUP , TX_POWER_ON_TLM);  // lna low current ( better BLE)
-			 #endif
-			 //SilverVISE - end
-			 
-		 send_beacon();
-		 
-	   beacon_seq_state++;
-		 }
-	 break;
-	 
-	 case 1:
-		 // wait for data to finish transmitting
-			if( (xn_readreg(0x17)&B00010000)  ) 
-			{
-				xn_writereg( 0 , XN_TO_RX ); 
-				xn_writereg(0x25, rfchannel[oldchan]);
-			 beacon_seq_state++;
-			 goto next;
-			}
-			else
-			{// if it takes too long we get rid of it
-				if ( gettime() - ble_txtime > BLE_TX_TIMEOUT )
-				{
-					//SilverVISE - start
-					#ifdef TX_POWER_ON_TLM
-						xn_writereg( RF_SETUP , XN_POWER);  // lna high current on ( better performance )
-					#endif
-					//SilverVISE - end
-					
-					xn_command( FLUSH_TX);
-					xn_writereg( 0 , XN_TO_RX ); 
-				 beacon_seq_state++;
-				 ble_send = 0;
-				}
-			}
-	 break;
-	 
-		
-	 case 2:
-		 next:
-		 // restore radio settings to protocol compatible
-	   // mainly channel here
-		 
-		 //SilverVISE - start	
-		 #ifdef TX_POWER_ON_TLM
-		  	xn_writereg( RF_SETUP , XN_POWER);  // lna high current on ( better performance )
-		 #endif
-	   //SilverVISE - end
-	 
-		 ble_send = 0;	
-		if ( rxmode == 0 )
-		{
-			xn_writereg(0x25, 0 ); // Set channel frequency	, bind
-		}
-		 beacon_seq_state++;
-	 break;
-	 
-	 default:
-		 beacon_seq_state = 0;		 
-	 break;
-	
- 
-	 
- }
+    static int beacon_seq_state = 0;
+
+    switch (beacon_seq_state)
+    {
+    case 0:
+        // send data if enough time passed since last send
+        if (gettime() - ble_txtime > BLE_INTERVAL)
+        {
+            ble_send = 1;
+            oldchan = rf_chan;
+
+            //SilverVISE - start
+#ifdef TX_POWER_ON_TLM
+            xn_writereg(RF_SETUP , TX_POWER_ON_TLM);   // lna low current ( better BLE)
+#endif
+            //SilverVISE - end
+
+            send_beacon();
+
+            beacon_seq_state++;
+        }
+        break;
+
+    case 1:
+        // wait for data to finish transmitting
+        if ((xn_readreg(0x17)&B00010000))
+        {
+            xn_writereg(0 , XN_TO_RX);
+            xn_writereg(0x25, rfchannel[oldchan]);
+            beacon_seq_state++;
+            goto next;
+        }
+        else
+        {
+            // if it takes too long we get rid of it
+            if (gettime() - ble_txtime > BLE_TX_TIMEOUT)
+            {
+                //SilverVISE - start
+#ifdef TX_POWER_ON_TLM
+                xn_writereg(RF_SETUP , XN_POWER);   // lna high current on ( better performance )
+#endif
+                //SilverVISE - end
+
+                xn_command(FLUSH_TX);
+                xn_writereg(0 , XN_TO_RX);
+                beacon_seq_state++;
+                ble_send = 0;
+            }
+        }
+        break;
+
+
+    case 2:
+next:
+        // restore radio settings to protocol compatible
+        // mainly channel here
+
+        //SilverVISE - start
+#ifdef TX_POWER_ON_TLM
+        xn_writereg(RF_SETUP , XN_POWER);   // lna high current on ( better performance )
+#endif
+        //SilverVISE - end
+
+        ble_send = 0;
+        if (rxmode == 0)
+        {
+            xn_writereg(0x25, 0);  // Set channel frequency , bind
+        }
+        beacon_seq_state++;
+        break;
+
+    default:
+        beacon_seq_state = 0;
+        break;
+
+
+
+    }
 
 }
 
@@ -665,27 +673,27 @@ int interleave = 0;
 
 void send_beacon()
 {
-	
+
 // Channel hopping
-ch++;
-if (ch>2 ) 
-{
-  ch = 0;
-}
+    ch++;
+    if (ch > 2)
+    {
+        ch = 0;
+    }
 // sending on channel 37 only to use whitening array
-if (ONE_CHANNEL) ch = 0;
+    if (ONE_CHANNEL) ch = 0;
 
 
-xn_writereg(RF_CH, chRf[ch]);
+    xn_writereg(RF_CH, chRf[ch]);
 
-uint8_t L=0;
+    uint8_t L = 0;
 
-extern int random_seed;
+    extern int random_seed;
 
 //extern int random_seed; //SilverVISE
 //SilverVISE - start
 #ifdef MY_QUAD_ID
-random_seed = MY_QUAD_ID;
+    random_seed = MY_QUAD_ID;
 #else
 #warning WARNING!!! USING RANDOM MAC ADDRESS! PLEASE READ COMMENT INSIDE rx_bayang_ble_app.c REGARDING POSSIBLE PROBLEMS WITH BLUETOOTH DUE TO ANDROID BUG!
 #endif
@@ -693,297 +701,317 @@ random_seed = MY_QUAD_ID;
 
 
 
-extern float vbatt_comp;
-int vbatt_comp_int = vbatt_comp *1000.0f;
-extern int onground;
+    extern float vbatt_comp;
+    int vbatt_comp_int = vbatt_comp * 1000.0f;
+    extern int onground;
 
-unsigned int time = gettime();
+    unsigned int time = gettime();
 
-time = time>>20; // divide by 1024*1024, no time for accuracy here
-time = time * 10;
+    time = time >> 20; // divide by 1024*1024, no time for accuracy here
+    time = time * 10;
 
 
 //int acro_or_level_mode;
-	
+
 //if ( aux[LEVELMODE] ) acro_or_level_mode = 1;
 //else acro_or_level_mode = 0;
 
-extern unsigned int total_time_in_air;
-extern unsigned int time_throttle_on;
-unsigned int uptime = gettime();
+    extern unsigned int total_time_in_air;
+    extern unsigned int time_throttle_on;
+    unsigned int uptime = gettime();
 
 
-int TLMorPID = 0; // 0 = TLM, 1 = PID+TLM
+    int TLMorPID = 0; // 0 = TLM, 1 = PID+TLM
 
 #ifdef PID_GESTURE_TUNING
-TLMorPID = 1; // 0 = TLM, 1 = PID+TLM
+    TLMorPID = 1; // 0 = TLM, 1 = PID+TLM
 #endif
 
-	
-if (onground ==1)
-{
-	time_throttle_on = uptime;
-}
-else
-{
-	total_time_in_air += (uptime - time_throttle_on);
-	time_throttle_on = uptime;
-}
-unsigned int total_time_in_air_time = total_time_in_air>>20;
-total_time_in_air_time = total_time_in_air_time *10;
 
-int rate_and_mode_value = (aux[RATES]<<1) + !!(aux[LEVELMODE]);
+    if (onground == 1)
+    {
+        time_throttle_on = uptime;
+    }
+    else
+    {
+        total_time_in_air += (uptime - time_throttle_on);
+        time_throttle_on = uptime;
+    }
+    unsigned int total_time_in_air_time = total_time_in_air >> 20;
+    total_time_in_air_time = total_time_in_air_time * 10;
 
-extern int bound_for_BLE_packet;
-extern int failsafe;
-int onground_and_bind = (failsafe<<2)+(onground<<1)+(bound_for_BLE_packet);
+    int rate_and_mode_value = (aux[RATES] << 1) + !!(aux[LEVELMODE]);
+
+    extern int bound_for_BLE_packet;
+    extern int failsafe;
+    int onground_and_bind = (failsafe << 2) + (onground << 1) + (bound_for_BLE_packet);
 
 #ifdef USE_STOCK_TX
-	//nothing to do - already prepared (4. bit flag is 0 for stock TX)
+    //nothing to do - already prepared (4. bit flag is 0 for stock TX)
 #else
-	onground_and_bind = 8+onground_and_bind;
+    onground_and_bind = 8 + onground_and_bind;
 #endif
 
 
-int packetpersecond_short = packetpersecond/2;
-if (packetpersecond_short>0xff) packetpersecond=0xff;
+    int packetpersecond_short = packetpersecond / 2;
+    if (packetpersecond_short > 0xff) packetpersecond = 0xff;
 
 
-buf[L++] = B00100010; //PDU type, given address is random; 0x42 for Android and 0x40 for iPhone
+    buf[L++] = B00100010; //PDU type, given address is random; 0x42 for Android and 0x40 for iPhone
 //buf[L++] = 0x42; //PDU type, given address is random; 0x42 for Android and 0x40 for iPhone
 
 // max len 27 with 5 byte address = 37 total payload bytes
-buf[L++] = 10+ 21; // length of payload
-buf[L++] = random_seed; //SilverVISE
-buf[L++] = MY_MAC_1;
-buf[L++] = MY_MAC_2;
-buf[L++] = MY_MAC_3;
-buf[L++] = MY_MAC_4;
-buf[L++] = MY_MAC_5;
+    buf[L++] = 10 + 21; // length of payload
+    buf[L++] = random_seed; //SilverVISE
+    buf[L++] = MY_MAC_1;
+    buf[L++] = MY_MAC_2;
+    buf[L++] = MY_MAC_3;
+    buf[L++] = MY_MAC_4;
+    buf[L++] = MY_MAC_5;
 
 // packet data unit
-buf[L++] = 2; //flags lenght(LE-only, limited discovery mode)
-buf[L++] = 0x01; // compulsory flags
-buf[L++] = 0x06; // flag value
-buf[L++] =  0x15;  // Length of next block
-buf[L++] =  0x16;  // Service Data
+    buf[L++] = 2; //flags lenght(LE-only, limited discovery mode)
+    buf[L++] = 0x01; // compulsory flags
+    buf[L++] = 0x06; // flag value
+    buf[L++] =  0x15;  // Length of next block
+    buf[L++] =  0x16;  // Service Data
 
 // ------------------------- TLM+PID
-if (TLMorPID == 1)
-{
-buf[L++] =  0x2F; //PID+TLM datatype_and_packetID;  // xxxxyyyy -> yyyy = 1111 packet type ID (custom BLE type), xxxx = type of data in packet: 0001 -> telemetry, 0002->PID
+    if (TLMorPID == 1)
+    {
+        buf[L++] =  0x2F; //PID+TLM datatype_and_packetID;  // xxxxyyyy -> yyyy = 1111 packet type ID (custom BLE type), xxxx = type of data in packet: 0001 -> telemetry, 0002->PID
 
 #ifdef MY_QUAD_MODEL
-	buf[L++] =  MY_QUAD_MODEL;
+        buf[L++] =  MY_QUAD_MODEL;
 #else
-	buf[L++] =  0x51;  //quad model (00 - unknown, 51 - BWHOOP B-03 blue canopy, 52 - BWHOOP B-03 orange canopy... check comments at start of this file for details)
+        buf[L++] =  0x51;  //quad model (00 - unknown, 51 - BWHOOP B-03 blue canopy, 52 - BWHOOP B-03 orange canopy... check comments at start of this file for details)
 #endif
 
-buf[L++] = random_seed; //already custom entry - need to be randomized
-buf[L++]= quad_name[0];
-buf[L++]= quad_name[1];
-buf[L++]= quad_name[2];
-buf[L++]= quad_name[3];
-buf[L++]= quad_name[4];
-buf[L++]= quad_name[5];
-	
-extern int current_pid_term; //0 = pidkp, 1 = pidki, 2 = pidkd
-extern int current_pid_axis; //0 = roll, 1 = pitch, 2 = yaw
+        buf[L++] = random_seed; //already custom entry - need to be randomized
+        buf[L++] = quad_name[0];
+        buf[L++] = quad_name[1];
+        buf[L++] = quad_name[2];
+        buf[L++] = quad_name[3];
+        buf[L++] = quad_name[4];
+        buf[L++] = quad_name[5];
+
+        extern int current_pid_term; //0 = pidkp, 1 = pidki, 2 = pidkd
+        extern int current_pid_axis; //0 = roll, 1 = pitch, 2 = yaw
 
 //int selectedPID = 0; //inxed of selected PID for changing
-	
-int selectedPID = ((current_pid_term)*3)+(current_pid_axis);
-	
-buf[L++] =  (current_PID_for_display<<4)+selectedPID; // xy => x=current PID for display 0 - 14 (cycling...), y = selected PID for changing 0 - 14
-	
-buf[L++] = packetpersecond_short;
-	
-/*
-buf[L++] =  onground_and_bind; //binary xxxxabcd - xxxx = error code or warning, a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
-*/
 
-	
+        int selectedPID = ((current_pid_term) * 3) + (current_pid_axis);
+
+        buf[L++] = (current_PID_for_display << 4) + selectedPID; // xy => x=current PID for display 0 - 14 (cycling...), y = selected PID for changing 0 - 14
+
+        buf[L++] = packetpersecond_short;
+
+        /*
+        buf[L++] =  onground_and_bind; //binary xxxxabcd - xxxx = error code or warning, a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
+        */
+
+
 #ifdef COMBINE_PITCH_ROLL_PID_TUNING
-	buf[L++] =  B01000000+((rate_and_mode_value<<4)+onground_and_bind); //binary xxRMabcd - x = error code or warning, 1 = combined roll+pitch tuning, R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro); a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
-	int PID_pause = 8;
+        buf[L++] =  B01000000 + ((rate_and_mode_value << 4) + onground_and_bind); //binary xxRMabcd - x = error code or warning, 1 = combined roll+pitch tuning, R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro); a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
+        int PID_pause = 8;
 #else
-	buf[L++] =  (rate_and_mode_value<<4)+onground_and_bind; //binary x0RMabcd - x = error code or warning, 0 = no combined roll+pitch tuning, R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro); a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
-	int PID_pause = 12;
+        buf[L++] = (rate_and_mode_value << 4) + onground_and_bind; //binary x0RMabcd - x = error code or warning, 0 = no combined roll+pitch tuning, R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro); a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
+        int PID_pause = 12;
 #endif
-	
-buf[L++] =  vbatt_comp_int>>8;  // Battery voltage compensated
-buf[L++] =  vbatt_comp_int;  // Battery voltage compensated
+
+        buf[L++] =  vbatt_comp_int >> 8; // Battery voltage compensated
+        buf[L++] =  vbatt_comp_int;  // Battery voltage compensated
 
 
-extern float pidkp[]; // current_PID_for_display = 0, 1, 2
-extern float pidki[]; // current_PID_for_display = 3, 4, 5
-extern float pidkd[]; // current_PID_for_display = 6, 7, 8
-extern float apidkp[]; // current_PID_for_display = 9, 10
-extern float apidki[]; //  current_PID_for_display = 11, 12
-extern float apidkd[]; //  current_PID_for_display = 13, 14
-	
-unsigned long pid_for_display = 0;
+        extern float pidkp[]; // current_PID_for_display = 0, 1, 2
+        extern float pidki[]; // current_PID_for_display = 3, 4, 5
+        extern float pidkd[]; // current_PID_for_display = 6, 7, 8
+        extern float apidkp[]; // current_PID_for_display = 9, 10
+        extern float apidki[]; //  current_PID_for_display = 11, 12
+        extern float apidkd[]; //  current_PID_for_display = 13, 14
 
-switch ( current_PID_for_display )
- {
-	 case 0:pid_for_display =(uint16_t)(pidkp[0]*10000.0f);break;
-	 case 1:pid_for_display =(uint16_t)(pidkp[1]*10000.0f);break;
-	 case 2:pid_for_display =(uint16_t)(pidkp[2]*10000.0f);break;
-	 case 3:pid_for_display =(uint16_t)(pidki[0]*10000.0f);break;
-	 case 4:pid_for_display =(uint16_t)(pidki[1]*10000.0f);break;
-	 case 5:pid_for_display =(uint16_t)(pidki[2]*10000.0f);break;
-	 case 6:pid_for_display =(uint16_t)(pidkd[0]*10000.0f);break;
-	 case 7:pid_for_display =(uint16_t)(pidkd[1]*10000.0f);break;
-	 case 8:pid_for_display =(uint16_t)(pidkd[2]*10000.0f);break;
-/*
-	 //level mode PIDs - disabled for now...
-	 case 9:pid_for_display =(uint16_t)(apidkp[0]*10000.0f);break;
-	 case 10:pid_for_display =(uint16_t)(apidkp[1]*10000.0f);break;
-	 case 11:pid_for_display =(uint16_t)(apidki[0]*10000.0f);break;
-	 case 12:pid_for_display =(uint16_t)(apidki[1]*10000.0f);break;
-	 case 13:pid_for_display =(uint16_t)(apidkd[0]*10000.0f);break;
-	 case 14:pid_for_display =(uint16_t)(apidkd[1]*10000.0f);break;
-*/
-	 }
+        unsigned long pid_for_display = 0;
 
-/*buf[L++] =  total_time_in_air_time>>8;  // total time in air
-buf[L++] =  total_time_in_air_time;  // total time in air
-buf[L++] =  time>>8;
-buf[L++] =  time;
-*/	
+        switch (current_PID_for_display)
+        {
+        case 0:
+            pid_for_display = (uint16_t)(pidkp[0] * 10000.0f);
+            break;
+        case 1:
+            pid_for_display = (uint16_t)(pidkp[1] * 10000.0f);
+            break;
+        case 2:
+            pid_for_display = (uint16_t)(pidkp[2] * 10000.0f);
+            break;
+        case 3:
+            pid_for_display = (uint16_t)(pidki[0] * 10000.0f);
+            break;
+        case 4:
+            pid_for_display = (uint16_t)(pidki[1] * 10000.0f);
+            break;
+        case 5:
+            pid_for_display = (uint16_t)(pidki[2] * 10000.0f);
+            break;
+        case 6:
+            pid_for_display = (uint16_t)(pidkd[0] * 10000.0f);
+            break;
+        case 7:
+            pid_for_display = (uint16_t)(pidkd[1] * 10000.0f);
+            break;
+        case 8:
+            pid_for_display = (uint16_t)(pidkd[2] * 10000.0f);
+            break;
+            /*
+                 //level mode PIDs - disabled for now...
+                 case 9:pid_for_display =(uint16_t)(apidkp[0]*10000.0f);break;
+                 case 10:pid_for_display =(uint16_t)(apidkp[1]*10000.0f);break;
+                 case 11:pid_for_display =(uint16_t)(apidki[0]*10000.0f);break;
+                 case 12:pid_for_display =(uint16_t)(apidki[1]*10000.0f);break;
+                 case 13:pid_for_display =(uint16_t)(apidkd[0]*10000.0f);break;
+                 case 14:pid_for_display =(uint16_t)(apidkd[1]*10000.0f);break;
+            */
+        }
 
-buf[L++] =  total_time_in_air_time>>8;  // total time in air
-buf[L++] =  total_time_in_air_time;  // total time in air	 
-buf[L++] =  time>>8;
-buf[L++] =  time;
+        /*buf[L++] =  total_time_in_air_time>>8;  // total time in air
+        buf[L++] =  total_time_in_air_time;  // total time in air
+        buf[L++] =  time>>8;
+        buf[L++] =  time;
+        */
 
-buf[L++] =  pid_for_display>>8;
-buf[L++] =  pid_for_display;
-	 
-L=L+3; //crc
+        buf[L++] =  total_time_in_air_time >> 8; // total time in air
+        buf[L++] =  total_time_in_air_time;  // total time in air
+        buf[L++] =  time >> 8;
+        buf[L++] =  time;
 
-PID_index_delay++;
-int PID_index_limit = 8; // number of PIDs to display for acro mode tuning
+        buf[L++] =  pid_for_display >> 8;
+        buf[L++] =  pid_for_display;
+
+        L = L + 3; //crc
+
+        PID_index_delay++;
+        int PID_index_limit = 8; // number of PIDs to display for acro mode tuning
 //if ((rate_and_mode_value&1) == 1) PID_index_limit = 14; // number of PIDs to display for level mode tuning
-if (PID_index_delay > PID_pause) {
-	PID_index_delay = 0;
-	current_PID_for_display++;
-	
+        if (PID_index_delay > PID_pause)
+        {
+            PID_index_delay = 0;
+            current_PID_for_display++;
+
 #ifdef COMBINE_PITCH_ROLL_PID_TUNING
- if (current_PID_for_display == 1)	current_PID_for_display =2;
- if (current_PID_for_display == 4)	current_PID_for_display =5;
- if (current_PID_for_display == 7)	current_PID_for_display =8;
+            if (current_PID_for_display == 1)  current_PID_for_display = 2;
+            if (current_PID_for_display == 4)  current_PID_for_display = 5;
+            if (current_PID_for_display == 7)  current_PID_for_display = 8;
 #endif
-	
-	if (current_PID_for_display > PID_index_limit) current_PID_for_display = 0;
-}
 
-}
+            if (current_PID_for_display > PID_index_limit) current_PID_for_display = 0;
+        }
+
+    }
 
 
-if (TLMorPID == 0)
-{
-	buf[L++] =  0x1F; //TLM datatype_and_packetID;  // xxxxyyyy -> yyyy = 1111 packet type ID (custom BLE type), xxxx = type of data in packet: 0001 -> telemetry, 0002->PID
+    if (TLMorPID == 0)
+    {
+        buf[L++] =  0x1F; //TLM datatype_and_packetID;  // xxxxyyyy -> yyyy = 1111 packet type ID (custom BLE type), xxxx = type of data in packet: 0001 -> telemetry, 0002->PID
 
 #ifdef MY_QUAD_MODEL
-	buf[L++] =  MY_QUAD_MODEL;
+        buf[L++] =  MY_QUAD_MODEL;
 #else
-	buf[L++] =  0x11;  // quad model (00 - unknown, 11- H8 mini blue board, 20 - H101... check comments at start of this file for details)
+        buf[L++] =  0x11;  // quad model (00 - unknown, 11- H8 mini blue board, 20 - H101... check comments at start of this file for details)
 #endif
 
-buf[L++] = random_seed; //already custom entry - need to be randomized
+        buf[L++] = random_seed; //already custom entry - need to be randomized
 #ifdef MY_QUAD_NAME
 //fill with characters from MY_QUAD_NAME (just first 6 chars)
-int string_len = 0;
-while (string_len< 6)
-	  {
-			if (MY_QUAD_NAME[string_len]=='\0') break;
-			buf[L++] = (char) MY_QUAD_NAME[string_len];
-			string_len++;
-		}
+        int string_len = 0;
+        while (string_len < 6)
+        {
+            if (MY_QUAD_NAME[string_len] == '\0') break;
+            buf[L++] = (char) MY_QUAD_NAME[string_len];
+            string_len++;
+        }
 
 //fill the rest (up to 6 bytes) with blanks
-for ( int i = string_len ; i < 6; i++)
-	{
-	buf[L++] = ' '; //blank
-	}
+        for (int i = string_len ; i < 6; i++)
+        {
+            buf[L++] = ' '; //blank
+        }
 #else
-buf[L++]=(char)'N';
-buf[L++]=(char)'O';
-buf[L++]=(char)'N';
-buf[L++]=(char)'A';
-buf[L++]=(char)'M';
-buf[L++]=(char)'E';
+        buf[L++] = (char)'N';
+        buf[L++] = (char)'O';
+        buf[L++] = (char)'N';
+        buf[L++] = (char)'A';
+        buf[L++] = (char)'M';
+        buf[L++] = (char)'E';
 #endif
-buf[L++] =  0x00; //reserved for future use
-buf[L++] = packetpersecond_short;
-buf[L++] =  onground_and_bind; //binary xxxxabcd - xxxx = error code or warning, a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
-buf[L++] =  vbatt_comp_int>>8;  // Battery voltage compensated
-buf[L++] =  vbatt_comp_int;  // Battery voltage compensated
-buf[L++] =  total_time_in_air_time>>8;  // total time in air
-buf[L++] =  total_time_in_air_time;  // total time in air
-buf[L++] =  time>>8;
-buf[L++] =  time;
-buf[L++] =  rate_and_mode_value; //xxxxxxRM //rate + mode R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro)
-buf[L++] =  0x00; //reserved for future use
+        buf[L++] =  0x00; //reserved for future use
+        buf[L++] = packetpersecond_short;
+        buf[L++] =  onground_and_bind; //binary xxxxabcd - xxxx = error code or warning, a -> 0 = stock TX, 1= other TX, b -> 0 = not failsafe, 1 = failsafe, c = 0 -> not bound, 1 -> bound, d = 0 -> in the air, 1 = on the ground;
+        buf[L++] =  vbatt_comp_int >> 8; // Battery voltage compensated
+        buf[L++] =  vbatt_comp_int;  // Battery voltage compensated
+        buf[L++] =  total_time_in_air_time >> 8; // total time in air
+        buf[L++] =  total_time_in_air_time;  // total time in air
+        buf[L++] =  time >> 8;
+        buf[L++] =  time;
+        buf[L++] =  rate_and_mode_value; //xxxxxxRM //rate + mode R = rate (0 - normal, 1 - fast) , M = mode (1 - level, 0 - acro)
+        buf[L++] =  0x00; //reserved for future use
 
-L=L+3; //crc
-}
+        L = L + 3; //crc
+    }
 
 
-btLePacketEncode(buf, L, ch );
+    btLePacketEncode(buf, L, ch);
 
 // undo xn297 data whitening
-for (uint8_t i = 0; i < L; ++i) 
-{
-buf[i] = buf[i] ^ xn297_scramble_rev[i+ 5] ; // address size 5
-}
- 
-
-for( int i = 0 ; i < L ; i++) buffint[i] = buf[i];
+    for (uint8_t i = 0; i < L; ++i)
+    {
+        buf[i] = buf[i] ^ xn297_scramble_rev[i + 5] ; // address size 5
+    }
 
 
-xn_command( FLUSH_TX);
+    for (int i = 0 ; i < L ; i++) buffint[i] = buf[i];
 
-xn_writereg( 0 , XN_TO_TX );
 
-payloadsize = L;
-xn_writepayload( buffint , L );
+    xn_command(FLUSH_TX);
 
-ble_txtime = gettime();
+    xn_writereg(0 , XN_TO_TX);
 
-return;	
+    payloadsize = L;
+    xn_writepayload(buffint , L);
+
+    ble_txtime = gettime();
+
+    return;
 }
 
 
 
 static char checkpacket()
 {
-	int status = xn_readreg( 7 );
+    int status = xn_readreg(7);
 
-	if ( status&(1<<MASK_RX_DR) )
-	{	 // rx clear bit
-		// this is not working well
-	 // xn_writereg( STATUS , (1<<MASK_RX_DR) );
-		//RX packet received
-		//return 1;
-	}
-	if( (status & B00001110) != B00001110 )
-	{
-		// rx fifo not empty		
-		return 2;	
-	}
-	
-  return 0;
+    if (status & (1 << MASK_RX_DR))
+    {
+        // rx clear bit
+        // this is not working well
+        // xn_writereg( STATUS , (1<<MASK_RX_DR) );
+        //RX packet received
+        //return 1;
+    }
+    if ((status & B00001110) != B00001110)
+    {
+        // rx fifo not empty
+        return 2;
+    }
+
+    return 0;
 }
 
 
 int rxdata[15];
 
 
-float packettodata( int *  data)
+float packettodata(int   *data)
 {
-	return ( ( ( data[0]&0x0003) * 256 + data[1] ) - 512 ) * 0.001953125 ;	
+    return (((data[0] & 0x0003) * 256 + data[1]) - 512) * 0.001953125 ;
 }
 
 float bytetodata(int byte)
@@ -993,126 +1021,135 @@ float bytetodata(int byte)
 }
 
 
-static int decodepacket( void)
+static int decodepacket(void)
 {
-	if ( rxdata[0] == 165 )
-	{
-		 int sum = 0;
-		 for(int i=0; i<14; i++) 
-		 {
-			sum += rxdata[i];
-		 }	
-		if ( (sum&0xFF) == rxdata[14] )
-		{
-			rx[0] = packettodata( &rxdata[4] );
-			rx[1] = packettodata( &rxdata[6] );
-			rx[2] = packettodata( &rxdata[10] );
-		// throttle		
-			rx[3] = ( (rxdata[8]&0x0003) * 256 + rxdata[9] ) * 0.000976562f;
-		
+    if (rxdata[0] == 165)
+    {
+        int sum = 0;
+        for (int i = 0; i < 14; i++)
+        {
+            sum += rxdata[i];
+        }
+        if ((sum & 0xFF) == rxdata[14])
+        {
+            rx[0] = packettodata(&rxdata[4]);
+            rx[1] = packettodata(&rxdata[6]);
+            rx[2] = packettodata(&rxdata[10]);
+            // throttle
+            rx[3] = ((rxdata[8] & 0x0003) * 256 + rxdata[9]) * 0.000976562f;
 
 
 
 
-			    // trims are 50% of controls at max
-			    // trims are not used as trims because they interfere
-			    // with dynamic trims feature of devo firmware
+
+            // trims are 50% of controls at max
+            // trims are not used as trims because they interfere
+            // with dynamic trims feature of devo firmware
 
 //                      rx[0] = rx[0] + 0.03225 * 0.5 * (float)(((rxdata[4])>>2) - 31);
 //                      rx[1] = rx[1] + 0.03225 * 0.5 * (float)(((rxdata[6])>>2) - 31);
 //                      rx[2] = rx[2] + 0.03225 * 0.5 * (float)(((rxdata[10])>>2) - 31);
 
-			    // Instead they are used as binary aux channels
+            // Instead they are used as binary aux channels
 #ifdef USE_STOCK_TX
-char trims[4];
-			    trims[0] = rxdata[6] >> 2;
-			    trims[1] = rxdata[4] >> 2;
-			   // trims[2] = rxdata[8] >> 2; // throttle and yaw trims are not used
-			   // trims[3] = rxdata[10] >> 2;
-			    for (int i = 0; i < 2; i++)
-				    if (trims[i] != lasttrim[i])
-				      {
-					      aux[CH_PIT_TRIM + i] = trims[i] > lasttrim[i];
-					      lasttrim[i] = trims[i];
-				      }
-#else			
-// this share the same numbers to the above CH_PIT_TRIM etc		 					
-					aux[CH_INV] = (rxdata[3] & 0x80) ? 1 : 0; // inverted flag
-					aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
-												
-					aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;						
-#endif
-							
-							
-			    aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
-
-#ifdef USE_ANALOG_AUX
-			    aux[CH_EXPERT] = (rxdata[1] > 0x7F) ? 1 : 0;
-#else
-			    aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;
-#endif
-
-			    aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;
-
-			    aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel
-
-#ifdef USE_ANALOG_AUX
-                // Assign all analog versions of channels based on boolean channel data
-                for (int i = 0; i < AUXNUMBER - 2; i++)
+            char trims[4];
+            trims[0] = rxdata[6] >> 2;
+            trims[1] = rxdata[4] >> 2;
+            // trims[2] = rxdata[8] >> 2; // throttle and yaw trims are not used
+            // trims[3] = rxdata[10] >> 2;
+            for (int i = 0; i < 2; i++)
+                if (trims[i] != lasttrim[i])
                 {
-                  if (i == CH_ANA_AUX1)
-                    aux_analog[CH_ANA_AUX1] = bytetodata(rxdata[1]);
-                  else if (i == CH_ANA_AUX2)
-                    aux_analog[CH_ANA_AUX2] = bytetodata(rxdata[13]);
-                  else
-                    aux_analog[i] = aux[i] ? 1.0 : 0.0;
-                  aux_analogchange[i] = 0;
-                  if (lastaux_analog[i] != aux_analog[i])
-                    aux_analogchange[i] = 1;
-                  lastaux_analog[i] = aux_analog[i];
+                    aux[CH_PIT_TRIM + i] = trims[i] > lasttrim[i];
+                    lasttrim[i] = trims[i];
                 }
+#else
+// this share the same numbers to the above CH_PIT_TRIM etc
+            aux[CH_INV] = (rxdata[3] & 0x80) ? 1 : 0; // inverted flag
+            aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;
+
+            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;
 #endif
 
-							if (aux[LEVELMODE]){
-								if (aux[RACEMODE] && !aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else if (aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-								}else{
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
-							}else{
-								if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-								if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-								if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-							}
 
-			for ( int i = 0 ; i < AUXNUMBER - 2 ; i++)
-			{
-				auxchange[i] = 0;
-				if ( lastaux[i] != aux[i] ) auxchange[i] = 1;
-				lastaux[i] = aux[i];
-			}
-			
-			return 1;	// valid packet	
-		}
-	 return 0; // sum fail
-	}
-return 0; // first byte different
+            aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;
+
+#ifdef USE_ANALOG_AUX
+            aux[CH_EXPERT] = (rxdata[1] > 0x7F) ? 1 : 0;
+#else
+            aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;
+#endif
+
+            aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;
+
+            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;   // rth channel
+
+#ifdef USE_ANALOG_AUX
+            // Assign all analog versions of channels based on boolean channel data
+            for (int i = 0; i < AUXNUMBER - 2; i++)
+            {
+                if (i == CH_ANA_AUX1)
+                    aux_analog[CH_ANA_AUX1] = bytetodata(rxdata[1]);
+                else if (i == CH_ANA_AUX2)
+                    aux_analog[CH_ANA_AUX2] = bytetodata(rxdata[13]);
+                else
+                    aux_analog[i] = aux[i] ? 1.0 : 0.0;
+                aux_analogchange[i] = 0;
+                if (lastaux_analog[i] != aux_analog[i])
+                    aux_analogchange[i] = 1;
+                lastaux_analog[i] = aux_analog[i];
+            }
+#endif
+
+            if (aux[LEVELMODE])
+            {
+                if (aux[RACEMODE] && !aux[HORIZON])
+                {
+                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                    if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                }
+                else if (aux[HORIZON])
+                {
+                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                    if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                }
+                else
+                {
+                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                    if (ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+                }
+            }
+            else
+            {
+                if (ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                if (ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+            }
+
+            for (int i = 0 ; i < AUXNUMBER - 2 ; i++)
+            {
+                auxchange[i] = 0;
+                if (lastaux[i] != aux[i]) auxchange[i] = 1;
+                lastaux[i] = aux[i];
+            }
+
+            return 1;   // valid packet
+        }
+        return 0; // sum fail
+    }
+    return 0; // first byte different
 }
 
 
 
 void nextchannel()
 {
-	rf_chan++;
-	rf_chan%=4;
-	xn_writereg(0x25, rfchannel[rf_chan]);
+    rf_chan++;
+    rf_chan %= 4;
+    xn_writereg(0x25, rfchannel[rf_chan]);
 }
 
 
@@ -1132,134 +1169,140 @@ extern int bound_for_BLE_packet; //SilverVISE
 
 void checkrx(void)
 {
-	int packetreceived = checkpacket();
-	int pass = 0;
-	if (packetreceived)
-	  {
-		  if (rxmode == RX_MODE_BIND)
-		    {		// rx startup , bind mode
-			    xn_readpayload(rxdata, 15);
+    int packetreceived = checkpacket();
+    int pass = 0;
+    if (packetreceived)
+    {
+        if (rxmode == RX_MODE_BIND)
+        {
+            // rx startup , bind mode
+            xn_readpayload(rxdata, 15);
 
 #ifdef USE_ANALOG_AUX
-			    if (rxdata[0] == 162)
+            if (rxdata[0] == 162)
 #else
-			    if (rxdata[0] == 164)
+            if (rxdata[0] == 164)
 #endif
-			      {	// bind packet
-				      rfchannel[0] = rxdata[6];
-				      rfchannel[1] = rxdata[7];
-				      rfchannel[2] = rxdata[8];
-				      rfchannel[3] = rxdata[9];
-							
-							int rxaddress[5];
-				      rxaddress[0] = rxdata[1];
-				      rxaddress[1] = rxdata[2];
-				      rxaddress[2] = rxdata[3];
-				      rxaddress[3] = rxdata[4];
-				      rxaddress[4] = rxdata[5];
-				      
-				      xn_writerxaddress(rxaddress);
-				      xn_writereg(0x25, rfchannel[rf_chan]);	// Set channel frequency 
-							rxmode = RX_MODE_NORMAL;
-							bound_for_BLE_packet=1; //SilverVISE
+            {
+                // bind packet
+                rfchannel[0] = rxdata[6];
+                rfchannel[1] = rxdata[7];
+                rfchannel[2] = rxdata[8];
+                rfchannel[3] = rxdata[9];
+
+                int rxaddress[5];
+                rxaddress[0] = rxdata[1];
+                rxaddress[1] = rxdata[2];
+                rxaddress[2] = rxdata[3];
+                rxaddress[3] = rxdata[4];
+                rxaddress[4] = rxdata[5];
+
+                xn_writerxaddress(rxaddress);
+                xn_writereg(0x25, rfchannel[rf_chan]);    // Set channel frequency
+                rxmode = RX_MODE_NORMAL;
+                bound_for_BLE_packet = 1; //SilverVISE
 
 #ifdef SERIAL
-				      printf(" BIND \n");
+                printf(" BIND \n");
 #endif
-			      }
-		    }
-		  else
-		    {		// normal mode  
+            }
+        }
+        else
+        {
+            // normal mode
 #ifdef RXDEBUG
-			    channelcount[rf_chan]++;
-			    packettime = gettime() - lastrxtime;
-					
-					if ( skipchannel&& !timingfail ) afterskip[skipchannel]++;
-					if ( timingfail ) afterskip[0]++;
+            channelcount[rf_chan]++;
+            packettime = gettime() - lastrxtime;
+
+            if (skipchannel && !timingfail) afterskip[skipchannel]++;
+            if (timingfail) afterskip[0]++;
 
 #endif
 
-unsigned long temptime = gettime();
-	
-			    nextchannel();
+            unsigned long temptime = gettime();
 
-			    xn_readpayload(rxdata, 15);
-			    pass = decodepacket();
+            nextchannel();
 
-			    if (pass)
-			      {
+            xn_readpayload(rxdata, 15);
+            pass = decodepacket();
+
+            if (pass)
+            {
 #ifdef RXDEBUG
-				      packetrx++;
+                packetrx++;
 #endif
-							skipchannel = 0;
-							timingfail = 0;
-							lastrxchan = rf_chan;
-							lastrxtime = temptime;
-				      failsafetime = temptime;
-				      failsafe = 0;
-			      }
-			    else
-			      {
+                skipchannel = 0;
+                timingfail = 0;
+                lastrxchan = rf_chan;
+                lastrxtime = temptime;
+                failsafetime = temptime;
+                failsafe = 0;
+            }
+            else
+            {
 #ifdef RXDEBUG
-				      failcount++;
+                failcount++;
 #endif
-			      }
+            }
 
-		    }		// end normal rx mode
-				bind_safety++;
-				if (bind_safety > 9){								//requires 10 good frames to come in before rx_ready safety can be toggled to 1
-				rx_ready = 1;											// because aux channels initialize low and clear the binding while armed flag before aux updates high
-				bind_safety = 10;	}
-	  }			// end packet received
+        }       // end normal rx mode
+        bind_safety++;
+        if (bind_safety > 9)                                //requires 10 good frames to come in before rx_ready safety can be toggled to 1
+        {
+            rx_ready = 1;                                           // because aux channels initialize low and clear the binding while armed flag before aux updates high
+            bind_safety = 10;
+        }
+    }         // end packet received
 
-	beacon_sequence();
-	
-	unsigned long time = gettime();
+    beacon_sequence();
 
-		
+    unsigned long time = gettime();
 
-	// sequence period 12000
-	if (time - lastrxtime > (HOPPING_NUMBER*PACKET_PERIOD + 1000) && rxmode != RX_MODE_BIND)
-	  {			
-			//  channel with no reception   
-		  lastrxtime = time;
-			// set channel to last with reception
-			if (!timingfail) rf_chan = lastrxchan;
-			// advance to next channel
-		  nextchannel();
-			// set flag to discard packet timing
-			timingfail = 1;
-	  }
-		
-	if ( !timingfail && !ble_send && skipchannel < HOPPING_NUMBER+1 && rxmode != RX_MODE_BIND)
-		{
-			unsigned int temp = time - lastrxtime ;
 
-			if ( temp > 1000 && ( temp - (PACKET_OFFSET) )/((int) PACKET_PERIOD) >= (skipchannel + 1) ) 
-			{
-				nextchannel();
-#ifdef RXDEBUG				
-				skipstats[skipchannel]++;
-#endif				
-				skipchannel++;
-			}
-		}	
-	
-	if (time - failsafetime > FAILSAFETIME)
-	  {	//  failsafe
-		  failsafe = 1;
-		  rx[0] = 0;
-		  rx[1] = 0;
-		  rx[2] = 0;
-		  rx[3] = 0;
-	  }
+
+    // sequence period 12000
+    if (time - lastrxtime > (HOPPING_NUMBER * PACKET_PERIOD + 1000) && rxmode != RX_MODE_BIND)
+    {
+        //  channel with no reception
+        lastrxtime = time;
+        // set channel to last with reception
+        if (!timingfail) rf_chan = lastrxchan;
+        // advance to next channel
+        nextchannel();
+        // set flag to discard packet timing
+        timingfail = 1;
+    }
+
+    if (!timingfail && !ble_send && skipchannel < HOPPING_NUMBER + 1 && rxmode != RX_MODE_BIND)
+    {
+        unsigned int temp = time - lastrxtime ;
+
+        if (temp > 1000 && (temp - (PACKET_OFFSET)) / ((int) PACKET_PERIOD) >= (skipchannel + 1))
+        {
+            nextchannel();
 #ifdef RXDEBUG
-	if (gettime() - secondtimer > 1000000)
-	  {
-		  packetpersecond = packetrx;
-		  packetrx = 0;
-		  secondtimer = gettime();
-	  }
+            skipstats[skipchannel]++;
+#endif
+            skipchannel++;
+        }
+    }
+
+    if (time - failsafetime > FAILSAFETIME)
+    {
+        //  failsafe
+        failsafe = 1;
+        rx[0] = 0;
+        rx[1] = 0;
+        rx[2] = 0;
+        rx[3] = 0;
+    }
+#ifdef RXDEBUG
+    if (gettime() - secondtimer > 1000000)
+    {
+        packetpersecond = packetrx;
+        packetrx = 0;
+        secondtimer = gettime();
+    }
 #endif
 
 }

@@ -48,8 +48,8 @@ THE SOFTWARE.
 extern debug_type debug;
 
 // temporary fix for compatibility between versions
-#ifndef GYRO_ID_1 
-#define GYRO_ID_1 0x68 
+#ifndef GYRO_ID_1
+#define GYRO_ID_1 0x68
 #endif
 #ifndef GYRO_ID_2
 #define GYRO_ID_2 0x98
@@ -61,59 +61,59 @@ extern debug_type debug;
 #define GYRO_ID_4 0x72
 #endif
 
-void sixaxis_init( void)
+void sixaxis_init(void)
 {
 // gyro soft reset
-	
-	
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS, 107 , 128);
-	 
+
+
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107 , 128);
+
     delay(40000);
-	
-    i2c_writereg( SOFTI2C_GYRO_ADDRESS,25 , 0);
-// set pll to 1, clear sleep bit old type gyro (mpu-6050)	
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS, 107 , 0x03);
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS,55 , 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
-	int newboard = !(0x68 == i2c_readreg(SOFTI2C_GYRO_ADDRESS,117) );
+
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 25 , 0);
+// set pll to 1, clear sleep bit old type gyro (mpu-6050)
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107 , 0x03);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 55 , 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
+    int newboard = !(0x68 == i2c_readreg(SOFTI2C_GYRO_ADDRESS, 117));
 
     delay(100);
-    
-    // Gyro DLPF low pass filter
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS,26 , GYRO_LOW_PASS_FILTER);
-    
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS, 28, B00010000);	// 8G scale
 
-    
+    // Gyro DLPF low pass filter
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 26 , GYRO_LOW_PASS_FILTER);
+
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 28, B00010000);   // 8G scale
+
+
 // acc lpf for the new gyro type
 //       0-6 ( same as gyro)
-	if (newboard) i2c_writereg(SOFTI2C_GYRO_ADDRESS, 29, ACC_LOW_PASS_FILTER);
-	
+    if (newboard) i2c_writereg(SOFTI2C_GYRO_ADDRESS, 29, ACC_LOW_PASS_FILTER);
+
 // gyro scale 1000 deg (FS =2)
 
-	i2c_writereg( SOFTI2C_GYRO_ADDRESS,27 , B00010000);
-    
- //SMPLRT_DIV = 1, gyro_sample_rate = 8kHz/(1+ SMPLRT_DIV) = 8/2 kHz = 4kHz
- // for Gyro with i2c protocol, use 4KHz, for SPI protocol use 8KHz.
- 
-    
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 27 , B00010000);
+
+//SMPLRT_DIV = 1, gyro_sample_rate = 8kHz/(1+ SMPLRT_DIV) = 8/2 kHz = 4kHz
+// for Gyro with i2c protocol, use 4KHz, for SPI protocol use 8KHz.
+
+
 
 }
 
 
-int sixaxis_check( void)
+int sixaxis_check(void)
 {
-	#ifndef DISABLE_GYRO_CHECK
-	// read "who am I" register
-	int id = i2c_readreg(SOFTI2C_GYRO_ADDRESS, 117 );
+#ifndef DISABLE_GYRO_CHECK
+    // read "who am I" register
+    int id = i2c_readreg(SOFTI2C_GYRO_ADDRESS, 117);
 
-	#ifdef DEBUG
-	debug.gyroid = id;
-	#endif
-	
-	return (GYRO_ID_1==id||GYRO_ID_2==id||GYRO_ID_3==id||GYRO_ID_4==id );
-	#else
-	return 1;
-	#endif
+#ifdef DEBUG
+    debug.gyroid = id;
+#endif
+
+    return (GYRO_ID_1 == id || GYRO_ID_2 == id || GYRO_ID_3 == id || GYRO_ID_4 == id);
+#else
+    return 1;
+#endif
 }
 
 
@@ -124,7 +124,7 @@ float accel[3];
 //float accelraw[3];
 float gyro[3];
 float accelraw[3];
-float accelcal[3] = {0,0,0};
+float accelcal[3] = {0, 0, 0};
 float gyrocal[3];
 float gyronew[3];
 
@@ -135,481 +135,483 @@ void acc_read(void)
 {
     int data[6];
 
-	i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59 , data , 6 );
-		
-#ifdef SENSOR_ROTATE_90_CW	         
-        accel[0] = (int16_t) ((data[2] << 8) + data[3]);
-        accel[1] = -(int16_t) ((data[0] << 8) + data[1]);
-        accel[2] = (int16_t) ((data[4] << 8) + data[5]);
+    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59 , data , 6);
+
+#ifdef SENSOR_ROTATE_90_CW
+    accel[0] = (int16_t)((data[2] << 8) + data[3]);
+    accel[1] = -(int16_t)((data[0] << 8) + data[1]);
+    accel[2] = (int16_t)((data[4] << 8) + data[5]);
 #else
-        
-	accelraw[0] = -(int16_t) ((data[0] << 8) + data[1]);
-	accelraw[1] = -(int16_t) ((data[2] << 8) + data[3]);
-	accelraw[2] = (int16_t) ((data[4] << 8) + data[5]);  
-        
+
+    accelraw[0] = -(int16_t)((data[0] << 8) + data[1]);
+    accelraw[1] = -(int16_t)((data[2] << 8) + data[3]);
+    accelraw[2] = (int16_t)((data[4] << 8) + data[5]);
+
 #endif
-  
+
 
 #ifdef SENSOR_ROTATE_90_CW_deleted
-		{//
-		float temp = accel[1];
-		accel[1] = accel[0];
-		accel[0] = -temp;	
-		}
-#endif       
-        
+    {
+        //
+        float temp = accel[1];
+        accel[1] = accel[0];
+        accel[0] = -temp;
+    }
+#endif
+
 // this is the value of both cos 45 and sin 45 = 1/sqrt(2)
 #define INVSQRT2 0.707106781f
-		
+
 #ifdef SENSOR_ROTATE_45_CCW
-		{
-		float temp = accel[0];
-		accel[0] = (accel[0] * INVSQRT2 + accel[1] * INVSQRT2);
-		accel[1] = -(temp * INVSQRT2 - accel[1] * INVSQRT2);	
-		}
+    {
+        float temp = accel[0];
+        accel[0] = (accel[0] * INVSQRT2 + accel[1] * INVSQRT2);
+        accel[1] = -(temp * INVSQRT2 - accel[1] * INVSQRT2);
+    }
 #endif
-        
+
 #ifdef SENSOR_ROTATE_45_CW
-		{
-		float temp = accel[1];
-		accel[1] = (accel[1] * INVSQRT2 + accel[0] * INVSQRT2);
-		accel[0] = -(temp * INVSQRT2 - accel[0] * INVSQRT2);	
-		}
+    {
+        float temp = accel[1];
+        accel[1] = (accel[1] * INVSQRT2 + accel[0] * INVSQRT2);
+        accel[0] = -(temp * INVSQRT2 - accel[0] * INVSQRT2);
+    }
 #endif
-	
-		
+
+
 #ifdef SENSOR_ROTATE_90_CCW
-		{
-		float temp = accelraw[1];
-		accelraw[1] = -accelraw[0];
-		accelraw[0] = temp;	
-		}
+    {
+        float temp = accelraw[1];
+        accelraw[1] = -accelraw[0];
+        accelraw[0] = temp;
+    }
 #endif
-				
+
 #ifdef SENSOR_ROTATE_180
-		{
-		accel[1] = -accel[1];
-		accel[0] = -accel[0];	
-		}
-#endif		
-		
+    {
+        accel[1] = -accel[1];
+        accel[0] = -accel[0];
+    }
+#endif
+
 #ifdef SENSOR_FLIP_180
-		{
-		accelraw[2] = -accelraw[2];
-		accelraw[0] = -accelraw[0];	
-		}
-#endif	
-        
-        // reduce to accel in G
+    {
+        accelraw[2] = -accelraw[2];
+        accelraw[0] = -accelraw[0];
+    }
+#endif
+
+    // reduce to accel in G
     for (int i = 0; i < 3; i++)
-      {
+    {
         //  accelraw[i] = accel[i]*( 1/ 2048.0f);
-          accelraw[i] *= ( 1/ 4096.0f);
-      }
-  
-    
+        accelraw[i] *= (1 / 4096.0f);
+    }
+
+
 }
 
 //unsigned k = 0,l=0;
 
 void sixaxis_read(void)
 {
-	int data[16];
-	
-	
-	i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59 , data , 14 );
-		
-#ifdef SENSOR_ROTATE_90_CW	         
-        accel[0] = (int16_t) ((data[2] << 8) + data[3]);
-        accel[1] = -(int16_t) ((data[0] << 8) + data[1]);
-        accel[2] = (int16_t) ((data[4] << 8) + data[5]);
+    int data[16];
+
+
+    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59 , data , 14);
+
+#ifdef SENSOR_ROTATE_90_CW
+    accel[0] = (int16_t)((data[2] << 8) + data[3]);
+    accel[1] = -(int16_t)((data[0] << 8) + data[1]);
+    accel[2] = (int16_t)((data[4] << 8) + data[5]);
 #else
-        
-	accelraw[0] = -(int16_t) ((data[0] << 8) + data[1]);
-	accelraw[1] = -(int16_t) ((data[2] << 8) + data[3]);
-	accelraw[2] = (int16_t) ((data[4] << 8) + data[5]);  
-        
+
+    accelraw[0] = -(int16_t)((data[0] << 8) + data[1]);
+    accelraw[1] = -(int16_t)((data[2] << 8) + data[3]);
+    accelraw[2] = (int16_t)((data[4] << 8) + data[5]);
+
 #endif
-  
+
 
 #ifdef SENSOR_ROTATE_90_CW_deleted
-		{//
-		float temp = accel[1];
-		accel[1] = accel[0];
-		accel[0] = -temp;	
-		}
-#endif       
-        
+    {
+        //
+        float temp = accel[1];
+        accel[1] = accel[0];
+        accel[0] = -temp;
+    }
+#endif
+
 // this is the value of both cos 45 and sin 45 = 1/sqrt(2)
 #define INVSQRT2 0.707106781f
-		
+
 #ifdef SENSOR_ROTATE_45_CCW
-		{
-		float temp = accel[0];
-		accel[0] = (accel[0] * INVSQRT2 + accel[1] * INVSQRT2);
-		accel[1] = -(temp * INVSQRT2 - accel[1] * INVSQRT2);	
-		}
+    {
+        float temp = accel[0];
+        accel[0] = (accel[0] * INVSQRT2 + accel[1] * INVSQRT2);
+        accel[1] = -(temp * INVSQRT2 - accel[1] * INVSQRT2);
+    }
 #endif
-        
+
 #ifdef SENSOR_ROTATE_45_CW
-		{
-		float temp = accel[1];
-		accel[1] = (accel[1] * INVSQRT2 + accel[0] * INVSQRT2);
-		accel[0] = -(temp * INVSQRT2 - accel[0] * INVSQRT2);	
-		}
+    {
+        float temp = accel[1];
+        accel[1] = (accel[1] * INVSQRT2 + accel[0] * INVSQRT2);
+        accel[0] = -(temp * INVSQRT2 - accel[0] * INVSQRT2);
+    }
 #endif
-	
-		
+
+
 #ifdef SENSOR_ROTATE_90_CCW
-		{
-		float temp = accelraw[1];
-		accelraw[1] = -accelraw[0];
-		accelraw[0] = temp;	
-		}
+    {
+        float temp = accelraw[1];
+        accelraw[1] = -accelraw[0];
+        accelraw[0] = temp;
+    }
 #endif
-				
+
 #ifdef SENSOR_ROTATE_180
-		{
-		accel[1] = -accel[1];
-		accel[0] = -accel[0];	
-		}
-#endif		
-		
+    {
+        accel[1] = -accel[1];
+        accel[0] = -accel[0];
+    }
+#endif
+
 #ifdef SENSOR_FLIP_180
-		{
-		accelraw[2] = -accelraw[2];
-		accelraw[0] = -accelraw[0];	
-		}
-#endif	
-        
-                // reduce to accel in G
+    {
+        accelraw[2] = -accelraw[2];
+        accelraw[0] = -accelraw[0];
+    }
+#endif
+
+    // reduce to accel in G
     for (int i = 0; i < 3; i++)
-      {
+    {
         //  accelraw[i] = accel[i]*( 1/ 2048.0f);
-          accelraw[i] *= ( 1/ 4096.0f);
-      }
+        accelraw[i] *= (1 / 4096.0f);
+    }
 
-        
+
 //order
-	gyronew[1] = (int16_t) ((data[8] << 8) + data[9]);
-	gyronew[0] = (int16_t) ((data[10] << 8) + data[11]);
-	gyronew[2] = (int16_t) ((data[12] << 8) + data[13]);
+    gyronew[1] = (int16_t)((data[8] << 8) + data[9]);
+    gyronew[0] = (int16_t)((data[10] << 8) + data[11]);
+    gyronew[2] = (int16_t)((data[12] << 8) + data[13]);
 
 
-gyronew[0] = gyronew[0] - gyrocal[0];
-gyronew[1] = gyronew[1] - gyrocal[1];
-gyronew[2] = gyronew[2] - gyrocal[2];
+    gyronew[0] = gyronew[0] - gyrocal[0];
+    gyronew[1] = gyronew[1] - gyrocal[1];
+    gyronew[2] = gyronew[2] - gyrocal[2];
 
 #ifdef SENSOR_ROTATE_90_CW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = -gyronew[0];
-		gyronew[0] = temp;	
-		}
+    {
+        float temp = gyronew[1];
+        gyronew[1] = -gyronew[0];
+        gyronew[0] = temp;
+    }
 #endif
-        
-	
+
+
 #ifdef SENSOR_ROTATE_45_CCW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = gyronew[0] * INVSQRT2 + gyronew[1] * INVSQRT2;
-		gyronew[0] = gyronew[0] * INVSQRT2 - temp * INVSQRT2;	
-		}
+    {
+        float temp = gyronew[1];
+        gyronew[1] = gyronew[0] * INVSQRT2 + gyronew[1] * INVSQRT2;
+        gyronew[0] = gyronew[0] * INVSQRT2 - temp * INVSQRT2;
+    }
 #endif
 
 #ifdef SENSOR_ROTATE_45_CW
-		{
-		float temp = gyronew[0];
-		gyronew[0] = gyronew[1] * INVSQRT2 + gyronew[0] * INVSQRT2;
-		gyronew[1] = gyronew[1] * INVSQRT2 - temp * INVSQRT2;	
-		}
-#endif	        
-		
-		
-#ifdef SENSOR_ROTATE_90_CCW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = gyronew[0];
-		gyronew[0] = -temp;	
-		}
+    {
+        float temp = gyronew[0];
+        gyronew[0] = gyronew[1] * INVSQRT2 + gyronew[0] * INVSQRT2;
+        gyronew[1] = gyronew[1] * INVSQRT2 - temp * INVSQRT2;
+    }
 #endif
-		
-					
+
+
+#ifdef SENSOR_ROTATE_90_CCW
+    {
+        float temp = gyronew[1];
+        gyronew[1] = gyronew[0];
+        gyronew[0] = -temp;
+    }
+#endif
+
+
 #ifdef SENSOR_ROTATE_180
-		{
-		gyronew[1] = -gyronew[1];
-		gyronew[0] = -gyronew[0];	
-		}
-#endif		
-		
+    {
+        gyronew[1] = -gyronew[1];
+        gyronew[0] = -gyronew[0];
+    }
+#endif
+
 #ifdef SENSOR_FLIP_180
-		{
-		gyronew[1] = -gyronew[1];
-		gyronew[2] = -gyronew[2];	
-		}
-#endif	
+    {
+        gyronew[1] = -gyronew[1];
+        gyronew[2] = -gyronew[2];
+    }
+#endif
 
 //gyronew[0] = - gyronew[0];
-gyronew[1] = - gyronew[1];
-gyronew[2] = - gyronew[2];
+    gyronew[1] = - gyronew[1];
+    gyronew[2] = - gyronew[2];
 
-	for (int i = 0; i < 3; i++)
-	  {
-		  gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
+    for (int i = 0; i < 3; i++)
+    {
+        gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
 #ifndef SOFT_LPF_NONE
-			
-		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
-			gyro[i] = lpffilter(gyronew[i], i);
-			gyro[i] = lpffilter2(gyro[i], i);
-		#endif
-			
-		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
-			gyro[i] = lpffilter(gyronew[i], i);
-		#endif
-			
-		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
-			gyro[i] = lpffilter2(gyronew[i], i);
-		#endif
-#else
-		  gyro[i] = gyronew[i];
+
+#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+        gyro[i] = lpffilter(gyronew[i], i);
+        gyro[i] = lpffilter2(gyro[i], i);
 #endif
-	  }
+
+#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+        gyro[i] = lpffilter(gyronew[i], i);
+#endif
+
+#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
+        gyro[i] = lpffilter2(gyronew[i], i);
+#endif
+#else
+        gyro[i] = gyronew[i];
+#endif
+    }
 
 }
 
 
-void gyro_read( void)
+void gyro_read(void)
 {
-int data[6];
-	
-i2c_readdata( SOFTI2C_GYRO_ADDRESS,67 , data , 6 );
-	
-float gyronew[3];
-	// order
-gyronew[1] = (int16_t) ((data[0]<<8) + data[1]);
-gyronew[0] = (int16_t) ((data[2]<<8) + data[3]);
-gyronew[2] = (int16_t) ((data[4]<<8) + data[5]);
+    int data[6];
 
-		
-gyronew[0] = gyronew[0] - gyrocal[0];
-gyronew[1] = gyronew[1] - gyrocal[1];
-gyronew[2] = gyronew[2] - gyrocal[2];
-	
-	
-		
+    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67 , data , 6);
+
+    float gyronew[3];
+    // order
+    gyronew[1] = (int16_t)((data[0] << 8) + data[1]);
+    gyronew[0] = (int16_t)((data[2] << 8) + data[3]);
+    gyronew[2] = (int16_t)((data[4] << 8) + data[5]);
+
+
+    gyronew[0] = gyronew[0] - gyrocal[0];
+    gyronew[1] = gyronew[1] - gyrocal[1];
+    gyronew[2] = gyronew[2] - gyrocal[2];
+
+
+
 #ifdef SENSOR_ROTATE_45_CCW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = gyronew[0] * INVSQRT2 + gyronew[1] * INVSQRT2;
-		gyronew[0] = gyronew[0] * INVSQRT2 - temp * INVSQRT2;	
-		}
+    {
+        float temp = gyronew[1];
+        gyronew[1] = gyronew[0] * INVSQRT2 + gyronew[1] * INVSQRT2;
+        gyronew[0] = gyronew[0] * INVSQRT2 - temp * INVSQRT2;
+    }
 #endif
-        
+
 #ifdef SENSOR_ROTATE_45_CW
-		{
-		float temp = gyronew[0];
-		gyronew[0] = gyronew[1] * INVSQRT2 + gyronew[0] * INVSQRT2;
-		gyronew[1] = gyronew[1] * INVSQRT2 - temp * INVSQRT2;	
-		}
+    {
+        float temp = gyronew[0];
+        gyronew[0] = gyronew[1] * INVSQRT2 + gyronew[0] * INVSQRT2;
+        gyronew[1] = gyronew[1] * INVSQRT2 - temp * INVSQRT2;
+    }
 #endif
-			
+
 #ifdef SENSOR_ROTATE_90_CW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = -gyronew[0];
-		gyronew[0] = temp;	
-		}
+    {
+        float temp = gyronew[1];
+        gyronew[1] = -gyronew[0];
+        gyronew[0] = temp;
+    }
 #endif
 
-				
+
 #ifdef SENSOR_ROTATE_90_CCW
-		{
-		float temp = gyronew[1];
-		gyronew[1] = gyronew[0];
-		gyronew[0] = -temp;	
-		}
+    {
+        float temp = gyronew[1];
+        gyronew[1] = gyronew[0];
+        gyronew[0] = -temp;
+    }
 #endif
-	
-					
+
+
 #ifdef SENSOR_ROTATE_180
-		{
-		gyronew[1] = -gyronew[1];
-		gyronew[0] = -gyronew[0];	
-		}
-#endif		
-		
-							
-#ifdef SENSOR_FLIP_180
-		{
-		gyronew[1] = -gyronew[1];
-		gyronew[2] = -gyronew[2];	
-		}
-#endif		
-	
-
-
-		
-//gyronew[0] = - gyronew[0];
-gyronew[1] = - gyronew[1];
-gyronew[2] = - gyronew[2];
-	
-	
-for (int i = 0; i < 3; i++)
-	  {
-		  gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
-#ifndef SOFT_LPF_NONE
-			
-		#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
-			gyro[i] = lpffilter(gyronew[i], i);
-			gyro[i] = lpffilter2(gyro[i], i);
-		#endif
-			
-		#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
-			gyro[i] = lpffilter(gyronew[i], i);
-		#endif
-			
-		#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
-			gyro[i] = lpffilter2(gyronew[i], i);
-		#endif
-#else
-		  gyro[i] = gyronew[i];
+    {
+        gyronew[1] = -gyronew[1];
+        gyronew[0] = -gyronew[0];
+    }
 #endif
-	  }
+
+
+#ifdef SENSOR_FLIP_180
+    {
+        gyronew[1] = -gyronew[1];
+        gyronew[2] = -gyronew[2];
+    }
+#endif
+
+
+
+
+//gyronew[0] = - gyronew[0];
+    gyronew[1] = - gyronew[1];
+    gyronew[2] = - gyronew[2];
+
+
+    for (int i = 0; i < 3; i++)
+    {
+        gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
+#ifndef SOFT_LPF_NONE
+
+#if defined (GYRO_FILTER_PASS2) && defined (GYRO_FILTER_PASS1)
+        gyro[i] = lpffilter(gyronew[i], i);
+        gyro[i] = lpffilter2(gyro[i], i);
+#endif
+
+#if defined (GYRO_FILTER_PASS1) && !defined(GYRO_FILTER_PASS2)
+        gyro[i] = lpffilter(gyronew[i], i);
+#endif
+
+#if defined (GYRO_FILTER_PASS2) && !defined(GYRO_FILTER_PASS1)
+        gyro[i] = lpffilter2(gyronew[i], i);
+#endif
+#else
+        gyro[i] = gyronew[i];
+#endif
+    }
 
 }
- 
+
 
 
 #define CAL_TIME 2e6
 
 void gyro_cal(void)
 {
-int data[6];
-float limit[3];	
-unsigned long time = gettime();
-unsigned long timestart = time;
-unsigned long timemax = time;
-unsigned long lastlooptime = time;
+    int data[6];
+    float limit[3];
+    unsigned long time = gettime();
+    unsigned long timestart = time;
+    unsigned long timemax = time;
+    unsigned long lastlooptime = time;
 
-float gyro[3];	
-	
- for ( int i = 0 ; i < 3 ; i++)
-			{
-			limit[i] = gyrocal[i];
-			}
+    float gyro[3];
+
+    for (int i = 0 ; i < 3 ; i++)
+    {
+        limit[i] = gyrocal[i];
+    }
 
 // 2 and 15 seconds
-while ( time - timestart < CAL_TIME  &&  time - timemax < 15e6 )
-	{	
-		
-		unsigned long looptime; 
-		looptime = time - lastlooptime;
-		lastlooptime = time;
-		if ( looptime == 0 ) looptime = 1;
+    while (time - timestart < CAL_TIME  &&  time - timemax < 15e6)
+    {
 
-	i2c_readdata( SOFTI2C_GYRO_ADDRESS, 67 , data , 6 );	
+        unsigned long looptime;
+        looptime = time - lastlooptime;
+        lastlooptime = time;
+        if (looptime == 0) looptime = 1;
 
-			
-	gyro[1] = (int16_t) ((data[0]<<8) + data[1]);
-	gyro[0] = (int16_t) ((data[2]<<8) + data[3]);
-	gyro[2] = (int16_t) ((data[4]<<8) + data[5]);
-		
-
-/*		
-if ( (time - timestart)%200000 > 100000) 
-{
-	ledon(B00000101);
-	ledoff(B00001010);
-}
-else 
-{
-	ledon(B00001010);
-	ledoff(B00000101);
-}
-*/
-#define GLOW_TIME 62500 
-static int brightness = 0;
-led_pwm( brightness);
-if ((brightness&1)^((time - timestart)%GLOW_TIME > (GLOW_TIME>>1) ))
-{
-brightness++;
-}
-
-brightness&=0xF;
-
-		 for ( int i = 0 ; i < 3 ; i++)
-			{
-
-					if ( gyro[i] > limit[i] )  limit[i] += 0.1f; // 100 gyro bias / second change
-					if ( gyro[i] < limit[i] )  limit[i] -= 0.1f;
-				
-					limitf( &limit[i] , 800);
-				
-					if ( fabsf(gyro[i]) > 100+ fabsf(limit[i]) ) 
-					{										
-						timestart = gettime();
-						brightness = 1;
-					}
-					else
-					{						
-					lpf( &gyrocal[i] , gyro[i], lpfcalc( (float) looptime , 0.5 * 1e6) );
-				
-					}
-
-			}
-
-while ( (gettime() - time) < 1000 ) delay(10); 				
-time = gettime();
-
-	}
-
-	
-
-if ( time - timestart < CAL_TIME )
-{
-	for ( int i = 0 ; i < 3; i++)
-	{
-	gyrocal[i] = 0;
-
-	}
-	
-}
+        i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67 , data , 6);
 
 
-	
+        gyro[1] = (int16_t)((data[0] << 8) + data[1]);
+        gyro[0] = (int16_t)((data[2] << 8) + data[3]);
+        gyro[2] = (int16_t)((data[4] << 8) + data[5]);
+
+
+        /*
+        if ( (time - timestart)%200000 > 100000)
+        {
+            ledon(B00000101);
+            ledoff(B00001010);
+        }
+        else
+        {
+            ledon(B00001010);
+            ledoff(B00000101);
+        }
+        */
+#define GLOW_TIME 62500
+        static int brightness = 0;
+        led_pwm(brightness);
+        if ((brightness & 1) ^ ((time - timestart) % GLOW_TIME > (GLOW_TIME >> 1)))
+        {
+            brightness++;
+        }
+
+        brightness &= 0xF;
+
+        for (int i = 0 ; i < 3 ; i++)
+        {
+
+            if (gyro[i] > limit[i])  limit[i] += 0.1f;   // 100 gyro bias / second change
+            if (gyro[i] < limit[i])  limit[i] -= 0.1f;
+
+            limitf(&limit[i] , 800);
+
+            if (fabsf(gyro[i]) > 100 + fabsf(limit[i]))
+            {
+                timestart = gettime();
+                brightness = 1;
+            }
+            else
+            {
+                lpf(&gyrocal[i] , gyro[i], lpfcalc((float) looptime , 0.5 * 1e6));
+
+            }
+
+        }
+
+        while ((gettime() - time) < 1000) delay(10);
+        time = gettime();
+
+    }
+
+
+
+    if (time - timestart < CAL_TIME)
+    {
+        for (int i = 0 ; i < 3; i++)
+        {
+            gyrocal[i] = 0;
+
+        }
+
+    }
+
+
+
 }
 
 
 void acc_cal(void)
 {
-	accelcal[2] = 1;
-	for (int y = 0; y < 500; y++)
-	  {
-		  acc_read();
-		  for (int x = 0; x < 3; x++)
-		    {
-			    lpf(&accelcal[x], accelraw[x], 0.92);
-		    }
-		  gettime();	// if it takes too long time will overflow so we call it here
+    accelcal[2] = 1;
+    for (int y = 0; y < 500; y++)
+    {
+        acc_read();
+        for (int x = 0; x < 3; x++)
+        {
+            lpf(&accelcal[x], accelraw[x], 0.92);
+        }
+        gettime();    // if it takes too long time will overflow so we call it here
 
-	  }
-	accelcal[2] -= 1;
-		
+    }
+    accelcal[2] -= 1;
+
 
 #ifdef FLASH_SAVE2
-	for (int x = 0; x < 3; x++)
-	  {
-		  limitf(&accelcal[x], 127);
-	  }
+    for (int x = 0; x < 3; x++)
+    {
+        limitf(&accelcal[x], 127);
+    }
 #endif
-      
+
 #ifdef FLASH_SAVE1
-	for (int x = 0; x < 3; x++)
-	  {
-		  limitf(&accelcal[x], 500);
-	  }
+    for (int x = 0; x < 3; x++)
+    {
+        limitf(&accelcal[x], 500);
+    }
 #endif
-		
+
 }
 
 

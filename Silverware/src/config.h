@@ -1,12 +1,12 @@
 
 
-//Universal pids are already loaded for 6mm and 7mm whoops by default.  Adjust pids in pid.c file for any non whoop builds.  
+//Universal pids are already loaded for 6mm and 7mm whoops by default.  Adjust pids in pid.c file for any non whoop builds.
 
 //**********************************************************************************************************************
 //***********************************************HARDWARE SELECTION*****************************************************
 
 // *************DEFINE FLIGHT CONTROLLER HARDWARE
-// *************SELECT ONLY ONE 
+// *************SELECT ONLY ONE
 // *************uncomment BWHOOP define for bwhoop, bwhoop pro, E011C Santa Edition, and Beta FPV Lite Flight Controllers
 // *************uncomment E011 define for E011 flight Controller
 // *************uncomment H8mini_blue_board for the H8 mini flight controller with blue circuit board
@@ -14,7 +14,7 @@
 //#define E011
 //#define H8mini_blue_board
 //#define Silverlite_Brushless
-//#define Alienwhoop_ZERO  
+//#define Alienwhoop_ZERO
 //#define Lite_Brushless
 //#define Lite_BrushlessRX
 //#define Lite_BrushedRX
@@ -41,7 +41,7 @@
 #define MAX_RATEYAW 500.0       //Yaw axis (used in acro and leveling modes)
 
 // *************EXPO from 0.00 to 1.00 , 0 = no exp
-// *************positive = less sensitive near center 
+// *************positive = less sensitive near center
 #define ACRO_EXPO_ROLL 0.80
 #define ACRO_EXPO_PITCH 0.80
 #define ACRO_EXPO_YAW 0.60
@@ -93,11 +93,11 @@
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
 #ifdef f042_1s_bayang
-    #define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
-    #define Lite_BrushedRX
+#define RX_BAYANG_PROTOCOL_TELEMETRY_AUTOBIND
+#define Lite_BrushedRX
 #else
-    #define RX_SBUS_DSMX_BAYANG_SWITCH
-    #define Lite_BrushlessRX
+#define RX_SBUS_DSMX_BAYANG_SWITCH
+#define Lite_BrushlessRX
 #endif
 
 // *************Transmitter Type Selection
@@ -109,15 +109,15 @@
 // *************CHAN_ON - on always ( all protocols)
 // *************CHAN_OFF - off always ( all protocols)
 // *************Aux channels are selectable as CHAN_5 through CHAN_12 for DEVO and through CHAN_13 (but no CHAN_11) for MULTIMODULE users
-// *************Toy transmitter mapping is CHAN_5 (rates button), CHAN_6 (stick gestures RRD/LLD), 
+// *************Toy transmitter mapping is CHAN_5 (rates button), CHAN_6 (stick gestures RRD/LLD),
 //**************CHAN_7 (headfree button), CHAN_8 (roll trim buttons), CHAN_9 (pitch trim buttons)
 
 //*************Arm switch and Idle Up switch (idle up will behave like betaflight airmode)
 //*************comment out to disable arming or idle up features ONLY if not wanted.  Other features set to CHAN_OFF to disable
 
-//*************Assign feature to auxiliary channel.  NOTE - Switching on LEVELMODE is required for any leveling modes to 
-//*************be active.  With LEVELMODE active - MCU will apply RACEMODE if racemode channel is on, HORIZON if horizon 
-//*************channel is on, or racemodeHORIZON if both channels are on - and will be standard LEVELMODE if neither 
+//*************Assign feature to auxiliary channel.  NOTE - Switching on LEVELMODE is required for any leveling modes to
+//*************be active.  With LEVELMODE active - MCU will apply RACEMODE if racemode channel is on, HORIZON if horizon
+//*************channel is on, or racemodeHORIZON if both channels are on - and will be standard LEVELMODE if neither
 //*************racemode or horizon are switched on.
 #define ARMING CHAN_5
 #define IDLE_UP CHAN_5
@@ -128,10 +128,10 @@
 #define RATES CHAN_ON
 #define LEDS_ON CHAN_10
 
-#define Roll     0   
-#define Pitch    1   
-#define Yaw      2   
-#define Throttle 3   
+#define Roll     0
+#define Pitch    1
+#define Yaw      2
+#define Throttle 3
 
 // *************switch for fpv / other, requires fet
 // *************comment out to disable
@@ -180,7 +180,7 @@
 
 // *************automatic voltage telemetry correction/calibration factor - change the values below if voltage telemetry is inaccurate
 // *************Corrects for an offset error in the telemetry measurement (same offset across the battery voltage range)
-// *************Enter values in total battery volts.  This is factor is used in all voltage related calculations - ensure your transmitter is not mucking with telemetry scale before adjusting 
+// *************Enter values in total battery volts.  This is factor is used in all voltage related calculations - ensure your transmitter is not mucking with telemetry scale before adjusting
 #define ACTUAL_BATTERY_VOLTAGE 4.20
 #define REPORTED_TELEMETRY_VOLTAGE 4.20
 
@@ -202,14 +202,14 @@
 // *************The following is the new "beta" testing filter set.  Taking lesson from betaflight ... it seems very effective to stack 1st order filters
 // *************and gives outstanding adjustability as you can stagger the first and second passes at different values as opposed to being constrained by
 // ************* a second order filter at a single cut frequency.  Go test and see what you like, and report back if you feel so inclined.  I have not actually staggered my
-// ************* filters yet and the filters listed below are what I am flying on my whoop so far.  For my boss 7, I am changing both pass 1 and 2 to HZ_70, and  
-// ************* setting the D 2nd filter to 120hz.  FYI, whoops seem to have one noise peak somewhere around 150 to 200hz and another one closer to 400 to 500hz.  
+// ************* filters yet and the filters listed below are what I am flying on my whoop so far.  For my boss 7, I am changing both pass 1 and 2 to HZ_70, and
+// ************* setting the D 2nd filter to 120hz.  FYI, whoops seem to have one noise peak somewhere around 150 to 200hz and another one closer to 400 to 500hz.
 // *************  For my brushless 4" I am running one gyro pass at 90hz, the second gyro pass at 140hz, and the 1st order D filter at 70hz. On all of these crafts I have
 // *************  been able to totally eliminate the need for any motor output filtering.  It will remain in the code as an available option for now, but I hope to be able to remove
 // *************  it completely from the code soon if testing continues to go well.  My thoughts on motor output filtering are here https://community.micro-motor-warehouse.com/t/notfastenuf-e011-bwhoop-silverware-fork/5501/1388?u=notfastenuf
 // *************  To adjust your filters if you so desire - use these basic observations I have made:  Noise will be obvious by motors that dont want to throttle down immediately or at all.  Too much filtering will be obvious
 // ************* by propwash and eventually P oscillations if you really push it too far
-// *************  
+// *************
 // *************  At this point I feel very optimistic about this gyro filter configuration. I hope we can all work together to establish the best whoop defaults possible.
 // *************  If you want to help, try to tweak in the values on pass 1 and 2 for something that runs 6 and 7mm really clean.  Go slap on some bent
 // ************* props, or find some of those garbage off balance 3 blade abominations that the stock zero tune hates so much.  Lets see what we can make possible and find the limits.
@@ -218,7 +218,7 @@
 // ************* Feel free to unselect BETA_FILTERING and return to ALIENWHOOP_ZERO_FILTERING here for comparison to stock.  I think/hope that this will work well enough that even the
 // ************* prefilled filter sets can be eventually abandoned in favor of one decent set of defaults that fly most everything very well
 // *************
-// *************  FINAL NOTE: If you want to try running only one gyro pass, you can comment out either pass one or pass two.  Next revision will have split 1st order D term filter 
+// *************  FINAL NOTE: If you want to try running only one gyro pass, you can comment out either pass one or pass two.  Next revision will have split 1st order D term filter
 // *************  passes just like the gyro in place of 2nd order filtering.      Thanks - NFE
 
 
@@ -258,11 +258,11 @@
 
 // *************invert yaw pid for "PROPS OUT" configuration - This feature is switchable to "PROPS IN" when active with stick gesture DOWN-UP-DOWN, Save selection with DOWN-DOWN-DOWN
 #ifdef f042_1s_bayang
-    //#define INVERT_YAW_PID
-    #define MOTOR_MIN_COMMAND  10.0
+//#define INVERT_YAW_PID
+#define MOTOR_MIN_COMMAND  10.0
 #else
-    #define INVERT_YAW_PID
-    #define MOTOR_MIN_COMMAND  5.0
+#define INVERT_YAW_PID
+#define MOTOR_MIN_COMMAND  5.0
 #endif
 // *************pwm frequency for motor control
 // *************a higher frequency makes the motors more linear
@@ -276,14 +276,14 @@
 // *************of the motors when the command to the motors is changing by increasing or decreasing the voltage thats sent.  It differs
 // *************from throttle transient compensation in that it acts on all motor commands - not just throttle changes.  this feature
 // *************is very noise sensative so D term specifically has to be lowered and gyro/d filtering may need to be increased.
-// *************reccomendation right now is to leave boost at or below 2, drop your p gains a few points, then cut your D in half and 
+// *************reccomendation right now is to leave boost at or below 2, drop your p gains a few points, then cut your D in half and
 // *************retune it back up to where it feels good.  I'm finding about 60 to 65% of my previous D value seems to work.
 //#define TORQUE_BOOST 1.0
 
 // *************makes throttle feel more poppy - can intensify small throttle imbalances visible in FPV if factor is set too high
-//#define THROTTLE_TRANSIENT_COMPENSATION 
-//#define THROTTLE_TRANSIENT_COMPENSATION_FACTOR 4.0 
- 
+//#define THROTTLE_TRANSIENT_COMPENSATION
+//#define THROTTLE_TRANSIENT_COMPENSATION_FACTOR 4.0
+
 // *************throttle angle compensation in level mode
 //#define AUTO_THROTTLE
 

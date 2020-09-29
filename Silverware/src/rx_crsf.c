@@ -50,7 +50,7 @@ int rx_bind_enable = 0;
  * CRC:            (uint8_t)
  *
  */
- 
+
 
 // internal crsf variables
 #define CRSF_TIME_NEEDED_PER_FRAME_US   1100 // 700 ms + 400 ms for potential ad-hoc request
@@ -74,23 +74,26 @@ uint32_t flagged_time;
 int framestarted = -1;
 
 
-typedef struct crsfFrameDef_s {
+typedef struct crsfFrameDef_s
+{
     uint8_t deviceAddress;
     uint8_t frameLength;
     uint8_t type;
     uint8_t payload[CRSF_PAYLOAD_SIZE_MAX + 1]; // +1 for CRC at end of payload
-} crsfFrameDef_t; 
- 
+} crsfFrameDef_t;
 
-typedef union crsfFrame_u {
+
+typedef union crsfFrame_u
+{
     uint8_t bytes[CRSF_FRAME_SIZE_MAX];
     crsfFrameDef_t frame;
-} crsfFrame_t; 
+} crsfFrame_t;
 
 crsfFrame_t crsfFrame;
- 
- 
-typedef enum {
+
+
+typedef enum
+{
     CRSF_FRAMETYPE_GPS = 0x02,
     CRSF_FRAMETYPE_BATTERY_SENSOR = 0x08,
     CRSF_FRAMETYPE_LINK_STATISTICS = 0x14,
@@ -105,7 +108,8 @@ typedef enum {
 } crsfFrameType_e;
 
 
-enum {
+enum
+{
     CRSF_FRAME_GPS_PAYLOAD_SIZE = 15,
     CRSF_FRAME_BATTERY_SENSOR_PAYLOAD_SIZE = 8,
     CRSF_FRAME_LINK_STATISTICS_PAYLOAD_SIZE = 10,
@@ -123,7 +127,8 @@ enum {
 };
 
 
-struct crsfPayloadRcChannelsPacked_s {
+struct crsfPayloadRcChannelsPacked_s
+{
     // 176 bits of data (11 bits per channel * 16 channels) = 22 bytes.
     unsigned int chan0 : 11;
     unsigned int chan1 : 11;
@@ -141,7 +146,7 @@ struct crsfPayloadRcChannelsPacked_s {
     unsigned int chan13 : 11;
     unsigned int chan14 : 11;
     unsigned int chan15 : 11;
-} __attribute__ ((__packed__));
+} __attribute__((__packed__));
 
 typedef struct crsfPayloadRcChannelsPacked_s crsfPayloadRcChannelsPacked_t;
 
@@ -151,10 +156,14 @@ typedef struct crsfPayloadRcChannelsPacked_s crsfPayloadRcChannelsPacked_t;
 uint8_t crc8_dvb_s2(uint8_t crc, unsigned char a)
 {
     crc ^= a;
-    for (int ii = 0; ii < 8; ++ii) {
-        if (crc & 0x80) {
+    for (int ii = 0; ii < 8; ++ii)
+    {
+        if (crc & 0x80)
+        {
             crc = (crc << 1) ^ 0xD5;
-        } else {
+        }
+        else
+        {
             crc = crc << 1;
         }
     }
@@ -166,7 +175,8 @@ uint8_t crsfFrameCRC(void)
 {
     // CRC includes type and payload
     uint8_t crc = crc8_dvb_s2(0, crsfFrame.frame.type);
-    for (int ii = 0; ii < crsfFrame.frame.frameLength - CRSF_FRAME_LENGTH_TYPE_CRC; ++ii) {
+    for (int ii = 0; ii < crsfFrame.frame.frameLength - CRSF_FRAME_LENGTH_TYPE_CRC; ++ii)
+    {
         crc = crc8_dvb_s2(crc, crsfFrame.frame.payload[ii]);
     }
     return crc;
@@ -176,45 +186,53 @@ uint8_t crsfFrameCRC(void)
 
 
 // Receive ISR callback, called back from serial port
-void USART1_IRQHandler(void)	
+void USART1_IRQHandler(void)
 {
     static uint8_t crsfFramePosition = 0;
-    unsigned long  maxticks = SysTick->LOAD;	
-    unsigned long ticks = SysTick->VAL;	
-    unsigned long crsfTimeInterval;	
-    static unsigned long lastticks;	
-    if (ticks < lastticks) 
-        crsfTimeInterval = lastticks - ticks;	
+    unsigned long  maxticks = SysTick->LOAD;
+    unsigned long ticks = SysTick->VAL;
+    unsigned long crsfTimeInterval;
+    static unsigned long lastticks;
+    if (ticks < lastticks)
+        crsfTimeInterval = lastticks - ticks;
     else
-        {// overflow ( underflow really)
-        crsfTimeInterval = lastticks + ( maxticks - ticks);	
-        }
-		lastticks = ticks;
-	
-		if ( USART_GetFlagStatus(USART1 , USART_FLAG_ORE ) ){
-      // overflow means something was lost 
-      USART_ClearFlag( USART1 , USART_FLAG_ORE );
-			crsfFramePosition = 0;
-    }    
+    {
+        // overflow ( underflow really)
+        crsfTimeInterval = lastticks + (maxticks - ticks);
+    }
+    lastticks = ticks;
 
-    if (crsfTimeInterval > CRSF_TIME_NEEDED_PER_FRAME_US) {
+    if (USART_GetFlagStatus(USART1 , USART_FLAG_ORE))
+    {
+        // overflow means something was lost
+        USART_ClearFlag(USART1 , USART_FLAG_ORE);
+        crsfFramePosition = 0;
+    }
+
+    if (crsfTimeInterval > CRSF_TIME_NEEDED_PER_FRAME_US)
+    {
         // We've received a character after max time needed to complete a frame,
         // so this must be the start of a new frame.
         crsfFramePosition = 0;
     }
-		
+
 
     // assume frame is 5 bytes long until we have received the frame length
     // full frame length includes the length of the address and framelength fields
-		const uint8_t fullFrameLength = crsfFramePosition < 3 ? 5 : crsfFrame.frame.frameLength + CRSF_FRAME_LENGTH_ADDRESS + CRSF_FRAME_LENGTH_FRAMELENGTH;
-    if (crsfFramePosition < fullFrameLength) {
+    const uint8_t fullFrameLength = crsfFramePosition < 3 ? 5 : crsfFrame.frame.frameLength + CRSF_FRAME_LENGTH_ADDRESS + CRSF_FRAME_LENGTH_FRAMELENGTH;
+    if (crsfFramePosition < fullFrameLength)
+    {
         crsfFrame.bytes[crsfFramePosition++] = USART_ReceiveData(USART1);
-				if (crsfFramePosition < fullFrameLength) {
-						crsfFrameDone = 0;
-				}else{
-						crsfFrameDone = 1;
-				}
-        if (crsfFrameDone) {
+        if (crsfFramePosition < fullFrameLength)
+        {
+            crsfFrameDone = 0;
+        }
+        else
+        {
+            crsfFrameDone = 1;
+        }
+        if (crsfFrameDone)
+        {
             crsfFramePosition = 0;
         }
     }
@@ -225,37 +243,45 @@ void USART1_IRQHandler(void)
 
 void crsfFrameStatus(void)
 {
-		if (crsfFrameDone == 0){
-				rx_frame_pending = 1;															//flags when last time through we had a frame and this time we dont
-    }else{
+    if (crsfFrameDone == 0)
+    {
+        rx_frame_pending = 1;                                                           //flags when last time through we had a frame and this time we dont
+    }
+    else
+    {
         crsfFrameDone = 0;
-        if (crsfFrame.frame.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED) {
+        if (crsfFrame.frame.type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+        {
             // CRC includes type and payload of each frame
             const uint8_t crc = crsfFrameCRC();
-            if (crc != crsfFrame.frame.payload[CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE]) {
-						//              toss out bad frame
-            }else{   
-            // unpack the RC channels
-            const crsfPayloadRcChannelsPacked_t* const rcChannels = (crsfPayloadRcChannelsPacked_t*)&crsfFrame.frame.payload;
-            crsfChannelData[0] = rcChannels->chan0;
-            crsfChannelData[1] = rcChannels->chan1;
-            crsfChannelData[2] = rcChannels->chan2;
-            crsfChannelData[3] = rcChannels->chan3;
-            crsfChannelData[4] = rcChannels->chan4;
-            crsfChannelData[5] = rcChannels->chan5;
-            crsfChannelData[6] = rcChannels->chan6;
-            crsfChannelData[7] = rcChannels->chan7;
-            crsfChannelData[8] = rcChannels->chan8;
-            crsfChannelData[9] = rcChannels->chan9;
-            crsfChannelData[10] = rcChannels->chan10;
-            crsfChannelData[11] = rcChannels->chan11;
-            crsfChannelData[12] = rcChannels->chan12;
-            crsfChannelData[13] = rcChannels->chan13;
-            crsfChannelData[14] = rcChannels->chan14;
-            crsfChannelData[15] = rcChannels->chan15;
-						  	framestarted = 1;											
-								rx_frame_pending = 0;                    //flags when last time through we didn't have a frame and this time we do	
-				        bind_safety++;}                          // incriments up as good frames come in till we pass a safe point where aux channels are updated 
+            if (crc != crsfFrame.frame.payload[CRSF_FRAME_RC_CHANNELS_PAYLOAD_SIZE])
+            {
+                //              toss out bad frame
+            }
+            else
+            {
+                // unpack the RC channels
+                const crsfPayloadRcChannelsPacked_t *const rcChannels = (crsfPayloadRcChannelsPacked_t *)&crsfFrame.frame.payload;
+                crsfChannelData[0] = rcChannels->chan0;
+                crsfChannelData[1] = rcChannels->chan1;
+                crsfChannelData[2] = rcChannels->chan2;
+                crsfChannelData[3] = rcChannels->chan3;
+                crsfChannelData[4] = rcChannels->chan4;
+                crsfChannelData[5] = rcChannels->chan5;
+                crsfChannelData[6] = rcChannels->chan6;
+                crsfChannelData[7] = rcChannels->chan7;
+                crsfChannelData[8] = rcChannels->chan8;
+                crsfChannelData[9] = rcChannels->chan9;
+                crsfChannelData[10] = rcChannels->chan10;
+                crsfChannelData[11] = rcChannels->chan11;
+                crsfChannelData[12] = rcChannels->chan12;
+                crsfChannelData[13] = rcChannels->chan13;
+                crsfChannelData[14] = rcChannels->chan14;
+                crsfChannelData[15] = rcChannels->chan15;
+                framestarted = 1;
+                rx_frame_pending = 0;                    //flags when last time through we didn't have a frame and this time we do
+                bind_safety++;
+            }                          // incriments up as good frames come in till we pass a safe point where aux channels are updated
         }
     }
 
@@ -267,27 +293,27 @@ void crsfFrameStatus(void)
 void crsf_init(void)
 {
     // make sure there is some time to program the board
-    if ( gettime() < 2000000 ) return;    
+    if (gettime() < 2000000) return;
     GPIO_InitTypeDef  GPIO_InitStructure;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;   
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;   
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;   
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;  
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Pin = SERIAL_RX_PIN;
-    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure); 
+    GPIO_Init(SERIAL_RX_PORT, &GPIO_InitStructure);
     GPIO_PinAFConfig(SERIAL_RX_PORT, SERIAL_RX_SOURCE , SERIAL_RX_CHANNEL);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
     USART_InitTypeDef USART_InitStructure;
     USART_InitStructure.USART_BaudRate = SERIAL_BAUDRATE;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;  
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;    //sbus is even parity
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USART1, &USART_InitStructure);
 // swap rx/tx pins
 #ifdef SERIAL_RX_SWD
-    USART_SWAPPinCmd( USART1, ENABLE);
+    USART_SWAPPinCmd(USART1, ENABLE);
 #endif
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
     USART_Cmd(USART1, ENABLE);
@@ -297,7 +323,7 @@ void crsf_init(void)
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 // set setup complete flag
- framestarted = 0;
+    framestarted = 0;
 }
 
 
@@ -305,7 +331,7 @@ void crsf_init(void)
 
 void rx_init(void)
 {
-    
+
 }
 
 
@@ -315,101 +341,114 @@ void checkrx()
 
 {
 
-if ( framestarted < 0){									
-			failsafe = 1;																														//kill motors while initializing usart (maybe not necessary)		  
-      crsf_init();																														// toggles "framestarted = 0;" after initializing
-			rxmode = !RXMODE_BIND; 																									// put LEDS in normal signal status
-}   																													
+    if (framestarted < 0)
+    {
+        failsafe = 1;                                                                                                                       //kill motors while initializing usart (maybe not necessary)
+        crsf_init();                                                                                                                      // toggles "framestarted = 0;" after initializing
+        rxmode = !RXMODE_BIND;                                                                                                  // put LEDS in normal signal status
+    }
 
-if ( framestarted == 0){ 																											// this is the failsafe condition
-		failsafe = 1;																															//keeps motors off while waiting for first frame and if no new frame for more than 1s
-} 
- 
+    if (framestarted == 0)                                                                                                               // this is the failsafe condition
+    {
+        failsafe = 1;                                                                                                                           //keeps motors off while waiting for first frame and if no new frame for more than 1s
+    }
 
-rx_frame_pending_last = rx_frame_pending;
-crsfFrameStatus();		
-if (rx_frame_pending != rx_frame_pending_last) flagged_time = gettime();  		//updates flag to current time only on changes of losing a frame or getting one back
-if (gettime() - flagged_time > FAILSAFETIME) framestarted = 0;            		//watchdog if more than 1 sec passes without a frame causes failsafe
-		
-         
-if ( framestarted == 1){
-				if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;		// normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
-		   
-      // AETR channel order																											
-			  rx[0] = (crsfChannelData[0] - 990.5f) * 0.00125707103f;  
-        rx[1] = (crsfChannelData[1] - 990.5f) * 0.00125707103f; 
+
+    rx_frame_pending_last = rx_frame_pending;
+    crsfFrameStatus();
+    if (rx_frame_pending != rx_frame_pending_last) flagged_time = gettime();        //updates flag to current time only on changes of losing a frame or getting one back
+    if (gettime() - flagged_time > FAILSAFETIME) framestarted = 0;                  //watchdog if more than 1 sec passes without a frame causes failsafe
+
+
+    if (framestarted == 1)
+    {
+        if ((bind_safety < 900) && (bind_safety > 0)) rxmode = RXMODE_BIND;     // normal rx mode - removes waiting for bind led leaving failsafe flashes as data starts to come in
+
+        // AETR channel order
+        rx[0] = (crsfChannelData[0] - 990.5f) * 0.00125707103f;
+        rx[1] = (crsfChannelData[1] - 990.5f) * 0.00125707103f;
         rx[2] = (crsfChannelData[3] - 990.5f) * 0.00125707103f;
         rx[3] = (crsfChannelData[2] - 191.0f) * 0.00062853551f;
-	
-				if ( rx[3] > 1 ) rx[3] = 1;	
-				if ( rx[3] < 0 ) rx[3] = 0;
 
-				
-				if (aux[LEVELMODE]){
-							if (aux[RACEMODE] && !aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-							}else if (aux[HORIZON]){
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-									if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-							}else{
-									if ( ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-									if ( ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-									if ( ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);}
-				}else{
-						if ( ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-						if ( ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-						if ( ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-				}
-							
-	
-				aux[CHAN_5] = (crsfChannelData[4] > 1100) ? 1 : 0;													//1100 cutoff intentionally selected to force aux channels low if 
-				aux[CHAN_6] = (crsfChannelData[5] > 1100) ? 1 : 0;													//being controlled by a transmitter using a 3 pos switch in center state
-				aux[CHAN_7] = (crsfChannelData[6] > 1100) ? 1 : 0;
-				aux[CHAN_8] = (crsfChannelData[7] > 1100) ? 1 : 0;
-				aux[CHAN_9] = (crsfChannelData[8] > 1100) ? 1 : 0;
-				aux[CHAN_10] = (crsfChannelData[9] > 1100) ? 1 : 0;							
+        if (rx[3] > 1) rx[3] = 1;
+        if (rx[3] < 0) rx[3] = 0;
+
+
+        if (aux[LEVELMODE])
+        {
+            if (aux[RACEMODE] && !aux[HORIZON])
+            {
+                if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+            }
+            else if (aux[HORIZON])
+            {
+                if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+                if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+                if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+            }
+            else
+            {
+                if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
+                if (ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
+                if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
+            }
+        }
+        else
+        {
+            if (ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
+            if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
+            if (ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
+        }
+
+
+        aux[CHAN_5] = (crsfChannelData[4] > 1100) ? 1 : 0;                                                  //1100 cutoff intentionally selected to force aux channels low if
+        aux[CHAN_6] = (crsfChannelData[5] > 1100) ? 1 : 0;                                                  //being controlled by a transmitter using a 3 pos switch in center state
+        aux[CHAN_7] = (crsfChannelData[6] > 1100) ? 1 : 0;
+        aux[CHAN_8] = (crsfChannelData[7] > 1100) ? 1 : 0;
+        aux[CHAN_9] = (crsfChannelData[8] > 1100) ? 1 : 0;
+        aux[CHAN_10] = (crsfChannelData[9] > 1100) ? 1 : 0;
 
 #ifdef USE_ANALOG_AUX
         // Map to range 0 to 1
-				aux_analog[CHAN_5] = (crsfChannelData[4] - 990.5f) * 0.00125707103f;
-				aux_analog[CHAN_6] = (crsfChannelData[5] - 990.5f) * 0.00125707103f;
-				aux_analog[CHAN_7] = (crsfChannelData[6] - 990.5f) * 0.00125707103f;
-				aux_analog[CHAN_8] = (crsfChannelData[7] - 990.5f) * 0.00125707103f;
-				aux_analog[CHAN_9] = (crsfChannelData[8] - 990.5f) * 0.00125707103f;
-				aux_analog[CHAN_10] = (crsfChannelData[9] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_5] = (crsfChannelData[4] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_6] = (crsfChannelData[5] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_7] = (crsfChannelData[6] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_8] = (crsfChannelData[7] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_9] = (crsfChannelData[8] - 990.5f) * 0.00125707103f;
+        aux_analog[CHAN_10] = (crsfChannelData[9] - 990.5f) * 0.00125707103f;
 
-				aux_analogchange[CHAN_5] = (aux_analog[CHAN_5] != lastaux_analog[CHAN_5]) ? 1 : 0;
-				aux_analogchange[CHAN_6] = (aux_analog[CHAN_6] != lastaux_analog[CHAN_6]) ? 1 : 0;
-				aux_analogchange[CHAN_7] = (aux_analog[CHAN_7] != lastaux_analog[CHAN_7]) ? 1 : 0;
-				aux_analogchange[CHAN_8] = (aux_analog[CHAN_8] != lastaux_analog[CHAN_8]) ? 1 : 0;
-				aux_analogchange[CHAN_9] = (aux_analog[CHAN_9] != lastaux_analog[CHAN_9]) ? 1 : 0;
-				aux_analogchange[CHAN_10] = (aux_analog[CHAN_10] != lastaux_analog[CHAN_10]) ? 1 : 0;
+        aux_analogchange[CHAN_5] = (aux_analog[CHAN_5] != lastaux_analog[CHAN_5]) ? 1 : 0;
+        aux_analogchange[CHAN_6] = (aux_analog[CHAN_6] != lastaux_analog[CHAN_6]) ? 1 : 0;
+        aux_analogchange[CHAN_7] = (aux_analog[CHAN_7] != lastaux_analog[CHAN_7]) ? 1 : 0;
+        aux_analogchange[CHAN_8] = (aux_analog[CHAN_8] != lastaux_analog[CHAN_8]) ? 1 : 0;
+        aux_analogchange[CHAN_9] = (aux_analog[CHAN_9] != lastaux_analog[CHAN_9]) ? 1 : 0;
+        aux_analogchange[CHAN_10] = (aux_analog[CHAN_10] != lastaux_analog[CHAN_10]) ? 1 : 0;
 
-				lastaux_analog[CHAN_5] = aux_analog[CHAN_5];
-				lastaux_analog[CHAN_6] = aux_analog[CHAN_6];
-				lastaux_analog[CHAN_7] = aux_analog[CHAN_7];
-				lastaux_analog[CHAN_8] = aux_analog[CHAN_8];
-				lastaux_analog[CHAN_9] = aux_analog[CHAN_9];
-				lastaux_analog[CHAN_10] = aux_analog[CHAN_10];
+        lastaux_analog[CHAN_5] = aux_analog[CHAN_5];
+        lastaux_analog[CHAN_6] = aux_analog[CHAN_6];
+        lastaux_analog[CHAN_7] = aux_analog[CHAN_7];
+        lastaux_analog[CHAN_8] = aux_analog[CHAN_8];
+        lastaux_analog[CHAN_9] = aux_analog[CHAN_9];
+        lastaux_analog[CHAN_10] = aux_analog[CHAN_10];
 #endif
 
 
 
 
-				if (bind_safety > 100){								//requires 10 good frames to come in before rx_ready safety can be toggled to 1.  900 is about 2 seconds of good data
-					rx_ready = 1;												// because aux channels initialize low and clear the binding while armed flag before aux updates high
-					failsafe = 0;												// turn off failsafe delayed a bit to emmulate led behavior of sbus protocol - optional either here or just above here
-					rxmode = !RXMODE_BIND;							// restores normal led operation
-					bind_safety = 101;									// reset counter so it doesnt wrap
-				}
+        if (bind_safety > 100)                              //requires 10 good frames to come in before rx_ready safety can be toggled to 1.  900 is about 2 seconds of good data
+        {
+            rx_ready = 1;                                               // because aux channels initialize low and clear the binding while armed flag before aux updates high
+            failsafe = 0;                                               // turn off failsafe delayed a bit to emmulate led behavior of sbus protocol - optional either here or just above here
+            rxmode = !RXMODE_BIND;                          // restores normal led operation
+            bind_safety = 101;                                  // reset counter so it doesnt wrap
+        }
 
 
-						
-	}
-}	
-	#endif
+
+    }
+}
+#endif
 
 

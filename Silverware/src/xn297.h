@@ -1,13 +1,13 @@
 
 
-void xn_writerxaddress(  int *addr )	;
-void xn_writereg( int reg , int val);
-int xn_command( int command);
-int xn_readreg( int reg);
-void _spi_write_address( int reg, int val);
-void xn_readpayload( int *data , int size );
-void xn_writepayload( int data[] , int size );
-void xn_writetxaddress(  int *addr )	;
+void xn_writerxaddress(int *addr)  ;
+void xn_writereg(int reg , int val);
+int xn_command(int command);
+int xn_readreg(int reg);
+void _spi_write_address(int reg, int val);
+void xn_readpayload(int *data , int size);
+void xn_writepayload(int data[] , int size);
+void xn_writetxaddress(int *addr)  ;
 
 
 // registers
@@ -63,7 +63,7 @@ void xn_writetxaddress(  int *addr )	;
 #define PLL_LOCK    4
 #define RF_DR       3
 #define RF_PWR      1
-#define LNA_HCURR   0        
+#define LNA_HCURR   0
 #define RX_DR       6
 #define TX_DS       5
 #define MAX_RT      4
@@ -96,9 +96,9 @@ void xn_writetxaddress(  int *addr )	;
 
 
 // bitrate
-#define BITRATE_1M 		0x0
-#define BITRATE_2M 		0x1
-#define BITRATE_250K 	0x2
+#define BITRATE_1M      0x0
+#define BITRATE_2M      0x1
+#define BITRATE_250K    0x2
 
 
 
