@@ -431,9 +431,7 @@ static int decodepacket(void)
                 else{
                    aux[ARMING] = 0; 
                 }
-                aux[11] = (rxdata[2] & 0x04) ? 1 : 0;
-                aux[12] = (rxdata[2] & 0x40) ? 1 : 0;
-                
+            
                 if(mode_config==0){
                     aux[LEVELMODE] = 0;
                     aux[RACEMODE] = 0;
@@ -460,10 +458,6 @@ static int decodepacket(void)
                     aux[HORIZON] = 1;
                 }
 
-                
-                aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;   // rth channel  //3chan
-                aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;                    //8 chan
-                aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
             }
             else
             {
