@@ -425,17 +425,42 @@ static int decodepacket(void)
 #ifdef f042_1s_bayang
             if (tx_config)
             {
-                if (showcase == 0 && rx[3] > 0.01f)
-                {
+                if(showcase==0 && rx[3]>0.01f){
                     aux[ARMING] = 1;
                 }
-                else
-                {
-                    aux[ARMING] = 0;
+                else{
+                   aux[ARMING] = 0; 
                 }
                 aux[11] = (rxdata[2] & 0x04) ? 1 : 0;
                 aux[12] = (rxdata[2] & 0x40) ? 1 : 0;
+                
+                if(mode_config==0){
+                    aux[LEVELMODE] = 0;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==1){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==2){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 1;
+                    aux[HORIZON] = 0;
+                }
+                else if(mode_config==3){
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 1;
+                    aux[HORIZON] = 1;
+                }
+                else{
+                    aux[LEVELMODE] = 1;
+                    aux[RACEMODE] = 0;
+                    aux[HORIZON] = 1;
+                }
 
+                
                 aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;   // rth channel  //3chan
                 aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;                    //8 chan
                 aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan

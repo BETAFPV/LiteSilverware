@@ -447,7 +447,7 @@ void osd_setting()
             else if (currentMenu->index == 1)
             {
                 mode_config++;
-                if (mode_config > 1)
+                if (mode_config > 4)
                     mode_config = 0;
             }
             else if (currentMenu->index == 2)
