@@ -528,6 +528,11 @@
               <FilePath>.\src\rx_crsf.c</FilePath>
             </File>
             <File>
+              <FileName>rx_ibus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\rx_ibus.c</FilePath>
+            </File>
+            <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\led.c</FilePath>

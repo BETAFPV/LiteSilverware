@@ -85,6 +85,7 @@
 // *************select only one
 
 //#define RX_SBUS
+//#define RX_IBUS
 //#define RX_CRSF                                           //Requires tbs firmware v2.88 or newer for failsafe to operate properly
 //#define RX_DSMX_2048
 //#define RX_DSM2_1024
