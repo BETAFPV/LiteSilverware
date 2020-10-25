@@ -280,6 +280,9 @@ rx_switch = 3;
 #ifdef RX_DSMX_1024
 rx_switch = 4;
 #endif
+#ifdef RX_IBUS
+rx_switch = 5;
+#endif 
 #endif
     
     
