@@ -9,6 +9,19 @@
 *.uvgui.*
 *.uvguix.*
 
+obj
+build/
+*.TMP
+project/*.txt
+project/*.ini
+project/*.bak
+project/DebugConfig/
+project/*.scvd
+project/*.Administrator
+project/*.uvoptx
+project/*.dep
+
+
 # Listing files
 *.cod
 *.htm
