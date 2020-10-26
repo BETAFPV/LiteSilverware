@@ -12,5 +12,5 @@
 
 
 
-Read the original README for more information.[README](Read the original README for more information.)
+Read the original README for more information. [README](https://github.com/BETAFPV/LiteSilverware/tree/master)
 
