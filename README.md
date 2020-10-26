@@ -14,3 +14,6 @@
 
 Read the original README for more information. [README](https://github.com/BETAFPV/LiteSilverware/tree/master)
 
+
+
+### It's not finished yet. It won't take long.
