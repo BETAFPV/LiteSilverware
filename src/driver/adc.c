@@ -37,10 +37,10 @@ void adc_init(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
     GPIO_Init(BATTERYPORT, &GPIO_InitStructure);
-    
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1 , ENABLE);
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 
     DMA_InitTypeDef     DMA_InitStructure;
 
@@ -72,9 +72,9 @@ void adc_init(void)
     ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Backward;
     ADC_Init(ADC1, &ADC_InitStructure);
 
-    ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint , ADC_SampleTime_239_5Cycles);
+    ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint, ADC_SampleTime_239_5Cycles);
 
-    ADC_ChannelConfig(ADC1, BATTERY_ADC_CHANNEL , ADC_SampleTime_239_5Cycles);
+    ADC_ChannelConfig(ADC1, BATTERY_ADC_CHANNEL, ADC_SampleTime_239_5Cycles);
 
     ADC_VrefintCmd(ENABLE);
 

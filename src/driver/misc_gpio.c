@@ -8,9 +8,9 @@ void gpio_init(void)
 {
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-    RCC_AHBPeriphClockCmd(RCC_AHBENR_GPIOFEN , ENABLE);
-    
-    
+    RCC_AHBPeriphClockCmd(RCC_AHBENR_GPIOFEN, ENABLE);
+
+
     //blue led
     GPIO_InitTypeDef  GPIO_InitStructure;
 
@@ -21,8 +21,8 @@ void gpio_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    
-    
-    
+
+
+
 }
 

@@ -15,23 +15,23 @@
 
 void mpu6050_init(void)
 {
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107 , 128);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107, 128);
 
     delay(40000);
 
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 25 , 0);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 25, 0);
 
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107 , 0x03);
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 55 , 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107, 0x03);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 55, 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
 
     delay(100);
 
     // Gyro DLPF low pass filter
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 26 , GYRO_LOW_PASS_FILTER);
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 26, GYRO_LOW_PASS_FILTER);
 
     i2c_writereg(SOFTI2C_GYRO_ADDRESS, 28, B00010000);   // 8G scale
 
-    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 27 , B00010000);   
+    i2c_writereg(SOFTI2C_GYRO_ADDRESS, 27, B00010000);
 }
 
 
@@ -60,7 +60,7 @@ void mpu6050_read(void)
 {
     int data[16];
 
-    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59 , data , 14);
+    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 59, data, 14);
 
     accelraw[0] = -(int16_t)((data[0] << 8) + data[1]);
     accelraw[1] = -(int16_t)((data[2] << 8) + data[3]);
@@ -112,7 +112,7 @@ void gyro_read(void)
 {
     int data[6];
 
-    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67 , data , 6);
+    i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67, data, 6);
 
     float gyronew[3];
 
@@ -169,7 +169,7 @@ void gyro_cal(void)
         lastlooptime = time;
         if (looptime == 0) looptime = 1;
 
-        i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67 , data , 6);
+        i2c_readdata(SOFTI2C_GYRO_ADDRESS, 67, data, 6);
 
 
         gyro[1] = (int16_t)((data[0] << 8) + data[1]);
@@ -185,7 +185,7 @@ void gyro_cal(void)
             if (gyro[i] > limit[i])  limit[i] += 0.1f;   // 100 gyro bias / second change
             if (gyro[i] < limit[i])  limit[i] -= 0.1f;
 
-            limitf(&limit[i] , 800);
+            limitf(&limit[i], 800);
 
             if (fabsf(gyro[i]) > 100 + fabsf(limit[i]))
             {
@@ -193,7 +193,7 @@ void gyro_cal(void)
             }
             else
             {
-                lpf(&gyrocal[i] , gyro[i], lpfcalc((float) looptime , 0.5 * 1e6));
+                lpf(&gyrocal[i], gyro[i], lpfcalc((float) looptime, 0.5 * 1e6));
             }
         }
         while ((gettime() - time) < 1000) delay(10);

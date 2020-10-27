@@ -66,60 +66,60 @@ volatile uint32_t sysTickValStamp = 0;
 
 void sysTick_init()
 {
-  if (SysTick_Config(SYS_CLOCK_FREQ_HZ / 1000))
+    if (SysTick_Config(SYS_CLOCK_FREQ_HZ / 1000))
     {
-      /* Capture error */
-      while (1);
+        /* Capture error */
+        while (1);
     }
-     NVIC_SetPriority(SysTick_IRQn, 0x0);//SysTick中断优先级设置
+    NVIC_SetPriority(SysTick_IRQn, 0x0);//SysTick中断优先级设置
 }
 
 void SysTick_Handler(void)
 {
-  sysTickUptime++;
-  sysTickValStamp = SysTick->VAL;
+    sysTickUptime++;
+    sysTickValStamp = SysTick->VAL;
 }
 
 
 uint32_t millis(void)
 {
-  return sysTickUptime;
+    return sysTickUptime;
 }
 
 
 uint32_t gettime(void)
 {
-  register uint32_t ms, cycle_cnt;
+    register uint32_t ms, cycle_cnt;
 
-  do
+    do
     {
-      ms = sysTickUptime;
-      cycle_cnt = SysTick->VAL;
+        ms = sysTickUptime;
+        cycle_cnt = SysTick->VAL;
     }
-  while (ms != sysTickUptime || cycle_cnt > sysTickValStamp);
+    while (ms != sysTickUptime || cycle_cnt > sysTickValStamp);
 
-  return (ms * TICK_US + (SysTick->LOAD - SysTick->VAL) * TICK_US / SysTick->LOAD);
+    return (ms * TICK_US + (SysTick->LOAD - SysTick->VAL) * TICK_US / SysTick->LOAD);
 
 }
 
 
 void delay_us(uint32_t us)
 {
-  uint64_t now = gettime();
-  while ((gettime() - now) < us);
+    uint64_t now = gettime();
+    while ((gettime() - now) < us);
 }
 
 
 void delay_ms(uint32_t ms)
 {
-  delay_us(ms * 1000);
+    delay_us(ms * 1000);
 }
 
 void delay(uint32_t data)
 {
-  volatile uint32_t count;
-  count = data * 7;
-  while (count--);
+    volatile uint32_t count;
+    count = data * 7;
+    while (count--);
 }
 
 

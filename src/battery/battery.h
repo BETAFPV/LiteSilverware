@@ -1,0 +1,3 @@
+
+
+void batteryUpdate(void);

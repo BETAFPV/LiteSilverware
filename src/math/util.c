@@ -65,24 +65,24 @@ float mapf(float x, float in_min, float in_max, float out_min, float out_max)
 }
 
 
-void lpf(float *out, float in , float coeff)
+void lpf(float *out, float in, float coeff)
 {
     *out = (*out) * coeff + in * (1 - coeff);
 }
 
 
-void limitf(float *input , const float limit)
+void limitf(float *input, const float limit)
 {
     if (*input > limit) *input = limit;
     if (*input < - limit) *input = - limit;
 }
 
-float rcexpo(float in , float exp)
+float rcexpo(float in, float exp)
 {
     if (exp > 1) exp = 1;
     if (exp < -1) exp = -1;
     float ans = in * in * in * exp + in * (1 - exp);
-    limitf(&ans , 1.0);
+    limitf(&ans, 1.0);
     return ans;
 }
 

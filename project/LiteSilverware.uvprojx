@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F042</Define>
               <Undefine></Undefine>
-              <IncludePath>..\lib\CMSIS\Include;..\lib\CMSIS\Device\ST\STM32F0xx\Include;..\lib\STM32F0xx_StdPeriph_Driver\inc;..\lib;..\src\rx;..\src\flight;..\src\driver;..\src\config;..\src\math</IncludePath>
+              <IncludePath>..\lib\CMSIS\Include;..\lib\CMSIS\Device\ST\STM32F0xx\Include;..\lib\STM32F0xx_StdPeriph_Driver\inc;..\lib;..\src\rx;..\src\flight;..\src\driver;..\src\config;..\src\math;..\src\battery</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -391,6 +391,18 @@
         </Group>
         <Group>
           <GroupName>rx</GroupName>
+          <Files>
+            <File>
+              <FileName>rx_bayang.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rx\rx_bayang.c</FilePath>
+            </File>
+            <File>
+              <FileName>xn297.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rx\xn297.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>driver</GroupName>
@@ -440,10 +452,42 @@
               <FileType>1</FileType>
               <FilePath>..\src\driver\adc.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_fmc2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\driver\drv_fmc2.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>flight</GroupName>
+          <Files>
+            <File>
+              <FileName>imu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\flight\imu.c</FilePath>
+            </File>
+            <File>
+              <FileName>angle_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\flight\angle_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\flight\control.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\flight\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>stickvector.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\flight\stickvector.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>startup</GroupName>
@@ -612,6 +656,16 @@
               <FileName>filter.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\src\math\filter.cpp</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>battery</GroupName>
+          <Files>
+            <File>
+              <FileName>battery.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\battery\battery.c</FilePath>
             </File>
           </Files>
         </Group>

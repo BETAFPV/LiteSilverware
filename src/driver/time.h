@@ -9,7 +9,7 @@ extern volatile uint32_t sysTickUptime;
 
 static inline int32_t cmpTimeUs(uint32_t a, uint32_t b)
 {
-  return (int32_t)(a - b);
+    return (int32_t)(a - b);
 }
 
 uint32_t gettime(void);

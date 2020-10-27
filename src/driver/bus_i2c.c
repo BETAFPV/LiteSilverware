@@ -15,19 +15,19 @@ void i2c_init(void)
     gpioinitI2C1.GPIO_Mode = GPIO_Mode_AF;
     gpioinitI2C1.GPIO_OType = GPIO_OType_OD;
     gpioinitI2C1.GPIO_PuPd = GPIO_PuPd_UP;
-      
+
     gpioinitI2C1.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
     GPIO_Init(GPIOF, &gpioinitI2C1);
-    
+
     GPIO_PinAFConfig(GPIOF, GPIO_PinSource0, GPIO_AF_1);
     GPIO_PinAFConfig(GPIOF, GPIO_PinSource1, GPIO_AF_1);
-    
+
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-    
+
     RCC_I2CCLKConfig(RCC_I2C1CLK_SYSCLK);
 
     I2C_InitTypeDef initI2C1;
-    
+
     initI2C1.I2C_Timing = HW_I2C_TIMINGREG;
     initI2C1.I2C_AnalogFilter = I2C_AnalogFilter_Enable;
     initI2C1.I2C_DigitalFilter = HW_I2C_DIGITAL_FILTER ;
@@ -93,7 +93,7 @@ int i2c_sendheader(int address, int reg, int bytes)
 
 
 
-void i2c_writereg(int address, int reg , int data)
+void i2c_writereg(int address, int reg, int data)
 {
 
     unsigned int i2c_timeout = 0;
@@ -132,7 +132,7 @@ int i2c_readdata(int address, int reg, int *data, int size)
     i2c_sendheader(address, reg, 1);
 
     //send restart + readaddress
-    I2C_TransferHandling(I2C1, address << 1 , size, I2C_AutoEnd_Mode, I2C_Generate_Start_Read);
+    I2C_TransferHandling(I2C1, address << 1, size, I2C_AutoEnd_Mode, I2C_Generate_Start_Read);
 
 //wait for data
     for (i = 0; i < size; i++)

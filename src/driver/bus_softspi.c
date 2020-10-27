@@ -128,7 +128,7 @@ void spi_init(void)
 
     //mosi_out = 0; // already
 
-    spi_csoff(); 
+    spi_csoff();
 }
 
 

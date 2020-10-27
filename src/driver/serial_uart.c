@@ -21,7 +21,7 @@ void uart_init(int BAUDRATE)
 
 
     GPIO_Init(UART2_PORT, &GPIO_InitStructure);
-    GPIO_PinAFConfig(UART2_PORT, UART2_TX_SOURCE , UART2_CHANNEL);
+    GPIO_PinAFConfig(UART2_PORT, UART2_TX_SOURCE, UART2_CHANNEL);
 
     USART_InitTypeDef USART_InitStructure;
 
