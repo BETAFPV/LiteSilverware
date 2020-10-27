@@ -4,7 +4,8 @@
 #include "pwm.h"
 #include "mpu6050.h"
 #include "imu.h"
-
+#include "control.h"
+#include "rx_bayang.h"
 
 
 
@@ -56,8 +57,15 @@ int main(void)
 
         lastlooptime = time;
 
+        mpu6050_read();
+        
+        control();
 
-
+        imu_calc();
+        
+        checkrx();
+        
+        while(gettime() - time < 1000);
     }
 
     return 0;
