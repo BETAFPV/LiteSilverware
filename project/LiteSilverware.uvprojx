@@ -669,6 +669,21 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>osd</GroupName>
+          <Files>
+            <File>
+              <FileName>osd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\osd\osd.c</FilePath>
+            </File>
+            <File>
+              <FileName>item.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\osd\item.c</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>

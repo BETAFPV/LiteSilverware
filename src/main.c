@@ -47,13 +47,7 @@ int main(void)
     {
         unsigned long time = gettime();
         looptime = ((uint32_t)(time - lastlooptime));
-        if (looptime <= 0) looptime = 1;
         looptime = looptime * 1e-6f;
-        if (looptime > 0.02f)   // max loop 20ms
-        {
-            failloop(6);
-            //endless loop
-        }
 
         lastlooptime = time;
 

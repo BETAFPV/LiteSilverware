@@ -88,7 +88,7 @@ int flash_feature_3 = 0;
 int ledcommand = 0;
 int ledblink = 0;
 unsigned long ledcommandtime = 0;
-unsigned char showcase = 0;
+
 
 
 

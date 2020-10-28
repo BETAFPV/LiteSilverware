@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "hardware.h"
 
-unsigned char osd_data[12];
+unsigned char openLogBuff[20];
 
 
 
@@ -52,7 +52,7 @@ void uart_init(int BAUDRATE)
     DMA_DeInit(DMA1_Channel4);
 
     DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART2->TDR;
-    DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)osd_data;
+    DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)openLogBuff;
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
     DMA_InitStructure.DMA_BufferSize = 12;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
@@ -82,7 +82,7 @@ void UART2_DMA_Send(void)
 {
     DMA_Cmd(DMA1_Channel4, DISABLE);
 
-    DMA_SetCurrDataCounter(DMA1_Channel4, 12); //send DataNumber
+    DMA_SetCurrDataCounter(DMA1_Channel4, 13); //send DataNumber
     DMA_Cmd(DMA1_Channel4, ENABLE);
 
 }
