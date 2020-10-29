@@ -5,6 +5,8 @@
 #include "defines.h"
 #include "xn297.h"
 #include "util.h"
+#include "flash.h"
+#include "serial_uart.h"
 
 
 #define TX_POWER 7
@@ -22,7 +24,7 @@
 // how many times to hop ahead if no reception
 #define HOPPING_NUMBER 4
 
-
+extern uint8_t openLogBuff[20];
 float rx[4];
 char aux[AUXNUMBER];
 char lastaux[AUXNUMBER];
@@ -30,7 +32,14 @@ char auxchange[AUXNUMBER];
 float aux_analog[AUXNUMBER];
 float lastaux_analog[AUXNUMBER];
 char aux_analogchange[AUXNUMBER];
-
+extern unsigned char osd_mode;
+extern unsigned char flymode;
+unsigned char aux6;
+unsigned char aux7;
+unsigned char aux8;
+extern unsigned char vtx_index ;
+uint8_t crash = 0;
+extern float attitude[3];
 
 char lasttrim[4];
 
@@ -44,7 +53,7 @@ int rxmode = 0;
 int rf_chan = 0;
 int rx_ready = 0;
 int bind_safety = 0;
-
+extern int ledcommand;
 unsigned long autobindtime = 0;
 int autobind_inhibit = 0;
 int packet_period = PACKET_PERIOD;
@@ -118,37 +127,29 @@ void rx_init(void)
 
     xn_writereg(0, XN_TO_RX);   // power up, crc enabled, rx mode
 
-#ifdef RADIO_CHECK
-    int rxcheck = xn_readreg(0x0f); // rx address pipe 5
-    // should be 0xc6
-    extern void failloop(int);
-    if (rxcheck != 0xc6)
-//        failloop(3);
-#endif
-
-        if (rx_bind_load)
+    if (rx_bind_load)
+    {
+        uint8_t rxaddr_regs[6] = { 0x2a,  };
+        for (int i = 1 ; i < 6; i++)
         {
-            uint8_t rxaddr_regs[6] = { 0x2a,  };
-            for (int i = 1 ; i < 6; i++)
-            {
-                rxaddr_regs[i] = rxaddress[i - 1];
-            }
-            // write new rx address
-            writeregs(rxaddr_regs, sizeof(rxaddr_regs));
-            rxaddr_regs[0] = 0x30; // tx register ( write ) number
-
-            // write new tx address
-            writeregs(rxaddr_regs, sizeof(rxaddr_regs));
-
-            xn_writereg(0x25, rfchannel[rf_chan]);    // Set channel frequency
-            rxmode = RX_MODE_NORMAL;
-
-            if (telemetry_enabled) packet_period = PACKET_PERIOD_TELEMETRY;
+            rxaddr_regs[i] = rxaddress[i - 1];
         }
-        else
-        {
-            autobind_inhibit = 1;
-        }
+        // write new rx address
+        writeregs(rxaddr_regs, sizeof(rxaddr_regs));
+        rxaddr_regs[0] = 0x30; // tx register ( write ) number
+
+        // write new tx address
+        writeregs(rxaddr_regs, sizeof(rxaddr_regs));
+
+        xn_writereg(0x25, rfchannel[rf_chan]);    // Set channel frequency
+        rxmode = RX_MODE_NORMAL;
+
+        if (telemetry_enabled) packet_period = PACKET_PERIOD_TELEMETRY;
+    }
+    else
+    {
+        autobind_inhibit = 1;
+    }
 }
 
 
@@ -214,37 +215,37 @@ static int decodepacket(void)
                 ((rxdata[8] & 0x0003) * 256 +
                  rxdata[9]) * 0.000976562f;
 
-            aux[CH_INV] = (rxdata[3] & 0x80) ? 1 : 0; // inverted flag   //6 chan
+            aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan
             aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
-            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;                    //8 chan
+            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan
             aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
             aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
             aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
-            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;   // rth channel  //3chan
 
-            if (aux[LEVELMODE])    //8
+            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel
+
+            aux[CH_RTH] |= rxdata[3] & 0x03;
+            aux[CH_PIC] |= (rxdata[3]>>2) & 0x03;
+
+            if (aux[LEVELMODE])
             {
-                //2                     7
                 if (aux[RACEMODE] && !aux[HORIZON])
                 {
                     if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
                     if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
                     if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-
                 }
                 else if (aux[HORIZON])
                 {
                     if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
                     if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
                     if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-
                 }
                 else
                 {
                     if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
                     if (ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
                     if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-
                 }
             }
             else
@@ -252,14 +253,6 @@ static int decodepacket(void)
                 if (ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
                 if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
                 if (ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-
-            }
-
-            for (int i = 0 ; i < AUXNUMBER - 2 ; i++)
-            {
-                auxchange[i] = 0;
-                if (lastaux[i] != aux[i]) auxchange[i] = 1;
-                lastaux[i] = aux[i];
             }
 
             return 1;   // valid packet
@@ -283,7 +276,7 @@ unsigned long lastrxtime;
 unsigned long failsafetime;
 unsigned long secondtimer;
 
-int failsafe = 0;
+int failsafe = 1;
 
 
 unsigned int skipchannel = 0;
@@ -292,8 +285,12 @@ int timingfail = 0;
 
 
 
-void checkrx(void)
+void checkrx(uint16_t period)
 {
+    static uint32_t LastRunTime=0;
+    if((sysTickUptime-LastRunTime)<period)return;
+    LastRunTime=sysTickUptime;
+
     int packetreceived = checkpacket();
     int pass = 0;
     if (packetreceived)
@@ -339,15 +336,28 @@ void checkrx(void)
                 extern int rx_bind_enable;
                 rx_bind_enable = 1;
 
-//                extern void flash_save(void);
-//                flash_save();
-//                extern unsigned long lastlooptime;
-//                lastlooptime = gettime();
-
+                extern void flash_save(void);
+                flash_save();
+                extern unsigned long lastlooptime;
+                lastlooptime = gettime();
+                
+                aux6 = aux[LEVELMODE];
+                aux7 = aux[RACEMODE];
+                aux8 = aux[HORIZON];
             }
         }
         else
         {
+            static int init_rx=0;
+            if(!init_rx)
+            {
+                aux6 = aux[LEVELMODE];
+                aux7 = aux[RACEMODE];
+                aux8 = aux[HORIZON];
+                
+                init_rx=1;
+                
+            }
             unsigned long temptime = gettime();
 
             xn_readpayload(rxdata, 15);
@@ -374,6 +384,8 @@ void checkrx(void)
             {
                 rx_ready = 1;                                           // because aux channels initialize low and clear the binding while armed flag before aux updates high
                 bind_safety = 10;
+                if(ledcommand != 5)
+                    ledcommand = 4;
             }
         }                   // end normal rx mode
 
@@ -416,6 +428,9 @@ void checkrx(void)
     {
         //  failsafe
         failsafe = 1;
+        if(ledcommand !=2)
+            ledcommand = 3;
+
         rx[0] = 0;
         rx[1] = 0;
         rx[2] = 0;
@@ -429,12 +444,96 @@ void checkrx(void)
         packetrx = 0;
         secondtimer = gettime();
     }
-
-
 }
 
 
+void flymodeUpdate(uint16_t period)
+{
+    static uint32_t LastRunTime=0;
+    if((sysTickUptime-LastRunTime)<period)return;
+    LastRunTime=sysTickUptime;
 
+    if (osd_mode)
+    {
+        if (aux[LEVELMODE])
+        {
+            if (aux[RACEMODE])
+            {
+                if (aux[HORIZON])
+                {
+                    flymode = 2;
+                }
+                else
+                {
+                    flymode = 3;
+                }
+            }
+            else
+            {
+                if (aux[HORIZON])
+                {
+                    flymode = 4;
+                }
+                else
+                {
+                    flymode = 0;
+                }
+            }
+        }
+        else
+        {
+            flymode = 1;
+        }
+
+    }
+    else
+    {
+        if (!aux[LEVELMODE])
+        {
+            flymode=0;
+        }
+        else if(aux[LEVELMODE] == 1)
+        {
+            flymode=4;
+        }
+        else
+        {
+            flymode=1;
+        }
+        if (aux7 != aux[RACEMODE])
+        {
+            aux7 = aux[RACEMODE];
+            vtx_index++;
+            if (vtx_index > 15 || vtx_index <8)
+                vtx_index = 8;
+
+            openLogBuff[0] = 0xAA;
+            openLogBuff[1] = 0x55;
+            openLogBuff[2] = 0x07;
+            openLogBuff[3] = 0x01;
+            openLogBuff[4] = vtx_index;
+            openLogBuff[5] = CRC8(openLogBuff,5);
+            openLogBuff[6] = 0;
+            openLogBuff[7] = 0;
+            openLogBuff[8] = 0;
+            openLogBuff[9] = 0;
+            openLogBuff[10] = 0;
+            openLogBuff[11] = 0;
+            openLogBuff[12] = 0;
+
+            UART2_DMA_Send();
+
+            delay_ms(100);
+            flash_save();
+        }
+
+
+        if(flymode==0 && (attitude[0] > (65 + 10) || attitude[0] < -(65 + 10) || attitude[1] > (65 + 10) || attitude[1] <-(65 + 10)))
+        {
+            crash = 1;
+        }
+    }
+}
 
 
 

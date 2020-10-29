@@ -207,6 +207,18 @@
 #define HYST 0.10
 
 
+#define RGB_LED_NUMBER 2
+#define RGB_LED_DMA
+// pin / port for the RGB led ( programming port ok )
+#define RGB_PIN GPIO_Pin_0
+#define RGB_PORT GPIOB
+
+
+
+
+
+
+
 
 
 

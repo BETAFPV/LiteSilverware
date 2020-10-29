@@ -12,7 +12,10 @@
 #define UART_TX_DMA
 
 
-
+#define MOTOR0_PIN_PB1 // motor 0 back-left
+#define MOTOR1_PIN_PA7 // motor 1 front-right
+#define MOTOR2_PIN_PA15 // motor 2 back-right
+#define MOTOR3_PIN_PB3 // motor 3 front-right
 
 
 #define SPI_MOSI_PIN GPIO_Pin_0

@@ -38,9 +38,28 @@ float lpfcalc(float sampleperiod, float filtertime)
         ga = 0.0f;
     return ga;
 }
+#define POLYGEN 0xd5
 
+uint8_t CRC8(unsigned char *data, const int8_t len)
+{
+    uint8_t crc = 0; /* start with 0 so first byte can be 'xored' in */
+    uint8_t currByte;
 
+    for (int i = 0 ; i < len ; i++) {
+        currByte = data[i];
 
+        crc ^= currByte; /* XOR-in the next input byte */
+
+        for (int i = 0; i < 8; i++) {
+            if ((crc & 0x80) != 0) {
+                crc = (uint8_t)((crc << 1) ^ POLYGEN);
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    return crc;
+}
 
 // calculates the coefficient for lpf filter
 float lpfcalc_hz(float sampleperiod, float filterhz)

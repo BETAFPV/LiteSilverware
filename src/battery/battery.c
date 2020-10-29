@@ -1,9 +1,10 @@
-#include "stm32f0xx.h"
-
+#include "battery.h"
 #include "config.h"
 #include "adc.h"
 #include "util.h"
 #include "defines.h"
+
+extern volatile uint32_t sysTickUptime;
 
 
 // filtered battery in volts
@@ -21,8 +22,11 @@ int lowbatt = 1;
 float lipo_cell_count = 1;
 
 
-void batteryUpdate(void)
+void batteryUpdate(uint16_t period)
 {
+    static uint32_t LastRunTime=0;
+    if((sysTickUptime-LastRunTime)<period)return;
+    LastRunTime=sysTickUptime;
 
     // read acd and scale based on processor voltage
     float battadc = adc_read(0) * vreffilt;

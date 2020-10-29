@@ -1,4 +1,4 @@
-
+#include "stm32f0xx.h"
 
 void constrain(float *out, float min, float max);
 float lpfcalc(float sampleperiod, float filtertime);
@@ -18,5 +18,8 @@ float fastcos(float x);
 
 
 void limit180(float *);
+
+
+uint8_t CRC8(unsigned char *data, const int8_t len);
 
 

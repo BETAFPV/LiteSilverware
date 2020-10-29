@@ -6,9 +6,10 @@
 #include "imu.h"
 #include "control.h"
 #include "rx_bayang.h"
-
-
-
+#include "battery.h"
+#include "osd.h"
+#include "led.h"
+#include "misc_gpio.h"
 
 // looptime in seconds
 float looptime;
@@ -28,7 +29,6 @@ void failloop(int val)
     {
         for (int i = 0 ; i < val; i++)
         {
-
         }
         delay(800000);
     }
@@ -52,17 +52,26 @@ int main(void)
         lastlooptime = time;
 
         mpu6050_read();
-        
+
         control();
 
         imu_calc();
+
+        checkrx(10);
+
+        batteryUpdate(20);
+
+        osd_process(50);
+
+        ledUpdate(50);
+
+        keyUpdate(100);
         
-        checkrx();
+        flymodeUpdate(50);
         
         while(gettime() - time < 1000);
     }
 
-    return 0;
 }
 
 

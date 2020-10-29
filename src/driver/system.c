@@ -12,12 +12,15 @@
 #include "adc.h"
 #include "rx_bayang.h"
 #include "imu.h"
+#include "util.h"
+#include "led.h"
+#include "osd.h"
+#include "flash.h"
 
-
-
-
-
-
+extern unsigned char vtx_index;
+extern uint8_t openLogBuff[20];
+extern float vbattfilt;
+extern float vreffilt;
 
 uint8_t systemInit(void)
 {
@@ -31,6 +34,8 @@ uint8_t systemInit(void)
 
     delay_ms(10);
 
+    flash_load();
+    
     //gpio
     gpio_init();
 
@@ -41,6 +46,31 @@ uint8_t systemInit(void)
     uart_init(4800);
 
     delay_ms(10);
+
+    osd_init();
+
+    int sa_cnt=0;
+
+
+    while(sa_cnt <5000)
+    {
+        openLogBuff[0] =0xAA;
+        openLogBuff[1] = 0x55;
+        openLogBuff[2] = 0x07;
+        openLogBuff[3] = 0x01;
+        openLogBuff[4] = vtx_index;
+        openLogBuff[5] = CRC8(openLogBuff,5);
+        openLogBuff[6] = 0;
+        openLogBuff[7] = 0;
+        openLogBuff[8] = 0;
+        openLogBuff[9] = 0;
+        openLogBuff[10] = 0;
+        openLogBuff[11] = 0;
+
+        UART2_DMA_Send();
+
+        sa_cnt ++;
+    }
 
     //i2c
     i2c_init();
@@ -66,6 +96,21 @@ uint8_t systemInit(void)
     //adc
     adc_init();
 
+    delay_ms(10);
+
+    int count = 0;
+
+    while ( count < 5000 )
+    {
+        float bootadc = adc_read(0)*vreffilt;
+        lpf ( &vreffilt, adc_read(1), 0.9968f);
+        lpf ( &vbattfilt, bootadc, 0.9968f);
+        count++;
+    }
+
+    led_init();
+
+
     //rx
     rx_init();
 
@@ -73,10 +118,6 @@ uint8_t systemInit(void)
     gyro_cal();
 
     imu_init();
-
-
-
-
 
 
     return 0;

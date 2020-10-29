@@ -36,7 +36,10 @@ void pwm_init(void)
 
     init_timer(TIM2, PWMTOP);
 
-
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE); // PA6 , 7 , PB1
+		
+	init_timer( TIM3 , PWMTOP);
+    
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
