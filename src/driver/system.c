@@ -16,6 +16,13 @@
 #include "led.h"
 #include "osd.h"
 #include "flash.h"
+#include "usbd_cdc_core.h"
+#include  "usbd_usr.h"
+#include "usb_dcd.h"
+#include "usbd_cdc_vcp.h"
+
+
+USB_CORE_HANDLE  USB_Device_dev ;
 
 extern unsigned char vtx_index;
 extern uint8_t openLogBuff[20];
@@ -26,9 +33,20 @@ uint8_t systemInit(void)
 {
     delay(1000);
 
+#ifdef ENABLE_OVERCLOCK
     //overclock 64M
     setclock();
-
+#endif
+    
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;	
+    SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+    
+    USBD_Init(&USB_Device_dev,
+            &USR_desc, 
+            &USBD_CDC_cb, 
+            &USR_cb);
+    
+    
     //sysTick 1ms
     sysTick_init();
 

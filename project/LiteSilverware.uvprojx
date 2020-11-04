@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F042</Define>
               <Undefine></Undefine>
-              <IncludePath>..\lib\CMSIS\Include;..\lib\CMSIS\Device\ST\STM32F0xx\Include;..\lib\STM32F0xx_StdPeriph_Driver\inc;..\lib;..\src\rx;..\src\flight;..\src\driver;..\src\config;..\src\math;..\src\battery;..\src\osd</IncludePath>
+              <IncludePath>..\lib\CMSIS\Include;..\lib\CMSIS\Device\ST\STM32F0xx\Include;..\lib\STM32F0xx_StdPeriph_Driver\inc;..\lib;..\src\rx;..\src\flight;..\src\driver;..\src\config;..\src\math;..\src\battery;..\src\osd;..\src\usb;..\src\lib_usb\driver\inc;..\src\lib_usb\cdc\inc;..\src\lib_usb\Core\inc;..\src\mavlink;..\src\mavlink\configurator</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -692,6 +692,81 @@
               <FileName>item.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\osd\item.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>usb</GroupName>
+          <Files>
+            <File>
+              <FileName>stm32_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\stm32_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\usb_bsp.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_cdc_vcp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\usbd_cdc_vcp.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_desc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\usbd_desc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_pwr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\usbd_pwr.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_usr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\usbd_usr.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_cdc_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\cdc\src\usbd_cdc_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\Core\src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_ioreq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\Core\src\usbd_ioreq.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_req.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\Core\src\usbd_req.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\driver\src\usb_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_dcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\driver\src\usb_dcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>usb_dcd_int.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\lib_usb\driver\src\usb_dcd_int.c</FilePath>
+            </File>
+            <File>
+              <FileName>configure.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\usb\configure.c</FilePath>
             </File>
           </Files>
         </Group>

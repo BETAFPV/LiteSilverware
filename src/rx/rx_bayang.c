@@ -26,6 +26,9 @@
 
 extern uint8_t openLogBuff[20];
 float rx[4];
+
+extern uint16_t chan[4];
+
 char aux[AUXNUMBER];
 char lastaux[AUXNUMBER];
 char auxchange[AUXNUMBER];
@@ -226,6 +229,11 @@ static int decodepacket(void)
 
             aux[CH_RTH] |= rxdata[3] & 0x03;
             aux[CH_PIC] |= (rxdata[3]>>2) & 0x03;
+
+            chan[0] = aux[ARMING]*1800;
+            chan[1] = aux[LEVELMODE]*600;
+            chan[2] = aux[RACEMODE]*600;
+            chan[3] = aux[HORIZON]*1800;
 
             if (aux[LEVELMODE])
             {

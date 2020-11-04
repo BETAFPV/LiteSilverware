@@ -10,6 +10,8 @@
 #include "osd.h"
 #include "led.h"
 #include "misc_gpio.h"
+#include "configure.h"
+
 
 // looptime in seconds
 float looptime;
@@ -61,7 +63,9 @@ int main(void)
 
         batteryUpdate(20);
 
-        osd_process(50);
+        serialProcess(50);
+        
+        osd_process(20);
 
         ledUpdate(50);
 
@@ -74,4 +78,20 @@ int main(void)
 
 }
 
+void HardFault_Handler(void)
+{
+	failloop(5);
+}
+void MemManage_Handler(void) 
+{
+	failloop(5);
+}
+void BusFault_Handler(void) 
+{
+	failloop(5);
+}
+void UsageFault_Handler(void) 
+{
+	failloop(5);
+}
 

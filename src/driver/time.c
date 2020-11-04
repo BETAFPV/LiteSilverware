@@ -71,7 +71,6 @@ void sysTick_init()
         /* Capture error */
         while (1);
     }
-    NVIC_SetPriority(SysTick_IRQn, 0x0);//SysTick中断优先级设置
 }
 
 void SysTick_Handler(void)
