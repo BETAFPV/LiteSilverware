@@ -4,10 +4,9 @@
 #define MAVLINK_MSG_ID_other 13
 
 MAVPACKED(
-    typedef struct __mavlink_other_t
-{
-    float low_vol; /*<  low_vol*/
-    uint8_t max_angle; /*<  max_angle*/
+typedef struct __mavlink_other_t {
+ float low_vol; /*<  low_vol*/
+ uint8_t max_angle; /*<  max_angle*/
 }) mavlink_other_t;
 
 #define MAVLINK_MSG_ID_other_LEN 5
@@ -50,20 +49,20 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_other_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t max_angle, float low_vol)
+                               uint8_t max_angle, float low_vol)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_other_LEN];
     _mav_put_float(buf, 0, low_vol);
     _mav_put_uint8_t(buf, 4, max_angle);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_other_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_other_LEN);
 #else
     mavlink_other_t packet;
     packet.low_vol = low_vol;
     packet.max_angle = max_angle;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_other_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_other_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_other;
@@ -81,21 +80,21 @@ static inline uint16_t mavlink_msg_other_pack(uint8_t system_id, uint8_t compone
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_other_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t max_angle,float low_vol)
+                               mavlink_message_t* msg,
+                                   uint8_t max_angle,float low_vol)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_other_LEN];
     _mav_put_float(buf, 0, low_vol);
     _mav_put_uint8_t(buf, 4, max_angle);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_other_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_other_LEN);
 #else
     mavlink_other_t packet;
     packet.low_vol = low_vol;
     packet.max_angle = max_angle;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_other_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_other_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_other;
@@ -232,8 +231,8 @@ static inline void mavlink_msg_other_decode(const mavlink_message_t* msg, mavlin
     other->low_vol = mavlink_msg_other_get_low_vol(msg);
     other->max_angle = mavlink_msg_other_get_max_angle(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_other_LEN? msg->len : MAVLINK_MSG_ID_other_LEN;
-    memset(other, 0, MAVLINK_MSG_ID_other_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_other_LEN? msg->len : MAVLINK_MSG_ID_other_LEN;
+        memset(other, 0, MAVLINK_MSG_ID_other_LEN);
     memcpy(other, _MAV_PAYLOAD(msg), len);
 #endif
 }

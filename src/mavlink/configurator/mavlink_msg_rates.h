@@ -4,17 +4,16 @@
 #define MAVLINK_MSG_ID_rates 8
 
 MAVPACKED(
-    typedef struct __mavlink_rates_t
-{
-    float roll_rate; /*<  roll_rate*/
-    float roll_rc_rate; /*<  roll_rc_rate*/
-    float roll_rc_curve; /*<  roll_rc_curve*/
-    float pitch_rate; /*<  pitch_rate*/
-    float pitch_rc_rate; /*<  pitch_rc_rate*/
-    float pitch_rc_curve; /*<  pitch_rc_curve*/
-    float yaw_rate; /*<  yaw_rate*/
-    float yaw_rc_rate; /*<  yaw_rc_rate*/
-    float yaw_rc_curve; /*<  yaw_rc_curve*/
+typedef struct __mavlink_rates_t {
+ float roll_rate; /*<  roll_rate*/
+ float roll_rc_rate; /*<  roll_rc_rate*/
+ float roll_rc_curve; /*<  roll_rc_curve*/
+ float pitch_rate; /*<  pitch_rate*/
+ float pitch_rc_rate; /*<  pitch_rc_rate*/
+ float pitch_rc_curve; /*<  pitch_rc_curve*/
+ float yaw_rate; /*<  yaw_rate*/
+ float yaw_rc_rate; /*<  yaw_rc_rate*/
+ float yaw_rc_curve; /*<  yaw_rc_curve*/
 }) mavlink_rates_t;
 
 #define MAVLINK_MSG_ID_rates_LEN 36
@@ -78,7 +77,7 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_rates_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        float roll_rate, float roll_rc_rate, float roll_rc_curve, float pitch_rate, float pitch_rc_rate, float pitch_rc_curve, float yaw_rate, float yaw_rc_rate, float yaw_rc_curve)
+                               float roll_rate, float roll_rc_rate, float roll_rc_curve, float pitch_rate, float pitch_rc_rate, float pitch_rc_curve, float yaw_rate, float yaw_rc_rate, float yaw_rc_curve)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_rates_LEN];
@@ -92,7 +91,7 @@ static inline uint16_t mavlink_msg_rates_pack(uint8_t system_id, uint8_t compone
     _mav_put_float(buf, 28, yaw_rc_rate);
     _mav_put_float(buf, 32, yaw_rc_curve);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rates_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rates_LEN);
 #else
     mavlink_rates_t packet;
     packet.roll_rate = roll_rate;
@@ -105,7 +104,7 @@ static inline uint16_t mavlink_msg_rates_pack(uint8_t system_id, uint8_t compone
     packet.yaw_rc_rate = yaw_rc_rate;
     packet.yaw_rc_curve = yaw_rc_curve;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rates_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rates_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_rates;
@@ -130,8 +129,8 @@ static inline uint16_t mavlink_msg_rates_pack(uint8_t system_id, uint8_t compone
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_rates_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        float roll_rate,float roll_rc_rate,float roll_rc_curve,float pitch_rate,float pitch_rc_rate,float pitch_rc_curve,float yaw_rate,float yaw_rc_rate,float yaw_rc_curve)
+                               mavlink_message_t* msg,
+                                   float roll_rate,float roll_rc_rate,float roll_rc_curve,float pitch_rate,float pitch_rc_rate,float pitch_rc_curve,float yaw_rate,float yaw_rc_rate,float yaw_rc_curve)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_rates_LEN];
@@ -145,7 +144,7 @@ static inline uint16_t mavlink_msg_rates_pack_chan(uint8_t system_id, uint8_t co
     _mav_put_float(buf, 28, yaw_rc_rate);
     _mav_put_float(buf, 32, yaw_rc_curve);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rates_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rates_LEN);
 #else
     mavlink_rates_t packet;
     packet.roll_rate = roll_rate;
@@ -158,7 +157,7 @@ static inline uint16_t mavlink_msg_rates_pack_chan(uint8_t system_id, uint8_t co
     packet.yaw_rc_rate = yaw_rc_rate;
     packet.yaw_rc_curve = yaw_rc_curve;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rates_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rates_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_rates;
@@ -407,8 +406,8 @@ static inline void mavlink_msg_rates_decode(const mavlink_message_t* msg, mavlin
     rates->yaw_rc_rate = mavlink_msg_rates_get_yaw_rc_rate(msg);
     rates->yaw_rc_curve = mavlink_msg_rates_get_yaw_rc_curve(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_rates_LEN? msg->len : MAVLINK_MSG_ID_rates_LEN;
-    memset(rates, 0, MAVLINK_MSG_ID_rates_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_rates_LEN? msg->len : MAVLINK_MSG_ID_rates_LEN;
+        memset(rates, 0, MAVLINK_MSG_ID_rates_LEN);
     memcpy(rates, _MAV_PAYLOAD(msg), len);
 #endif
 }

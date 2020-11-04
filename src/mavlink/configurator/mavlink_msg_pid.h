@@ -4,17 +4,16 @@
 #define MAVLINK_MSG_ID_pid 6
 
 MAVPACKED(
-    typedef struct __mavlink_pid_t
-{
-    float roll_kp; /*<  roll_kp*/
-    float roll_ki; /*<  roll_ki*/
-    float roll_kd; /*<  roll_kd*/
-    float pitch_kp; /*<  pitch_kp*/
-    float pitch_ki; /*<  pitch_ki*/
-    float pitch_kd; /*<  pitch_kd*/
-    float yaw_kp; /*<  yaw_kp*/
-    float yaw_ki; /*<  yaw_ki*/
-    float yaw_kd; /*<  yaw_kd*/
+typedef struct __mavlink_pid_t {
+ float roll_kp; /*<  roll_kp*/
+ float roll_ki; /*<  roll_ki*/
+ float roll_kd; /*<  roll_kd*/
+ float pitch_kp; /*<  pitch_kp*/
+ float pitch_ki; /*<  pitch_ki*/
+ float pitch_kd; /*<  pitch_kd*/
+ float yaw_kp; /*<  yaw_kp*/
+ float yaw_ki; /*<  yaw_ki*/
+ float yaw_kd; /*<  yaw_kd*/
 }) mavlink_pid_t;
 
 #define MAVLINK_MSG_ID_pid_LEN 36
@@ -78,7 +77,7 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
+                               float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_pid_LEN];
@@ -92,7 +91,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
 #else
     mavlink_pid_t packet;
     packet.roll_kp = roll_kp;
@@ -105,7 +104,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
     packet.yaw_ki = yaw_ki;
     packet.yaw_kd = yaw_kd;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_pid;
@@ -130,8 +129,8 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        float roll_kp,float roll_ki,float roll_kd,float pitch_kp,float pitch_ki,float pitch_kd,float yaw_kp,float yaw_ki,float yaw_kd)
+                               mavlink_message_t* msg,
+                                   float roll_kp,float roll_ki,float roll_kd,float pitch_kp,float pitch_ki,float pitch_kd,float yaw_kp,float yaw_ki,float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_pid_LEN];
@@ -145,7 +144,7 @@ static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t comp
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
 #else
     mavlink_pid_t packet;
     packet.roll_kp = roll_kp;
@@ -158,7 +157,7 @@ static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t comp
     packet.yaw_ki = yaw_ki;
     packet.yaw_kd = yaw_kd;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_pid;
@@ -407,8 +406,8 @@ static inline void mavlink_msg_pid_decode(const mavlink_message_t* msg, mavlink_
     pid->yaw_ki = mavlink_msg_pid_get_yaw_ki(msg);
     pid->yaw_kd = mavlink_msg_pid_get_yaw_kd(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_pid_LEN? msg->len : MAVLINK_MSG_ID_pid_LEN;
-    memset(pid, 0, MAVLINK_MSG_ID_pid_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_pid_LEN? msg->len : MAVLINK_MSG_ID_pid_LEN;
+        memset(pid, 0, MAVLINK_MSG_ID_pid_LEN);
     memcpy(pid, _MAV_PAYLOAD(msg), len);
 #endif
 }

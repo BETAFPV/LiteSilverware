@@ -8,8 +8,10 @@
 
 #ifdef ENABLE_OVERCLOCK
 #define SYS_CLOCK_FREQ_HZ 64000000
+#define PWMFREQ 32000
 #else
 #define SYS_CLOCK_FREQ_HZ 48000000
+#define PWMFREQ 24000
 #endif
 
 
@@ -24,7 +26,7 @@
 #define RADIO_CHECK
 
 #define PWM_DIVIDER 1
-#define PWMFREQ 32000
+
 #define PWMTOP (( SYS_CLOCK_FREQ_HZ / PWMFREQ ) - 1)
 
 #define DEGTORAD 0.017453292f

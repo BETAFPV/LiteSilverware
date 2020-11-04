@@ -4,15 +4,14 @@
 #define MAVLINK_MSG_ID_attitude 5
 
 MAVPACKED(
-    typedef struct __mavlink_attitude_t
-{
-    uint32_t time_boot_ms; /*< [ms] Timestamp*/
-    float accroll; /*<  accroll*/
-    float accpitch; /*<  accpitch*/
-    float accyaw; /*<  accyaw*/
-    float gyroroll; /*<  gyroroll*/
-    float gyropitch; /*<  gyropitch*/
-    float gyroyaw; /*<  gyroyaw*/
+typedef struct __mavlink_attitude_t {
+ uint32_t time_boot_ms; /*< [ms] Timestamp*/
+ float accroll; /*<  accroll*/
+ float accpitch; /*<  accpitch*/
+ float accyaw; /*<  accyaw*/
+ float gyroroll; /*<  gyroroll*/
+ float gyropitch; /*<  gyropitch*/
+ float gyroyaw; /*<  gyroyaw*/
 }) mavlink_attitude_t;
 
 #define MAVLINK_MSG_ID_attitude_LEN 28
@@ -70,7 +69,7 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_attitude_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint32_t time_boot_ms, float accroll, float accpitch, float accyaw, float gyroroll, float gyropitch, float gyroyaw)
+                               uint32_t time_boot_ms, float accroll, float accpitch, float accyaw, float gyroroll, float gyropitch, float gyroyaw)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_attitude_LEN];
@@ -82,7 +81,7 @@ static inline uint16_t mavlink_msg_attitude_pack(uint8_t system_id, uint8_t comp
     _mav_put_float(buf, 20, gyropitch);
     _mav_put_float(buf, 24, gyroyaw);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_attitude_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_attitude_LEN);
 #else
     mavlink_attitude_t packet;
     packet.time_boot_ms = time_boot_ms;
@@ -93,7 +92,7 @@ static inline uint16_t mavlink_msg_attitude_pack(uint8_t system_id, uint8_t comp
     packet.gyropitch = gyropitch;
     packet.gyroyaw = gyroyaw;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_attitude_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_attitude_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_attitude;
@@ -116,8 +115,8 @@ static inline uint16_t mavlink_msg_attitude_pack(uint8_t system_id, uint8_t comp
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_attitude_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint32_t time_boot_ms,float accroll,float accpitch,float accyaw,float gyroroll,float gyropitch,float gyroyaw)
+                               mavlink_message_t* msg,
+                                   uint32_t time_boot_ms,float accroll,float accpitch,float accyaw,float gyroroll,float gyropitch,float gyroyaw)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_attitude_LEN];
@@ -129,7 +128,7 @@ static inline uint16_t mavlink_msg_attitude_pack_chan(uint8_t system_id, uint8_t
     _mav_put_float(buf, 20, gyropitch);
     _mav_put_float(buf, 24, gyroyaw);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_attitude_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_attitude_LEN);
 #else
     mavlink_attitude_t packet;
     packet.time_boot_ms = time_boot_ms;
@@ -140,7 +139,7 @@ static inline uint16_t mavlink_msg_attitude_pack_chan(uint8_t system_id, uint8_t
     packet.gyropitch = gyropitch;
     packet.gyroyaw = gyroyaw;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_attitude_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_attitude_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_attitude;
@@ -357,8 +356,8 @@ static inline void mavlink_msg_attitude_decode(const mavlink_message_t* msg, mav
     attitude->gyropitch = mavlink_msg_attitude_get_gyropitch(msg);
     attitude->gyroyaw = mavlink_msg_attitude_get_gyroyaw(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_attitude_LEN? msg->len : MAVLINK_MSG_ID_attitude_LEN;
-    memset(attitude, 0, MAVLINK_MSG_ID_attitude_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_attitude_LEN? msg->len : MAVLINK_MSG_ID_attitude_LEN;
+        memset(attitude, 0, MAVLINK_MSG_ID_attitude_LEN);
     memcpy(attitude, _MAV_PAYLOAD(msg), len);
 #endif
 }

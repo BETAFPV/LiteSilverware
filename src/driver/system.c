@@ -29,6 +29,33 @@ extern uint8_t openLogBuff[20];
 extern float vbattfilt;
 extern float vreffilt;
 
+
+void flashErase( void) {
+
+    FLASH_Unlock();
+    
+	int test = FLASH_ErasePage( 0X08000000 );
+    test = FLASH_ErasePage( 0X08007C00 );
+	if ( test != FLASH_COMPLETE ) FLASH_Lock();
+    else return ;
+
+    FLASH_ProgramWord(0x8000000, 0);
+    FLASH_ProgramWord(0x8000000 +2, 0);
+    FLASH_ProgramWord(0x8000000 + 4, 0);
+    FLASH_ProgramWord(0x8000000 + 6, 0);  
+    FLASH_ProgramWord(0x8000000 + 8, 0);  
+
+    FLASH_Lock();
+}
+
+#define KEY11 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_11)
+#define KEY12 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_12)
+
+#define ApplicationAddress 0x1FFFC400
+  
+typedef void (*pFunction)(void);
+
+
 uint8_t systemInit(void)
 {
     delay(1000);
@@ -40,6 +67,24 @@ uint8_t systemInit(void)
     
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;	
     SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+    
+    //gpio
+    gpio_init();
+    
+    if( KEY11 ==0 || KEY12 == 0)
+    {
+        flashErase();
+
+        delay(1000);
+        uint32_t JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
+
+        pFunction Jump_To_Boot = (pFunction) JumpAddress;
+
+        __set_MSP(*(__IO uint32_t*) ApplicationAddress);
+
+        Jump_To_Boot();
+    }
+
     
     USBD_Init(&USB_Device_dev,
             &USR_desc, 
@@ -54,9 +99,7 @@ uint8_t systemInit(void)
 
     flash_load();
     
-    //gpio
-    gpio_init();
-
+    
     //softspi
     spi_init();
 

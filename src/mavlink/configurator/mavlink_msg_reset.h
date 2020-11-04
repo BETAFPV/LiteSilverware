@@ -4,9 +4,8 @@
 #define MAVLINK_MSG_ID_reset 10
 
 MAVPACKED(
-    typedef struct __mavlink_reset_t
-{
-    uint8_t reset; /*<  reset*/
+typedef struct __mavlink_reset_t {
+ uint8_t reset; /*<  reset*/
 }) mavlink_reset_t;
 
 #define MAVLINK_MSG_ID_reset_LEN 1
@@ -46,18 +45,18 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_reset_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t reset)
+                               uint8_t reset)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_reset_LEN];
     _mav_put_uint8_t(buf, 0, reset);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reset_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reset_LEN);
 #else
     mavlink_reset_t packet;
     packet.reset = reset;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reset_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reset_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_reset;
@@ -74,19 +73,19 @@ static inline uint16_t mavlink_msg_reset_pack(uint8_t system_id, uint8_t compone
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_reset_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t reset)
+                               mavlink_message_t* msg,
+                                   uint8_t reset)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_reset_LEN];
     _mav_put_uint8_t(buf, 0, reset);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reset_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reset_LEN);
 #else
     mavlink_reset_t packet;
     packet.reset = reset;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reset_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reset_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_reset;
@@ -207,8 +206,8 @@ static inline void mavlink_msg_reset_decode(const mavlink_message_t* msg, mavlin
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     reset->reset = mavlink_msg_reset_get_reset(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_reset_LEN? msg->len : MAVLINK_MSG_ID_reset_LEN;
-    memset(reset, 0, MAVLINK_MSG_ID_reset_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_reset_LEN? msg->len : MAVLINK_MSG_ID_reset_LEN;
+        memset(reset, 0, MAVLINK_MSG_ID_reset_LEN);
     memcpy(reset, _MAV_PAYLOAD(msg), len);
 #endif
 }

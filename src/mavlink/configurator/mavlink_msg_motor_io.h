@@ -4,13 +4,12 @@
 #define MAVLINK_MSG_ID_motor_io 4
 
 MAVPACKED(
-    typedef struct __mavlink_motor_io_t
-{
-    uint8_t motor_dir; /*<  motor_dir*/
-    uint8_t motor_min; /*<  motor_min*/
-    uint8_t motor_dshot; /*<  motor_dshot*/
-    uint8_t motor3; /*<  motor3*/
-    uint8_t motor4; /*<  motor4*/
+typedef struct __mavlink_motor_io_t {
+ uint8_t motor_dir; /*<  motor_dir*/
+ uint8_t motor_min; /*<  motor_min*/
+ uint8_t motor_dshot; /*<  motor_dshot*/
+ uint8_t motor3; /*<  motor3*/
+ uint8_t motor4; /*<  motor4*/
 }) mavlink_motor_io_t;
 
 #define MAVLINK_MSG_ID_motor_io_LEN 5
@@ -62,7 +61,7 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_motor_io_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t motor_dir, uint8_t motor_min, uint8_t motor_dshot, uint8_t motor3, uint8_t motor4)
+                               uint8_t motor_dir, uint8_t motor_min, uint8_t motor_dshot, uint8_t motor3, uint8_t motor4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_motor_io_LEN];
@@ -72,7 +71,7 @@ static inline uint16_t mavlink_msg_motor_io_pack(uint8_t system_id, uint8_t comp
     _mav_put_uint8_t(buf, 3, motor3);
     _mav_put_uint8_t(buf, 4, motor4);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_motor_io_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_motor_io_LEN);
 #else
     mavlink_motor_io_t packet;
     packet.motor_dir = motor_dir;
@@ -81,7 +80,7 @@ static inline uint16_t mavlink_msg_motor_io_pack(uint8_t system_id, uint8_t comp
     packet.motor3 = motor3;
     packet.motor4 = motor4;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_motor_io_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_motor_io_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_motor_io;
@@ -102,8 +101,8 @@ static inline uint16_t mavlink_msg_motor_io_pack(uint8_t system_id, uint8_t comp
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_motor_io_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t motor_dir,uint8_t motor_min,uint8_t motor_dshot,uint8_t motor3,uint8_t motor4)
+                               mavlink_message_t* msg,
+                                   uint8_t motor_dir,uint8_t motor_min,uint8_t motor_dshot,uint8_t motor3,uint8_t motor4)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_motor_io_LEN];
@@ -113,7 +112,7 @@ static inline uint16_t mavlink_msg_motor_io_pack_chan(uint8_t system_id, uint8_t
     _mav_put_uint8_t(buf, 3, motor3);
     _mav_put_uint8_t(buf, 4, motor4);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_motor_io_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_motor_io_LEN);
 #else
     mavlink_motor_io_t packet;
     packet.motor_dir = motor_dir;
@@ -122,7 +121,7 @@ static inline uint16_t mavlink_msg_motor_io_pack_chan(uint8_t system_id, uint8_t
     packet.motor3 = motor3;
     packet.motor4 = motor4;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_motor_io_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_motor_io_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_motor_io;
@@ -307,8 +306,8 @@ static inline void mavlink_msg_motor_io_decode(const mavlink_message_t* msg, mav
     motor_io->motor3 = mavlink_msg_motor_io_get_motor3(msg);
     motor_io->motor4 = mavlink_msg_motor_io_get_motor4(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_motor_io_LEN? msg->len : MAVLINK_MSG_ID_motor_io_LEN;
-    memset(motor_io, 0, MAVLINK_MSG_ID_motor_io_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_motor_io_LEN? msg->len : MAVLINK_MSG_ID_motor_io_LEN;
+        memset(motor_io, 0, MAVLINK_MSG_ID_motor_io_LEN);
     memcpy(motor_io, _MAV_PAYLOAD(msg), len);
 #endif
 }

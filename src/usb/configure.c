@@ -20,7 +20,14 @@
 #include "flash.h"
 
 
+extern uint16_t year;
+extern uint16_t month;
+extern uint16_t day;
+extern uint8_t mdk_hour;
+extern uint8_t mdk_min;
+extern uint8_t mdk_sec;
 
+uint8_t mdk_ver=2;
 
 //mavlink send defines
 mavlink_message_t mavlink_msg;
@@ -33,6 +40,7 @@ Mavlink_Messages currentMsg;
 int num = 0;
 uint8_t receBuf[64] = {0};
 uint8_t tab_index=10;
+uint8_t sub_index=0;
 mavlink_message_t receivemsg;
 mavlink_status_t status;
 
@@ -43,6 +51,10 @@ extern float aux[];
 extern unsigned char rx_select;
 extern float lowvol;
 //uint8_t max_angle = 65;
+extern float vbattfilt;
+extern int failsafe;
+extern float attitude[];
+
 
 
 void serialProcess(uint16_t period)
@@ -50,6 +62,9 @@ void serialProcess(uint16_t period)
     static uint32_t LastRunTime=0;
     if((sysTickUptime-LastRunTime)<period)return;
     LastRunTime=sysTickUptime;
+    
+    uint8_t rxN;
+    uint8_t sensors;
     
     num = CDC_Receive_BytesAvailable();
     if (num)
@@ -65,6 +80,7 @@ void serialProcess(uint16_t period)
                 case MAVLINK_MSG_ID_config_tab:
                     mavlink_msg_config_tab_decode(&receivemsg,&currentMsg.tab_index);
                     tab_index = currentMsg.tab_index.tab_index;
+                    sub_index = currentMsg.tab_index.sub_index;
                     break;
 
                 case MAVLINK_MSG_ID_reboot:
@@ -96,7 +112,7 @@ void serialProcess(uint16_t period)
         break;
 
     case 4:
-        mavlink_len = mavlink_msg_tx_pack(1,5,&mavlink_msg,rx[0],rx[1],rx[2],rx[3],chan[0],chan[1],chan[2],chan[3]);
+        mavlink_len = mavlink_msg_tx_pack(1,5,&mavlink_msg,rx[0]*500,rx[1]*500,rx[2]*500,rx[3]*1000,chan[0],chan[1],chan[2],chan[3],attitude[0],attitude[1],attitude[2]);
         mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
         CDC_Send_DATA(mavlink_buf,mavlink_len);
 
@@ -105,6 +121,14 @@ void serialProcess(uint16_t period)
     case 5:
         break;
 
+    case 6:
+        rxN = (failsafe << 4) | 5;
+        sensors = (0<<4) | (1<<2) | 1;
+        mavlink_len = mavlink_msg_status_build_pack(1,5,&mavlink_msg,0,mdk_ver,year,month,day,mdk_hour,mdk_min,mdk_sec,0,vbattfilt,rxN,sensors);
+        mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+        CDC_Send_DATA(mavlink_buf,mavlink_len);
+        break;
+   
     default:
         break;
 

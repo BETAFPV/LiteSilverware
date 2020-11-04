@@ -175,12 +175,8 @@ void imu_calc(void)
         }
     }
 
-    extern char aux[16];
-    if (aux[RACEMODE] || aux[HORIZON])
-    {
-        attitude[0] = atan2approx(GEstG[0], GEstG[2]) ;
-        attitude[1] = atan2approx(GEstG[1], GEstG[2])  ;
-    }
+    attitude[0] = atan2approx(GEstG[0], GEstG[2]) ;
+    attitude[1] = atan2approx(GEstG[1], GEstG[2])  ;
 }
 
 

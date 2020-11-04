@@ -4,9 +4,8 @@
 #define MAVLINK_MSG_ID_save 11
 
 MAVPACKED(
-    typedef struct __mavlink_save_t
-{
-    uint8_t save; /*<  save*/
+typedef struct __mavlink_save_t {
+ uint8_t save; /*<  save*/
 }) mavlink_save_t;
 
 #define MAVLINK_MSG_ID_save_LEN 1
@@ -46,18 +45,18 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_save_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t save)
+                               uint8_t save)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_save_LEN];
     _mav_put_uint8_t(buf, 0, save);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_save_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_save_LEN);
 #else
     mavlink_save_t packet;
     packet.save = save;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_save_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_save_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_save;
@@ -74,19 +73,19 @@ static inline uint16_t mavlink_msg_save_pack(uint8_t system_id, uint8_t componen
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_save_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t save)
+                               mavlink_message_t* msg,
+                                   uint8_t save)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_save_LEN];
     _mav_put_uint8_t(buf, 0, save);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_save_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_save_LEN);
 #else
     mavlink_save_t packet;
     packet.save = save;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_save_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_save_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_save;
@@ -207,8 +206,8 @@ static inline void mavlink_msg_save_decode(const mavlink_message_t* msg, mavlink
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     save->save = mavlink_msg_save_get_save(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_save_LEN? msg->len : MAVLINK_MSG_ID_save_LEN;
-    memset(save, 0, MAVLINK_MSG_ID_save_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_save_LEN? msg->len : MAVLINK_MSG_ID_save_LEN;
+        memset(save, 0, MAVLINK_MSG_ID_save_LEN);
     memcpy(save, _MAV_PAYLOAD(msg), len);
 #endif
 }

@@ -4,9 +4,8 @@
 #define MAVLINK_MSG_ID_rx 7
 
 MAVPACKED(
-    typedef struct __mavlink_rx_t
-{
-    uint8_t rx_select; /*<  rx_select*/
+typedef struct __mavlink_rx_t {
+ uint8_t rx_select; /*<  rx_select*/
 }) mavlink_rx_t;
 
 #define MAVLINK_MSG_ID_rx_LEN 1
@@ -46,18 +45,18 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_rx_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t rx_select)
+                               uint8_t rx_select)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_rx_LEN];
     _mav_put_uint8_t(buf, 0, rx_select);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rx_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rx_LEN);
 #else
     mavlink_rx_t packet;
     packet.rx_select = rx_select;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rx_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rx_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_rx;
@@ -74,19 +73,19 @@ static inline uint16_t mavlink_msg_rx_pack(uint8_t system_id, uint8_t component_
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_rx_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t rx_select)
+                               mavlink_message_t* msg,
+                                   uint8_t rx_select)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_rx_LEN];
     _mav_put_uint8_t(buf, 0, rx_select);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rx_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_rx_LEN);
 #else
     mavlink_rx_t packet;
     packet.rx_select = rx_select;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rx_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_rx_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_rx;
@@ -207,8 +206,8 @@ static inline void mavlink_msg_rx_decode(const mavlink_message_t* msg, mavlink_r
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     rx->rx_select = mavlink_msg_rx_get_rx_select(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_rx_LEN? msg->len : MAVLINK_MSG_ID_rx_LEN;
-    memset(rx, 0, MAVLINK_MSG_ID_rx_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_rx_LEN? msg->len : MAVLINK_MSG_ID_rx_LEN;
+        memset(rx, 0, MAVLINK_MSG_ID_rx_LEN);
     memcpy(rx, _MAV_PAYLOAD(msg), len);
 #endif
 }

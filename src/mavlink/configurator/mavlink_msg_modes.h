@@ -4,20 +4,19 @@
 #define MAVLINK_MSG_ID_modes 12
 
 MAVPACKED(
-    typedef struct __mavlink_modes_t
-{
-    uint8_t acron; /*<  acron*/
-    uint8_t acros; /*<  acros*/
-    uint8_t leveln; /*<  leveln*/
-    uint8_t levels; /*<  levels*/
-    uint8_t horn; /*<  horn*/
-    uint8_t hors; /*<  hors*/
-    uint8_t racean; /*<  racean*/
-    uint8_t raceas; /*<  raceas*/
-    uint8_t racehn; /*<  racehn*/
-    uint8_t racehs; /*<  racehs*/
-    uint8_t turtlen; /*<  turtlen*/
-    uint8_t turtles; /*<  turtles*/
+typedef struct __mavlink_modes_t {
+ uint8_t acron; /*<  acron*/
+ uint8_t acros; /*<  acros*/
+ uint8_t leveln; /*<  leveln*/
+ uint8_t levels; /*<  levels*/
+ uint8_t horn; /*<  horn*/
+ uint8_t hors; /*<  hors*/
+ uint8_t racean; /*<  racean*/
+ uint8_t raceas; /*<  raceas*/
+ uint8_t racehn; /*<  racehn*/
+ uint8_t racehs; /*<  racehs*/
+ uint8_t turtlen; /*<  turtlen*/
+ uint8_t turtles; /*<  turtles*/
 }) mavlink_modes_t;
 
 #define MAVLINK_MSG_ID_modes_LEN 12
@@ -90,7 +89,7 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_modes_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t acron, uint8_t acros, uint8_t leveln, uint8_t levels, uint8_t horn, uint8_t hors, uint8_t racean, uint8_t raceas, uint8_t racehn, uint8_t racehs, uint8_t turtlen, uint8_t turtles)
+                               uint8_t acron, uint8_t acros, uint8_t leveln, uint8_t levels, uint8_t horn, uint8_t hors, uint8_t racean, uint8_t raceas, uint8_t racehn, uint8_t racehs, uint8_t turtlen, uint8_t turtles)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_modes_LEN];
@@ -107,7 +106,7 @@ static inline uint16_t mavlink_msg_modes_pack(uint8_t system_id, uint8_t compone
     _mav_put_uint8_t(buf, 10, turtlen);
     _mav_put_uint8_t(buf, 11, turtles);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_modes_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_modes_LEN);
 #else
     mavlink_modes_t packet;
     packet.acron = acron;
@@ -123,7 +122,7 @@ static inline uint16_t mavlink_msg_modes_pack(uint8_t system_id, uint8_t compone
     packet.turtlen = turtlen;
     packet.turtles = turtles;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_modes_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_modes_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_modes;
@@ -151,8 +150,8 @@ static inline uint16_t mavlink_msg_modes_pack(uint8_t system_id, uint8_t compone
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_modes_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t acron,uint8_t acros,uint8_t leveln,uint8_t levels,uint8_t horn,uint8_t hors,uint8_t racean,uint8_t raceas,uint8_t racehn,uint8_t racehs,uint8_t turtlen,uint8_t turtles)
+                               mavlink_message_t* msg,
+                                   uint8_t acron,uint8_t acros,uint8_t leveln,uint8_t levels,uint8_t horn,uint8_t hors,uint8_t racean,uint8_t raceas,uint8_t racehn,uint8_t racehs,uint8_t turtlen,uint8_t turtles)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_modes_LEN];
@@ -169,7 +168,7 @@ static inline uint16_t mavlink_msg_modes_pack_chan(uint8_t system_id, uint8_t co
     _mav_put_uint8_t(buf, 10, turtlen);
     _mav_put_uint8_t(buf, 11, turtles);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_modes_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_modes_LEN);
 #else
     mavlink_modes_t packet;
     packet.acron = acron;
@@ -185,7 +184,7 @@ static inline uint16_t mavlink_msg_modes_pack_chan(uint8_t system_id, uint8_t co
     packet.turtlen = turtlen;
     packet.turtles = turtles;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_modes_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_modes_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_modes;
@@ -482,8 +481,8 @@ static inline void mavlink_msg_modes_decode(const mavlink_message_t* msg, mavlin
     modes->turtlen = mavlink_msg_modes_get_turtlen(msg);
     modes->turtles = mavlink_msg_modes_get_turtles(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_modes_LEN? msg->len : MAVLINK_MSG_ID_modes_LEN;
-    memset(modes, 0, MAVLINK_MSG_ID_modes_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_modes_LEN? msg->len : MAVLINK_MSG_ID_modes_LEN;
+        memset(modes, 0, MAVLINK_MSG_ID_modes_LEN);
     memcpy(modes, _MAV_PAYLOAD(msg), len);
 #endif
 }

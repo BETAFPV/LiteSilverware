@@ -4,9 +4,8 @@
 #define MAVLINK_MSG_ID_reboot 0
 
 MAVPACKED(
-    typedef struct __mavlink_reboot_t
-{
-    uint8_t flashfirmware; /*<  double*/
+typedef struct __mavlink_reboot_t {
+ uint8_t flashfirmware; /*<  double*/
 }) mavlink_reboot_t;
 
 #define MAVLINK_MSG_ID_reboot_LEN 1
@@ -46,18 +45,18 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_reboot_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t flashfirmware)
+                               uint8_t flashfirmware)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_reboot_LEN];
     _mav_put_uint8_t(buf, 0, flashfirmware);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reboot_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reboot_LEN);
 #else
     mavlink_reboot_t packet;
     packet.flashfirmware = flashfirmware;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reboot_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reboot_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_reboot;
@@ -74,19 +73,19 @@ static inline uint16_t mavlink_msg_reboot_pack(uint8_t system_id, uint8_t compon
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_reboot_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t flashfirmware)
+                               mavlink_message_t* msg,
+                                   uint8_t flashfirmware)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_reboot_LEN];
     _mav_put_uint8_t(buf, 0, flashfirmware);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reboot_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_reboot_LEN);
 #else
     mavlink_reboot_t packet;
     packet.flashfirmware = flashfirmware;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reboot_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_reboot_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_reboot;
@@ -207,8 +206,8 @@ static inline void mavlink_msg_reboot_decode(const mavlink_message_t* msg, mavli
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     reboot->flashfirmware = mavlink_msg_reboot_get_flashfirmware(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_reboot_LEN? msg->len : MAVLINK_MSG_ID_reboot_LEN;
-    memset(reboot, 0, MAVLINK_MSG_ID_reboot_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_reboot_LEN? msg->len : MAVLINK_MSG_ID_reboot_LEN;
+        memset(reboot, 0, MAVLINK_MSG_ID_reboot_LEN);
     memcpy(reboot, _MAV_PAYLOAD(msg), len);
 #endif
 }

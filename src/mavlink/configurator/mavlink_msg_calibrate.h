@@ -4,9 +4,8 @@
 #define MAVLINK_MSG_ID_calibrate 1
 
 MAVPACKED(
-    typedef struct __mavlink_calibrate_t
-{
-    uint8_t calibrate; /*<  calibration*/
+typedef struct __mavlink_calibrate_t {
+ uint8_t calibrate; /*<  calibration*/
 }) mavlink_calibrate_t;
 
 #define MAVLINK_MSG_ID_calibrate_LEN 1
@@ -46,18 +45,18 @@ MAVPACKED(
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_calibrate_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-        uint8_t calibrate)
+                               uint8_t calibrate)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_calibrate_LEN];
     _mav_put_uint8_t(buf, 0, calibrate);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_calibrate_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_calibrate_LEN);
 #else
     mavlink_calibrate_t packet;
     packet.calibrate = calibrate;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_calibrate_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_calibrate_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_calibrate;
@@ -74,19 +73,19 @@ static inline uint16_t mavlink_msg_calibrate_pack(uint8_t system_id, uint8_t com
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_calibrate_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
-        mavlink_message_t* msg,
-        uint8_t calibrate)
+                               mavlink_message_t* msg,
+                                   uint8_t calibrate)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_calibrate_LEN];
     _mav_put_uint8_t(buf, 0, calibrate);
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_calibrate_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_calibrate_LEN);
 #else
     mavlink_calibrate_t packet;
     packet.calibrate = calibrate;
 
-    memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_calibrate_LEN);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_calibrate_LEN);
 #endif
 
     msg->msgid = MAVLINK_MSG_ID_calibrate;
@@ -207,8 +206,8 @@ static inline void mavlink_msg_calibrate_decode(const mavlink_message_t* msg, ma
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     calibrate->calibrate = mavlink_msg_calibrate_get_calibrate(msg);
 #else
-    uint8_t len = msg->len < MAVLINK_MSG_ID_calibrate_LEN? msg->len : MAVLINK_MSG_ID_calibrate_LEN;
-    memset(calibrate, 0, MAVLINK_MSG_ID_calibrate_LEN);
+        uint8_t len = msg->len < MAVLINK_MSG_ID_calibrate_LEN? msg->len : MAVLINK_MSG_ID_calibrate_LEN;
+        memset(calibrate, 0, MAVLINK_MSG_ID_calibrate_LEN);
     memcpy(calibrate, _MAV_PAYLOAD(msg), len);
 #endif
 }
