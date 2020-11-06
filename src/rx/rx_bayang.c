@@ -29,6 +29,8 @@ float rx[4];
 
 extern uint16_t chan[4];
 
+char auxT[4];
+
 char aux[AUXNUMBER];
 char lastaux[AUXNUMBER];
 char auxchange[AUXNUMBER];
@@ -218,23 +220,28 @@ static int decodepacket(void)
                 ((rxdata[8] & 0x0003) * 256 +
                  rxdata[9]) * 0.000976562f;
 
-            aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan
-            aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
-            aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan
-            aux[CH_FLIP] = (rxdata[2] & 0x08) ? 1 : 0;               //0 chan
-            aux[CH_EXPERT] = (rxdata[1] == 0xfa) ? 1 : 0;            //1 chan
-            aux[CH_HEADFREE] = (rxdata[2] & 0x02) ? 1 : 0;           //2 chan
-
-            aux[CH_RTH] = (rxdata[2] & 0x01) ? 1 : 0;	// rth channel
-
-            aux[CH_RTH] |= rxdata[3] & 0x03;
-            aux[CH_PIC] |= (rxdata[3]>>2) & 0x03;
-
-            chan[0] = aux[ARMING]*1800;
-            chan[1] = aux[LEVELMODE]*600;
-            chan[2] = aux[RACEMODE]*600;
-            chan[3] = aux[HORIZON]*1800;
-
+ 
+            auxT[3] = (rxdata[2] & 0x10) ? 1 : 0;   //8
+            
+            auxT[2] = (rxdata[2] & 0x20) ? 1 : 0;	//7
+            auxT[2] |= (rxdata[3]>>2) & 0x03;       //7
+         
+            auxT[1] = (rxdata[2] & 0x01) ? 1 : 0;	// 6
+            auxT[1] |= rxdata[3] & 0x03;            //6
+            
+            auxT[0] = (rxdata[2] & 0x08) ? 1 : 0;   //5
+            
+            chan[0] = auxT[0]*1800;
+            chan[1] = auxT[1]*600;
+            chan[2] = auxT[2]*600;
+            chan[3] = auxT[3]*1800;
+            
+            aux[CHAN_5] = auxT[0];
+            aux[CHAN_6] = auxT[1];
+            aux[CHAN_7] = auxT[2];
+            aux[CHAN_8] = auxT[3];
+            
+            
             if (aux[LEVELMODE])
             {
                 if (aux[RACEMODE] && !aux[HORIZON])

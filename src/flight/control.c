@@ -116,6 +116,8 @@ float underthrottlefilt = 0;
 
 float rxcopy[4];
 
+int16_t motor_value[4];
+
 // *************************************************************************
 //horizon modes tuning variables
 // *************************************************************************
@@ -714,14 +716,19 @@ void control(void)
 #endif
 //***********************End Min Motor Command Logic
 
-            if (!aux[CHAN_5])
+            if (mix[i] < 0.0f)
             {
+                mix[i] = 0.0;
+            }
+            if (mix[i] > 0.999f)
+            {
+                mix[i] = 0.999f;
+            }
+            
+            pwm_set(i, mix[i]);
 
-            }
-            else
-            {
-                pwm_set(i, mix[i]);
-            }
+            motor_value[i] = mix[i]*2000;
+            
             if (mix[i] < 0) mix[i] = 0;
             if (mix[i] > 1) mix[i] = 1;
             thrsum += mix[i];

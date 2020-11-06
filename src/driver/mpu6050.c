@@ -13,6 +13,7 @@
 #define GYRO_ID_3 0x7D
 #define GYRO_ID_4 0x72
 
+
 void mpu6050_init(void)
 {
     i2c_writereg(SOFTI2C_GYRO_ADDRESS, 107, 128);
@@ -55,6 +56,9 @@ float gyronew[3];
 float lpffilter(float in, int num);
 float lpffilter2(float in, int num);
 
+int16_t acclN[3]; 
+int16_t gyroN[3]; 
+int8_t temper=0;
 
 void mpu6050_read(void)
 {
@@ -66,6 +70,8 @@ void mpu6050_read(void)
     accelraw[1] = -(int16_t)((data[2] << 8) + data[3]);
     accelraw[2] = (int16_t)((data[4] << 8) + data[5]);
 
+    temper=((int16_t)(data[6]<<8)+data[7])/326.8f + 25.0f;
+    
     float temp = accelraw[1];
     accelraw[1] = -accelraw[0];
     accelraw[0] = temp;
@@ -77,6 +83,7 @@ void mpu6050_read(void)
     for (int i = 0; i < 3; i++)
     {
         //  accelraw[i] = accel[i]*( 1/ 2048.0f);
+        acclN[i] = accelraw[i];
         accelraw[i] *= (1 / 4096.0f);
     }
 
@@ -99,8 +106,10 @@ void mpu6050_read(void)
     gyronew[1] = - gyronew[1];
     gyronew[2] = - gyronew[2];
 
+       
     for (int i = 0; i < 3; i++)
     {
+        gyroN[i] = gyronew[i];
         gyronew[i] = gyronew[i] * 0.030517578f * 0.017453292f;
         gyro[i] = lpffilter(gyronew[i], i);
         gyro[i] = lpffilter2(gyro[i], i);

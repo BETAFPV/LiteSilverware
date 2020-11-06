@@ -17,6 +17,7 @@
 #include "config.h"
 #include "defines.h"
 #include "time.h"
+#include "mpu6050.h"
 #include "flash.h"
 
 
@@ -39,7 +40,7 @@ Mavlink_Messages currentMsg;
 //mavlink receive defines
 int num = 0;
 uint8_t receBuf[64] = {0};
-uint8_t tab_index=10;
+uint8_t tab_index=6;
 uint8_t sub_index=0;
 mavlink_message_t receivemsg;
 mavlink_status_t status;
@@ -54,6 +55,14 @@ extern float lowvol;
 extern float vbattfilt;
 extern int failsafe;
 extern float attitude[];
+
+
+extern int16_t acclN[3]; 
+extern int16_t gyroN[3]; 
+
+extern int16_t motor_value[4];
+
+extern int8_t temper;
 
 
 
@@ -84,10 +93,21 @@ void serialProcess(uint16_t period)
                     break;
 
                 case MAVLINK_MSG_ID_reboot:
-//                    mavlink_msg_reboot_decode(&receivemsg,&currentMsg.reboot);
-//                    usb_for_msp = currentMsg.reboot.flashfirmware;
-//                    tab_index = 10;
+
                     break;
+                
+                case MAVLINK_MSG_ID_calibrate:
+                    gyro_cal();
+                    acc_cal();
+
+                    flash_save();
+                    delay_ms(1);
+                
+                    mavlink_len = mavlink_msg_calibrate_pack(1,5,&mavlink_msg,1);
+                    mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+                    CDC_Send_DATA(mavlink_buf,mavlink_len);
+                    break;
+                
                 
                 default:
                     break;
@@ -109,12 +129,27 @@ void serialProcess(uint16_t period)
         break;
 
     case 3:
+        if(sub_index)
+        {
+            mavlink_len = mavlink_msg_motor_value_pack(1,5,&mavlink_msg,motor_value[0],motor_value[1],motor_value[2],motor_value[3]);
+            mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+            CDC_Send_DATA(mavlink_buf,mavlink_len);
+        }
+        else
+        {
+            
+        }
         break;
 
     case 4:
-        mavlink_len = mavlink_msg_tx_pack(1,5,&mavlink_msg,rx[0]*500,rx[1]*500,rx[2]*500,rx[3]*1000,chan[0],chan[1],chan[2],chan[3],attitude[0],attitude[1],attitude[2]);
-        mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
-        CDC_Send_DATA(mavlink_buf,mavlink_len);
+            mavlink_len = mavlink_msg_tx_pack(1,5,&mavlink_msg,rx[0]*500,rx[1]*500,rx[2]*500,rx[3]*1000,chan[0],chan[1],chan[2],chan[3],attitude[0],attitude[1],temper);
+            mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+            CDC_Send_DATA(mavlink_buf,mavlink_len);
+
+            delay_ms(1);
+            mavlink_len = mavlink_msg_attitude_pack(1,5,&mavlink_msg,acclN[0],acclN[1],acclN[2],gyroN[0],gyroN[1],gyroN[2]);
+            mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+            CDC_Send_DATA(mavlink_buf,mavlink_len);
 
         break;
 

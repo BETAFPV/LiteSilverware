@@ -70,21 +70,25 @@ uint8_t systemInit(void)
     
     //gpio
     gpio_init();
+    delay(1000);
     
-    if( KEY11 ==0 || KEY12 == 0)
+    if ((GPIOA->IDR & GPIO_Pin_1) == (uint32_t)Bit_RESET)
     {
-        flashErase();
-
         delay(1000);
-        uint32_t JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
+        if(((GPIOA->IDR & GPIO_Pin_1) == (uint32_t)Bit_RESET) &&( KEY11 ==0 || KEY12 == 0))
+        {
+            flashErase();
 
-        pFunction Jump_To_Boot = (pFunction) JumpAddress;
+            delay(1000);
+            uint32_t JumpAddress = *(__IO uint32_t*) (ApplicationAddress + 4);
 
-        __set_MSP(*(__IO uint32_t*) ApplicationAddress);
+            pFunction Jump_To_Boot = (pFunction) JumpAddress;
 
-        Jump_To_Boot();
+            __set_MSP(*(__IO uint32_t*) ApplicationAddress);
+
+            Jump_To_Boot();
+        }
     }
-
     
     USBD_Init(&USB_Device_dev,
             &USR_desc, 

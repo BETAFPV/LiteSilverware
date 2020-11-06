@@ -20,7 +20,8 @@ project/*.scvd
 project/*.Administrator
 project/*.uvoptx
 project/*.dep
-
+project/Objects/*
+project/Listings/*
 
 # Listing files
 *.cod
