@@ -68,9 +68,6 @@ float pidki[PIDNUMBER] = { 1.4, 1.4, 1.4    };
 float pidkd[PIDNUMBER] = { 0.5666, 0.5666, 0.05   };
 
 //*********************************Saved Initial PIDs****************************************
-float pidkp_init[PIDNUMBER] = { 0, 0, 0 };
-float pidki_init[PIDNUMBER] = { 0, 0, 0 };
-float pidkd_init[PIDNUMBER] = { 0, 0, 0 };
 
 
 //************************************Setpoint Weight & Limits********************************
@@ -292,22 +289,6 @@ void pid_precalc()
 #endif
 }
 
-// call at quad startup, and when wanting to save pids
-void pid_init()
-{
-    // save initial PID values
-    pidkp_init[0] = pidkp[0]; // Roll
-    pidkp_init[1] = pidkp[1]; // Pitch
-    pidkp_init[2] = pidkp[2]; // Yaw
-
-    pidki_init[0] = pidki[0];
-    pidki_init[1] = pidki[1];
-    pidki_init[2] = pidki[2];
-
-    pidkd_init[0] = pidkd[0];
-    pidkd_init[1] = pidkd[1];
-    pidkd_init[2] = pidkd[2];
-}
 
 
 #ifndef DTERM_LPF_2ND_HZ

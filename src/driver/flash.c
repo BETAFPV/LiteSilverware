@@ -20,7 +20,29 @@ extern unsigned char rx_show;
 extern unsigned char mode_show ;
 extern float accelcal[3];
 extern unsigned char vtx_index;
+extern float * pids_array[3];
 
+
+float initial_pid_identifier = -10;
+float saved_pid_identifier;
+
+
+float flash_get_hard_coded_pid_identifier( void) {
+	float result = 0;
+
+	for (int i=0;  i<3 ; i++) {
+		for (int j=0; j<3 ; j++) {
+			result += pids_array[i][j] * (i+1) * (j+1) * 0.932f;
+		}
+	}
+	return result;
+}
+
+
+void flash_hard_coded_pid_identifier( void)
+{
+ initial_pid_identifier = flash_get_hard_coded_pid_identifier();
+}
 
 
 void flash_save( void) 
@@ -32,6 +54,15 @@ void flash_save( void)
 
     writeword(addresscount++, FMC_HEADER);
 
+    fmc_write_float(addresscount++, initial_pid_identifier );
+	
+	for (int i=0;  i<3 ; i++) {
+		for (int j=0; j<3 ; j++) {
+            fmc_write_float(addresscount++, pids_array[i][j]);
+		}
+	}
+    
+    
     writeword(addresscount++, rx_show);
     writeword(addresscount++, mode_show);
     writeword(addresscount++, vol_show);
@@ -73,7 +104,19 @@ void flash_load( void)
 
     if (FMC_HEADER == fmc_read(addresscount++)&& FMC_HEADER == fmc_read(255))
     {
-        
+         saved_pid_identifier = fmc_read_float(addresscount++);     
+         if (  saved_pid_identifier == initial_pid_identifier )
+         {
+             for (int i=0;  i<3 ; i++) {
+                for (int j=0; j<3 ; j++) {
+                    pids_array[i][j] = fmc_read_float(addresscount++);
+                }
+            }
+         }
+         else{
+             addresscount+=9; 
+         }
+     
         temp = fmc_read(addresscount++);
         rx_show = temp & 0x0F;
         if (rx_show > 1)

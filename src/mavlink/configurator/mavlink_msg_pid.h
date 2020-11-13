@@ -14,15 +14,16 @@ typedef struct __mavlink_pid_t {
  float yaw_kp; /*<  yaw_kp*/
  float yaw_ki; /*<  yaw_ki*/
  float yaw_kd; /*<  yaw_kd*/
+ uint8_t rspb; /*<  rspb*/
 }) mavlink_pid_t;
 
-#define MAVLINK_MSG_ID_pid_LEN 36
-#define MAVLINK_MSG_ID_pid_MIN_LEN 36
-#define MAVLINK_MSG_ID_6_LEN 36
-#define MAVLINK_MSG_ID_6_MIN_LEN 36
+#define MAVLINK_MSG_ID_pid_LEN 37
+#define MAVLINK_MSG_ID_pid_MIN_LEN 37
+#define MAVLINK_MSG_ID_6_LEN 37
+#define MAVLINK_MSG_ID_6_MIN_LEN 37
 
-#define MAVLINK_MSG_ID_pid_CRC 2
-#define MAVLINK_MSG_ID_6_CRC 2
+#define MAVLINK_MSG_ID_pid_CRC 173
+#define MAVLINK_MSG_ID_6_CRC 173
 
 
 
@@ -30,8 +31,9 @@ typedef struct __mavlink_pid_t {
 #define MAVLINK_MESSAGE_INFO_pid { \
     6, \
     "pid", \
-    9, \
-    {  { "roll_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_pid_t, roll_kp) }, \
+    10, \
+    {  { "rspb", NULL, MAVLINK_TYPE_UINT8_T, 0, 36, offsetof(mavlink_pid_t, rspb) }, \
+         { "roll_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_pid_t, roll_kp) }, \
          { "roll_ki", NULL, MAVLINK_TYPE_FLOAT, 0, 4, offsetof(mavlink_pid_t, roll_ki) }, \
          { "roll_kd", NULL, MAVLINK_TYPE_FLOAT, 0, 8, offsetof(mavlink_pid_t, roll_kd) }, \
          { "pitch_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 12, offsetof(mavlink_pid_t, pitch_kp) }, \
@@ -45,8 +47,9 @@ typedef struct __mavlink_pid_t {
 #else
 #define MAVLINK_MESSAGE_INFO_pid { \
     "pid", \
-    9, \
-    {  { "roll_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_pid_t, roll_kp) }, \
+    10, \
+    {  { "rspb", NULL, MAVLINK_TYPE_UINT8_T, 0, 36, offsetof(mavlink_pid_t, rspb) }, \
+         { "roll_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 0, offsetof(mavlink_pid_t, roll_kp) }, \
          { "roll_ki", NULL, MAVLINK_TYPE_FLOAT, 0, 4, offsetof(mavlink_pid_t, roll_ki) }, \
          { "roll_kd", NULL, MAVLINK_TYPE_FLOAT, 0, 8, offsetof(mavlink_pid_t, roll_kd) }, \
          { "pitch_kp", NULL, MAVLINK_TYPE_FLOAT, 0, 12, offsetof(mavlink_pid_t, pitch_kp) }, \
@@ -65,6 +68,7 @@ typedef struct __mavlink_pid_t {
  * @param component_id ID of this component (e.g. 200 for IMU)
  * @param msg The MAVLink message to compress the data into
  *
+ * @param rspb  rspb
  * @param roll_kp  roll_kp
  * @param roll_ki  roll_ki
  * @param roll_kd  roll_kd
@@ -77,7 +81,7 @@ typedef struct __mavlink_pid_t {
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
-                               float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
+                               uint8_t rspb, float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_pid_LEN];
@@ -90,6 +94,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
     _mav_put_float(buf, 24, yaw_kp);
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
+    _mav_put_uint8_t(buf, 36, rspb);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
 #else
@@ -103,6 +108,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
     packet.yaw_kp = yaw_kp;
     packet.yaw_ki = yaw_ki;
     packet.yaw_kd = yaw_kd;
+    packet.rspb = rspb;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
 #endif
@@ -117,6 +123,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
  * @param component_id ID of this component (e.g. 200 for IMU)
  * @param chan The MAVLink channel this message will be sent over
  * @param msg The MAVLink message to compress the data into
+ * @param rspb  rspb
  * @param roll_kp  roll_kp
  * @param roll_ki  roll_ki
  * @param roll_kd  roll_kd
@@ -130,7 +137,7 @@ static inline uint16_t mavlink_msg_pid_pack(uint8_t system_id, uint8_t component
  */
 static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
-                                   float roll_kp,float roll_ki,float roll_kd,float pitch_kp,float pitch_ki,float pitch_kd,float yaw_kp,float yaw_ki,float yaw_kd)
+                                   uint8_t rspb,float roll_kp,float roll_ki,float roll_kd,float pitch_kp,float pitch_ki,float pitch_kd,float yaw_kp,float yaw_ki,float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_pid_LEN];
@@ -143,6 +150,7 @@ static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t comp
     _mav_put_float(buf, 24, yaw_kp);
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
+    _mav_put_uint8_t(buf, 36, rspb);
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_pid_LEN);
 #else
@@ -156,6 +164,7 @@ static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t comp
     packet.yaw_kp = yaw_kp;
     packet.yaw_ki = yaw_ki;
     packet.yaw_kd = yaw_kd;
+    packet.rspb = rspb;
 
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_pid_LEN);
 #endif
@@ -174,7 +183,7 @@ static inline uint16_t mavlink_msg_pid_pack_chan(uint8_t system_id, uint8_t comp
  */
 static inline uint16_t mavlink_msg_pid_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_pid_t* pid)
 {
-    return mavlink_msg_pid_pack(system_id, component_id, msg, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
+    return mavlink_msg_pid_pack(system_id, component_id, msg, pid->rspb, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
 }
 
 /**
@@ -188,13 +197,14 @@ static inline uint16_t mavlink_msg_pid_encode(uint8_t system_id, uint8_t compone
  */
 static inline uint16_t mavlink_msg_pid_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_pid_t* pid)
 {
-    return mavlink_msg_pid_pack_chan(system_id, component_id, chan, msg, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
+    return mavlink_msg_pid_pack_chan(system_id, component_id, chan, msg, pid->rspb, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
 }
 
 /**
  * @brief Send a pid message
  * @param chan MAVLink channel to send the message
  *
+ * @param rspb  rspb
  * @param roll_kp  roll_kp
  * @param roll_ki  roll_ki
  * @param roll_kd  roll_kd
@@ -207,7 +217,7 @@ static inline uint16_t mavlink_msg_pid_encode_chan(uint8_t system_id, uint8_t co
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
-static inline void mavlink_msg_pid_send(mavlink_channel_t chan, float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
+static inline void mavlink_msg_pid_send(mavlink_channel_t chan, uint8_t rspb, float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_pid_LEN];
@@ -220,6 +230,7 @@ static inline void mavlink_msg_pid_send(mavlink_channel_t chan, float roll_kp, f
     _mav_put_float(buf, 24, yaw_kp);
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
+    _mav_put_uint8_t(buf, 36, rspb);
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_pid, buf, MAVLINK_MSG_ID_pid_MIN_LEN, MAVLINK_MSG_ID_pid_LEN, MAVLINK_MSG_ID_pid_CRC);
 #else
@@ -233,6 +244,7 @@ static inline void mavlink_msg_pid_send(mavlink_channel_t chan, float roll_kp, f
     packet.yaw_kp = yaw_kp;
     packet.yaw_ki = yaw_ki;
     packet.yaw_kd = yaw_kd;
+    packet.rspb = rspb;
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_pid, (const char *)&packet, MAVLINK_MSG_ID_pid_MIN_LEN, MAVLINK_MSG_ID_pid_LEN, MAVLINK_MSG_ID_pid_CRC);
 #endif
@@ -246,7 +258,7 @@ static inline void mavlink_msg_pid_send(mavlink_channel_t chan, float roll_kp, f
 static inline void mavlink_msg_pid_send_struct(mavlink_channel_t chan, const mavlink_pid_t* pid)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
-    mavlink_msg_pid_send(chan, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
+    mavlink_msg_pid_send(chan, pid->rspb, pid->roll_kp, pid->roll_ki, pid->roll_kd, pid->pitch_kp, pid->pitch_ki, pid->pitch_kd, pid->yaw_kp, pid->yaw_ki, pid->yaw_kd);
 #else
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_pid, (const char *)pid, MAVLINK_MSG_ID_pid_MIN_LEN, MAVLINK_MSG_ID_pid_LEN, MAVLINK_MSG_ID_pid_CRC);
 #endif
@@ -260,7 +272,7 @@ static inline void mavlink_msg_pid_send_struct(mavlink_channel_t chan, const mav
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
-static inline void mavlink_msg_pid_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
+static inline void mavlink_msg_pid_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t rspb, float roll_kp, float roll_ki, float roll_kd, float pitch_kp, float pitch_ki, float pitch_kd, float yaw_kp, float yaw_ki, float yaw_kd)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char *buf = (char *)msgbuf;
@@ -273,6 +285,7 @@ static inline void mavlink_msg_pid_send_buf(mavlink_message_t *msgbuf, mavlink_c
     _mav_put_float(buf, 24, yaw_kp);
     _mav_put_float(buf, 28, yaw_ki);
     _mav_put_float(buf, 32, yaw_kd);
+    _mav_put_uint8_t(buf, 36, rspb);
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_pid, buf, MAVLINK_MSG_ID_pid_MIN_LEN, MAVLINK_MSG_ID_pid_LEN, MAVLINK_MSG_ID_pid_CRC);
 #else
@@ -286,6 +299,7 @@ static inline void mavlink_msg_pid_send_buf(mavlink_message_t *msgbuf, mavlink_c
     packet->yaw_kp = yaw_kp;
     packet->yaw_ki = yaw_ki;
     packet->yaw_kd = yaw_kd;
+    packet->rspb = rspb;
 
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_pid, (const char *)packet, MAVLINK_MSG_ID_pid_MIN_LEN, MAVLINK_MSG_ID_pid_LEN, MAVLINK_MSG_ID_pid_CRC);
 #endif
@@ -296,6 +310,16 @@ static inline void mavlink_msg_pid_send_buf(mavlink_message_t *msgbuf, mavlink_c
 
 // MESSAGE pid UNPACKING
 
+
+/**
+ * @brief Get field rspb from pid message
+ *
+ * @return  rspb
+ */
+static inline uint8_t mavlink_msg_pid_get_rspb(const mavlink_message_t* msg)
+{
+    return _MAV_RETURN_uint8_t(msg,  36);
+}
 
 /**
  * @brief Get field roll_kp from pid message
@@ -405,6 +429,7 @@ static inline void mavlink_msg_pid_decode(const mavlink_message_t* msg, mavlink_
     pid->yaw_kp = mavlink_msg_pid_get_yaw_kp(msg);
     pid->yaw_ki = mavlink_msg_pid_get_yaw_ki(msg);
     pid->yaw_kd = mavlink_msg_pid_get_yaw_kd(msg);
+    pid->rspb = mavlink_msg_pid_get_rspb(msg);
 #else
         uint8_t len = msg->len < MAVLINK_MSG_ID_pid_LEN? msg->len : MAVLINK_MSG_ID_pid_LEN;
         memset(pid, 0, MAVLINK_MSG_ID_pid_LEN);

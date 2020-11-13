@@ -12,6 +12,7 @@
 #include "led.h"
 #include "misc_gpio.h"
 #include "configure.h"
+#include "defines.h"
 
 #define YEAR ((((__DATE__ [7] - '0') * 10 + (__DATE__ [8] - '0')) * 10 + (__DATE__ [9] - '0')) * 10 + (__DATE__ [10] - '0'))  
   
@@ -39,6 +40,9 @@ unsigned int lastlooptime;
 uint16_t year,month,day;
 uint8_t mdk_hour,mdk_min,mdk_sec;
 
+extern uint8_t  USB_Tx_State;
+extern char aux[];
+uint8_t usb_in_use=0;
 
 void failloop(int val)
 {
@@ -89,9 +93,13 @@ int main(void)
         checkrx(10);
 
         batteryUpdate(20);
-
+    
         
-//        serialProcess(50);
+        if(aux[CHAN_5] ==0)
+        {
+            serialProcess(50);
+        }
+
         
         osd_process(50);
 

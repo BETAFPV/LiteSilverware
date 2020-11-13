@@ -56,6 +56,9 @@ extern float vbattfilt;
 extern int failsafe;
 extern float attitude[];
 
+extern float pidkp[PIDNUMBER];
+extern float pidki[PIDNUMBER];
+extern float pidkd[PIDNUMBER];
 
 extern int16_t acclN[3]; 
 extern int16_t gyroN[3]; 
@@ -64,7 +67,7 @@ extern int16_t motor_value[4];
 
 extern int8_t temper;
 
-
+static uint8_t rspb = 0;
 
 void serialProcess(uint16_t period)
 {
@@ -108,7 +111,36 @@ void serialProcess(uint16_t period)
                     CDC_Send_DATA(mavlink_buf,mavlink_len);
                     break;
                 
+                case MAVLINK_MSG_ID_pid:
+                    mavlink_msg_pid_decode(&receivemsg,&currentMsg.pid);
                 
+                    rspb = currentMsg.pid.rspb;
+                
+                    if(rspb)
+                    {
+                        pidkp[0] = currentMsg.pid.roll_kp;
+                        pidki[0] = currentMsg.pid.roll_ki;
+                        pidkd[0] = currentMsg.pid.roll_kd;
+                        
+                        pidkp[1] = currentMsg.pid.pitch_kp;
+                        pidki[1] = currentMsg.pid.pitch_ki;
+                        pidkd[1] = currentMsg.pid.pitch_kd;
+                        
+                        pidkp[2] = currentMsg.pid.yaw_kp;
+                        pidki[2] = currentMsg.pid.yaw_ki;
+                        pidkd[2] = currentMsg.pid.yaw_kd;
+                        
+                        flash_save();
+                        delay_ms(10);
+                    }
+                    else
+                    {
+                        mavlink_len = mavlink_msg_pid_pack(1,5,&mavlink_msg,0,pidkp[0],pidki[0],pidkd[0],pidkp[1],pidki[1],pidkd[1],pidkp[2],pidki[2],pidkd[2]);
+                        mavlink_len = mavlink_msg_to_send_buffer(mavlink_buf,&mavlink_msg);
+                        CDC_Send_DATA(mavlink_buf,mavlink_len);                    
+                    }
+                    break;
+                    
                 default:
                     break;
 

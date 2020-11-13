@@ -101,6 +101,7 @@ uint8_t systemInit(void)
 
     delay_ms(10);
 
+    flash_hard_coded_pid_identifier();
     flash_load();
     
     
