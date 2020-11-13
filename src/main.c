@@ -92,7 +92,7 @@ int main(void)
 
         checkrx(10);
 
-        batteryUpdate(20);
+        batteryUpdate(10);
     
         
         if(aux[CHAN_5] ==0)

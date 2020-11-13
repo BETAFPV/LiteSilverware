@@ -22,6 +22,10 @@ extern float accelcal[3];
 extern unsigned char vtx_index;
 extern float * pids_array[3];
 
+extern float rcRate[3];
+extern float superExpo[3];
+extern float Expo[3];
+
 
 float initial_pid_identifier = -10;
 float saved_pid_identifier;
@@ -73,6 +77,19 @@ void flash_save( void)
     fmc_write_float(addresscount++, accelcal[0]);
     fmc_write_float(addresscount++, accelcal[1]);
     fmc_write_float(addresscount++, accelcal[2]);
+    
+    fmc_write_float(addresscount++, rcRate[0]);
+    fmc_write_float(addresscount++, rcRate[1]);
+    fmc_write_float(addresscount++, rcRate[2]);
+    
+    fmc_write_float(addresscount++, superExpo[0]);
+    fmc_write_float(addresscount++, superExpo[1]);
+    fmc_write_float(addresscount++, superExpo[2]);
+    
+    fmc_write_float(addresscount++, Expo[0]);
+    fmc_write_float(addresscount++, Expo[1]);
+    fmc_write_float(addresscount++, Expo[2]);
+    
     
     if ( rx_bind_enable )
     {
@@ -146,6 +163,38 @@ void flash_load( void)
         accelcal[0] = fmc_read_float(addresscount++);
         accelcal[1] = fmc_read_float(addresscount++);
         accelcal[2] = fmc_read_float(addresscount++);
+        
+        rcRate[0] = fmc_read_float(addresscount++);
+        rcRate[1] = fmc_read_float(addresscount++);
+        rcRate[2] = fmc_read_float(addresscount++);
+        
+        
+        superExpo[0] = fmc_read_float(addresscount++);
+        superExpo[1] = fmc_read_float(addresscount++);
+        superExpo[2] = fmc_read_float(addresscount++);
+        
+        Expo[0] = fmc_read_float(addresscount++);
+        Expo[1] = fmc_read_float(addresscount++);
+        Expo[2] = fmc_read_float(addresscount++);
+        
+        for(int i=0;i<3;i++)
+        {
+            if(rcRate[i] > 2.55f)
+            {
+                rcRate[i] = 1.0f;
+            }
+            
+            if(superExpo[i] > 1.0f)
+            {
+                superExpo[i] = 0.0f;
+            }
+            
+            if(Expo[i] > 1.0f)
+            {
+                Expo[i] = 0.0f;
+            }
+            
+        }
         
         int temp = fmc_read(52);
         int error = 0;

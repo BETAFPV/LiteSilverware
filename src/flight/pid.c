@@ -63,9 +63,9 @@ float stickTransitionProfileB[3]  = { 0.3, 0.3, 0.0};             //keep values 
 
 //************************************PIDS****************************************
 
-float pidkp[PIDNUMBER] = {0.1438, 0.1438, 0.2436 };
-float pidki[PIDNUMBER] = { 1.4, 1.4, 1.4    };
-float pidkd[PIDNUMBER] = { 0.5666, 0.5666, 0.05   };
+float pidkp[PIDNUMBER] = {0.23, 0.23, 0.2436 };
+float pidki[PIDNUMBER] = { 1.0, 1.0, 1.0    };
+float pidkd[PIDNUMBER] = { 0.55, 0.5666, 0.05   };
 
 //*********************************Saved Initial PIDs****************************************
 

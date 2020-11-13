@@ -132,20 +132,58 @@ extern uint8_t usb_in_use;
 // *************************************************************************
 // *************************************************************************
 
+
+#define SETPOINT_RATE_LIMIT 1998.0f
+#define RC_RATE_INCREMENTAL 14.54f
+
+static inline float constrainf(float amt, float low, float high)
+{
+    if (amt < low)
+        return low;
+    else if (amt > high)
+        return high;
+    else
+        return amt;
+}
+
+float rcRate[3] = {1.50,1.50,1.80};
+float superExpo[3] = {0.40,0.40,0.40};
+float Expo[3]= {0.25,0.25,0.25};
+
+
+#define power3(x) ((x)*(x)*(x))
+
+static float calcBFRatesRad(int axis)
+{
+    float rcCommandf = rxcopy[axis];
+    float rcCommandfAbs = fabsf(rxcopy[axis]);
+    
+    if(Expo[axis])
+    {
+        rcCommandf = rcCommandf * power3(rcCommandfAbs) * Expo[axis] + rcCommandf * (1 - Expo[axis]);
+    }
+
+    if (rcRate[axis] > 2.0f) {
+        rcRate[axis] += RC_RATE_INCREMENTAL * (rcRate[axis] - 2.0f);
+    }
+
+    float angleRate = 200.0f * rcRate[axis] * rcCommandf;
+    
+    if (superExpo[axis]) {
+        const float rcSuperfactor = 1.0f / (constrainf(1.0f - (rcCommandfAbs * superExpo[axis]), 0.01f, 1.00f));
+        angleRate *= rcSuperfactor;
+    }
+    return constrainf(angleRate, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT) * (float)DEGTORAD;
+}
+
+
+
 void control(void)
 {
 
 // high-low rates switch
     float rate_multiplier = 1.0;
 
-
-#ifdef INVERTED_ENABLE
-    extern int pwmdir;
-    if (aux[FN_INVERTED])
-        pwmdir = REVERSE;
-    else
-        pwmdir = FORWARD;
-#endif
 
     for (int i = 0 ; i < 3 ; i++)
     {
@@ -181,15 +219,15 @@ void control(void)
 
     float rates[3];
 
-#ifndef BETAFLIGHT_RATES
-    rates[0] = rate_multiplier * rxcopy[0] * (float) ratesValue * DEGTORAD;
-    rates[1] = rate_multiplier * rxcopy[1] * (float) ratesValue * DEGTORAD;
-    rates[2] = rate_multiplier * rxcopy[2] * (float) ratesValueYaw * DEGTORAD;
-#else
+//#ifndef BETAFLIGHT_RATES
+//    rates[0] = rate_multiplier * rxcopy[0] * (float) ratesValue * DEGTORAD;
+//    rates[1] = rate_multiplier * rxcopy[1] * (float) ratesValue * DEGTORAD;
+//    rates[2] = rate_multiplier * rxcopy[2] * (float) ratesValueYaw * DEGTORAD;
+//#else
     rates[0] = rate_multiplier * calcBFRatesRad(0);
     rates[1] = rate_multiplier * calcBFRatesRad(1);
     rates[2] = rate_multiplier * calcBFRatesRad(2);
-#endif
+//#endif
 
     float inclinationRoll;
     float inclinationPitch;
