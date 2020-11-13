@@ -90,11 +90,12 @@ int main(void)
 
         batteryUpdate(20);
 
-        serialProcess(50);
         
-        osd_process(20);
+//        serialProcess(50);
+        
+        osd_process(50);
 
-        ledUpdate(50);
+        ledUpdate(30);
 
         keyUpdate(100);
         

@@ -188,7 +188,7 @@
 #define MOTOR_FR 3
 #define MOTOR_BR 2
 
-#define MOTOR_MIN_COMMAND  10.0
+#define MOTOR_MIN_COMMAND  5.0
 
 
 #define PIDNUMBER 3

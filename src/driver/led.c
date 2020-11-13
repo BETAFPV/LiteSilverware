@@ -169,7 +169,7 @@ void ledUpdate(uint16_t period)
 
     if(low_vol)
     {
-        rgb_ledflash(RGB( 0, 255, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok
+        rgb_ledflash ( RGB( 255, 0, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok red led
     }
     else
     {
@@ -178,12 +178,12 @@ void ledUpdate(uint16_t period)
             switch(ledcommand)
             {
             case 2:
-                rgb_ledflash ( RGB( 255, 0, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok
+                rgb_ledflash(RGB( 0, 255, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok green led
                 break;
 
 
             case 3:
-                rgb_ledflash(RGB(255,165,0), RGB( 0, 0, 0 ),500000, 8); //ok
+                rgb_ledflash(RGB(255,165,0), RGB( 0, 0, 0 ),500000, 8); //ok yellow led
                 break;
 
             }
