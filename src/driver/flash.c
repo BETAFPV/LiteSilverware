@@ -155,7 +155,7 @@ void flash_load( void)
             rgb_led = 0;
         
         temp = fmc_read(addresscount++);
-        vtx_index = temp & 0x0F;
+        vtx_index = temp & 0xFF;
         if (vtx_index > 39)
             vtx_index = 8;
         

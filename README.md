@@ -1,4 +1,4 @@
-﻿Update:
+Update:
 
 1、Reorganized the file structure, easy to view.
 
@@ -14,6 +14,6 @@
 
 Read the original README for more information. [README](https://github.com/BETAFPV/LiteSilverware/tree/master)
 
+Go [here](https://betafpv.github.io/2020/11/Lite_Brushed_v2/) to learn how to update firmware, view sensor data, set rates, and more from configure.
 
-
-### It's not finished yet. It won't take long.
+### 

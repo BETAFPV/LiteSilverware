@@ -149,6 +149,10 @@ void rx_init(void)
         xn_writereg(0x25, rfchannel[rf_chan]);    // Set channel frequency
         rxmode = RX_MODE_NORMAL;
 
+        aux6 = aux[LEVELMODE];
+        aux7 = aux[RACEMODE];
+        aux8 = aux[HORIZON];  
+        
         if (telemetry_enabled) packet_period = PACKET_PERIOD_TELEMETRY;
     }
     else
@@ -294,7 +298,7 @@ int failsafe = 1;
 unsigned int skipchannel = 0;
 int lastrxchan;
 int timingfail = 0;
-
+static int init_rx=0;
 
 
 void checkrx(uint16_t period)
@@ -359,16 +363,13 @@ void checkrx(uint16_t period)
             }
         }
         else
-        {
-            static int init_rx=0;
-            if(!init_rx)
+        {           
+            if(init_rx<100)
             {
+                init_rx++;
                 aux6 = aux[LEVELMODE];
                 aux7 = aux[RACEMODE];
-                aux8 = aux[HORIZON];
-                
-                init_rx=1;
-                
+                aux8 = aux[HORIZON];               
             }
             unsigned long temptime = gettime();
 
@@ -512,7 +513,7 @@ void flymodeUpdate(uint16_t period)
         {
             flymode=1;
         }
-        if (aux7 != aux[RACEMODE])
+        if (aux7 != aux[RACEMODE] && (init_rx >=100))
         {
             aux7 = aux[RACEMODE];
             vtx_index++;
