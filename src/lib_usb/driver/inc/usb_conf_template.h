@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -36,8 +36,8 @@
 /* Exported defines ----------------------------------------------------------*/
 /* Select D+ pull up: internal or external */
 #ifdef USE_STM32072B_EVAL
- /* When using STM32072B_EVAL board the internal pull up must be enabled */
- #define INTERNAL_PULLUP
+/* When using STM32072B_EVAL board the internal pull up must be enabled */
+#define INTERNAL_PULLUP
 #endif
 
 /* Define if Low power mode is enabled; it allows entering the device into STOP mode
@@ -46,7 +46,7 @@
 
 /* Select the CRS using HSI48 internal clock as USB clock source.
     If this define is commented, PLL will be used as USB clock source.
-    User need to ensure that the PLL output clock to USB is 48MHz  for proper 
+    User need to ensure that the PLL output clock to USB is 48MHz  for proper
     USB functioning */
 #define USB_CLOCK_SOURCE_CRS
 
@@ -62,14 +62,14 @@
 
 /* EP1, TX buffer base address */
 #define MSC_IN_TX_ADDRESS     (0x98)
-    
+
 /* EP2, Rx buffer base address */
 #define MSC_OUT_RX_ADDRESS    (0xD8)
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
 /* Exported variables --------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */ 
+/* Exported functions ------------------------------------------------------- */
 
 #endif /* __USB_CONF__H__ */
 

@@ -16,14 +16,14 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
   *
   ******************************************************************************
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USBD_CORE_H
@@ -36,16 +36,16 @@
 /* Exported defines ----------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 typedef enum {
-  USBD_OK   = 0,
-  USBD_BUSY,
-  USBD_FAIL,
-}USBD_Status;
+    USBD_OK   = 0,
+    USBD_BUSY,
+    USBD_FAIL,
+} USBD_Status;
 /* Exported macros -----------------------------------------------------------*/
 /* Exported variables --------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */ 
-void USBD_Init(USB_CORE_HANDLE *pdev, 
-               USBD_DEVICE *pDevice,                  
-               USBD_Class_cb_TypeDef *class_cb, 
+/* Exported functions ------------------------------------------------------- */
+void USBD_Init(USB_CORE_HANDLE *pdev,
+               USBD_DEVICE *pDevice,
+               USBD_Class_cb_TypeDef *class_cb,
                USBD_Usr_cb_TypeDef *usr_cb);
 
 USBD_Status USBD_DeInit(USB_CORE_HANDLE *pdev);

@@ -403,6 +403,21 @@
               <FileType>1</FileType>
               <FilePath>..\src\rx\xn297.c</FilePath>
             </File>
+            <File>
+              <FileName>rx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rx\rx.c</FilePath>
+            </File>
+            <File>
+              <FileName>rx_sbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rx\rx_sbus.c</FilePath>
+            </File>
+            <File>
+              <FileName>rx_dsmx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rx\rx_dsmx.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

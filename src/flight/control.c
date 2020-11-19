@@ -157,7 +157,7 @@ static float calcBFRatesRad(int axis)
 {
     float rcCommandf = rxcopy[axis];
     float rcCommandfAbs = fabsf(rxcopy[axis]);
-    
+
     if(Expo[axis])
     {
         rcCommandf = rcCommandf * power3(rcCommandfAbs) * Expo[axis] + rcCommandf * (1 - Expo[axis]);
@@ -168,7 +168,7 @@ static float calcBFRatesRad(int axis)
     }
 
     float angleRate = 200.0f * rcRate[axis] * rcCommandf;
-    
+
     if (superExpo[axis]) {
         const float rcSuperfactor = 1.0f / (constrainf(1.0f - (rcCommandfAbs * superExpo[axis]), 0.01f, 1.00f));
         angleRate *= rcSuperfactor;
@@ -180,11 +180,6 @@ static float calcBFRatesRad(int axis)
 
 void control(void)
 {
-
-// high-low rates switch
-    float rate_multiplier = 1.0;
-
-
     for (int i = 0 ; i < 3 ; i++)
     {
 #ifdef STOCK_TX_AUTOCENTER
@@ -224,9 +219,9 @@ void control(void)
 //    rates[1] = rate_multiplier * rxcopy[1] * (float) ratesValue * DEGTORAD;
 //    rates[2] = rate_multiplier * rxcopy[2] * (float) ratesValueYaw * DEGTORAD;
 //#else
-    rates[0] = rate_multiplier * calcBFRatesRad(0);
-    rates[1] = rate_multiplier * calcBFRatesRad(1);
-    rates[2] = rate_multiplier * calcBFRatesRad(2);
+    rates[0] = calcBFRatesRad(0);
+    rates[1] = calcBFRatesRad(1);
+    rates[2] = calcBFRatesRad(2);
 //#endif
 
     float inclinationRoll;
@@ -764,11 +759,11 @@ void control(void)
             {
                 mix[i] = 0.999f;
             }
-            
+
             pwm_set(i, mix[i]);
 
             motor_value[i] = mix[i]*2000;
-            
+
             if (mix[i] < 0) mix[i] = 0;
             if (mix[i] > 1) mix[i] = 1;
             thrsum += mix[i];

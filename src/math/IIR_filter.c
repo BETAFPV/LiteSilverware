@@ -4,7 +4,7 @@
 #include "stm32f0xx.h"
 #include "math.h"
 
-static float  _cutoff_freq1; 
+static float  _cutoff_freq1;
 static float  _a11;
 static float  _a21;
 static float  _b01;
@@ -62,7 +62,7 @@ float LPF2pApply_1(float sample)
     }
 }
 
-static float  _cutoff_freq2; 
+static float  _cutoff_freq2;
 static float  _a12;
 static float  _a22;
 static float  _b02;
@@ -120,7 +120,7 @@ float LPF2pApply_2(float sample)
     }
 }
 
-static float  _cutoff_freq3; 
+static float  _cutoff_freq3;
 static float  _a13;
 static float  _a23;
 static float  _b03;
@@ -140,7 +140,7 @@ void LPF2pSetCutOffFreq_3(float sample_freq, float cutoff_freq)
     c   = 1.0f + 2.0f * cosf(M_PI_F / 4.0f) * ohm + ohm * ohm;
 
     _cutoff_freq3 = cutoff_freq;
-    if (_cutoff_freq3 > 0.0f) 
+    if (_cutoff_freq3 > 0.0f)
     {
         _b03 = ohm * ohm / c;
         _b13 = 2.0f * _b03;

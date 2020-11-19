@@ -4,7 +4,7 @@
   * @author  MCD Application Team
   * @version V1.0.1
   * @date    31-January-2014
-  * @brief   general defines for the usb device library 
+  * @brief   general defines for the usb device library
   ******************************************************************************
   * @attention
   *
@@ -16,14 +16,14 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
   *
   ******************************************************************************
-  */ 
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USBD_DEF_H
@@ -35,18 +35,18 @@
 
 /* Exported defines ----------------------------------------------------------*/
 #ifndef NULL
- #define NULL    0
+#define NULL    0
 #endif
 
 #define  USB_LEN_DEV_QUALIFIER_DESC                     0x0A
 #define  USB_LEN_CFG_DESC                               0x09
 
-#define  USBD_IDX_LANGID_STR                            0x00 
-#define  USBD_IDX_MFC_STR                               0x01 
+#define  USBD_IDX_LANGID_STR                            0x00
+#define  USBD_IDX_MFC_STR                               0x01
 #define  USBD_IDX_PRODUCT_STR                           0x02
-#define  USBD_IDX_SERIAL_STR                            0x03 
-#define  USBD_IDX_CONFIG_STR                            0x04 
-#define  USBD_IDX_INTERFACE_STR                         0x05 
+#define  USBD_IDX_SERIAL_STR                            0x03
+#define  USBD_IDX_CONFIG_STR                            0x04
+#define  USBD_IDX_INTERFACE_STR                         0x05
 
 #define  USB_REQ_TYPE_STANDARD                          0x00
 #define  USB_REQ_TYPE_CLASS                             0x20
@@ -92,7 +92,7 @@
 
 #define  MIN(a, b)      (((a) < (b)) ? (a) : (b))
 /* Exported variables --------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */ 
+/* Exported functions ------------------------------------------------------- */
 
 
 #endif /* __USBD_DEF_H */

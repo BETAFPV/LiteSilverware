@@ -56,8 +56,8 @@ float gyronew[3];
 float lpffilter(float in, int num);
 float lpffilter2(float in, int num);
 
-int16_t acclN[3]; 
-int16_t gyroN[3]; 
+int16_t acclN[3];
+int16_t gyroN[3];
 int8_t temper=0;
 
 void mpu6050_read(void)
@@ -71,7 +71,7 @@ void mpu6050_read(void)
     accelraw[2] = (int16_t)((data[4] << 8) + data[5]);
 
     temper=((int16_t)(data[6]<<8)+data[7])/326.8f + 25.0f;
-    
+
     float temp = accelraw[1];
     accelraw[1] = -accelraw[0];
     accelraw[0] = temp;
@@ -106,7 +106,7 @@ void mpu6050_read(void)
     gyronew[1] = - gyronew[1];
     gyronew[2] = - gyronew[2];
 
-       
+
     for (int i = 0; i < 3; i++)
     {
         gyroN[i] = gyronew[i];

@@ -134,11 +134,11 @@ void osd_process(uint16_t period)
         break;
 
     case 1:
-        
+
         if (osd_mode)
         {
             getIndex();
-            
+
             if ((rx[Roll] > 0.6f) && right_flag == 1)
             {
                 switch (currentMenu->index)
@@ -175,8 +175,8 @@ void osd_process(uint16_t period)
                 right_flag = 0;
             }
         }
-        else{
-             if ((rx[Pitch] < -0.6f) && (down_flag == 1))
+        else {
+            if ((rx[Pitch] < -0.6f) && (down_flag == 1))
             {
                 switch (currentMenu->index)
                 {
@@ -263,7 +263,7 @@ void osd_process(uint16_t period)
                     break;
                 }
                 right_flag = 0;
-            }    
+            }
         }
         openLogBuff[0] = 0x0f;
         openLogBuff[0] |= showcase << 4;
@@ -283,14 +283,14 @@ void osd_process(uint16_t period)
             openLogBuff[12] += openLogBuff[i];
 
         UART2_DMA_Send();
-        
+
         break;
 
     case 2:
         if(osd_mode)
         {
             getIndex();
-            
+
             if ((rx[Roll] > 0.6f) && right_flag == 1)
             {
                 switch (currentMenu->index)
@@ -361,13 +361,13 @@ void osd_process(uint16_t period)
                 case 1:
                     currentMenu = currentMenu->next;
                     break;
-                
+
                 case 2:
                     currentMenu = currentMenu->next;
                     currentMenu = currentMenu->next;
                     currentMenu = currentMenu->next;
                     break;
-                
+
                 case 5:
                     currentMenu = currentMenu->next;
                     break;
@@ -409,7 +409,7 @@ void osd_process(uint16_t period)
                 right_flag = 1;
                 left_flag = 1;
             }
-            
+
             if ((rx[Roll] > 0.6f) && right_flag == 1)
             {
                 switch (currentMenu->index)
@@ -469,10 +469,10 @@ void osd_process(uint16_t period)
                 }
                 left_flag = 0;
             }
-            
+
         }
-        
-       
+
+
         openLogBuff[0] = 0x0f;
         openLogBuff[0] |= showcase << 4;
         openLogBuff[1] = currentMenu->index;
@@ -583,7 +583,7 @@ void osd_process(uint16_t period)
                 openLogBuff[12] = 0;
 
                 UART2_DMA_Send();
-                
+
                 delay_ms(100);
                 flash_save();
                 break;
@@ -647,8 +647,8 @@ void osd_process(uint16_t period)
         else {
             band_index = 4;
         }
-        
-        
+
+
         openLogBuff[0] = 0x0f;
         openLogBuff[0] |= showcase << 4;
         openLogBuff[1] = currentMenu->index;
