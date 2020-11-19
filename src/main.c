@@ -13,22 +13,25 @@
 #include "misc_gpio.h"
 #include "configure.h"
 #include "defines.h"
+#include "rx.h"
 
-#define YEAR ((((__DATE__ [7] - '0') * 10 + (__DATE__ [8] - '0')) * 10 + (__DATE__ [9] - '0')) * 10 + (__DATE__ [10] - '0'))  
-  
-#define MONTH (__DATE__ [2] == 'n' ? 0 \  
-    : __DATE__ [2] == 'b' ? 1 \  
-    : __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 2 : 3) \  
-    : __DATE__ [2] == 'y' ? 4 \  
-    : __DATE__ [2] == 'n' ? 5 \  
-    : __DATE__ [2] == 'l' ? 6 \  
-    : __DATE__ [2] == 'g' ? 7 \  
-    : __DATE__ [2] == 'p' ? 8 \  
-    : __DATE__ [2] == 't' ? 9 \  
-    : __DATE__ [2] == 'v' ? 10 : 11)  
-  
-#define DAY ((__DATE__ [4] == ' ' ? 0 : __DATE__ [4] - '0') * 10 + (__DATE__ [5] - '0'))  
-  
+
+
+#define YEAR ((((__DATE__ [7] - '0') * 10 + (__DATE__ [8] - '0')) * 10 + (__DATE__ [9] - '0')) * 10 + (__DATE__ [10] - '0'))
+
+#define MONTH (__DATE__ [2] == 'n' ? 0 \
+    : __DATE__ [2] == 'b' ? 1 \
+    : __DATE__ [2] == 'r' ? (__DATE__ [0] == 'M' ? 2 : 3) \
+    : __DATE__ [2] == 'y' ? 4 \
+    : __DATE__ [2] == 'n' ? 5 \
+    : __DATE__ [2] == 'l' ? 6 \
+    : __DATE__ [2] == 'g' ? 7 \
+    : __DATE__ [2] == 'p' ? 8 \
+    : __DATE__ [2] == 't' ? 9 \
+    : __DATE__ [2] == 'v' ? 10 : 11)
+
+#define DAY ((__DATE__ [4] == ' ' ? 0 : __DATE__ [4] - '0') * 10 + (__DATE__ [5] - '0'))
+
 #define MDK_HOUR  ((__TIME__[0]-'0')*10 + __TIME__[1]-'0')
 #define MDK_MIN   ((__TIME__[3]-'0')*10 + __TIME__[4]-'0')
 #define MDK_SEC   ((__TIME__[6]-'0')*10 + __TIME__[7]-'0')
@@ -60,7 +63,7 @@ void failloop(int val)
     }
 }
 
-  
+
 
 int main(void)
 {
@@ -74,8 +77,8 @@ int main(void)
     mdk_hour = MDK_HOUR;
     mdk_min = MDK_MIN;
     mdk_sec = MDK_SEC;
-    
-    
+
+
     while(1)
     {
         unsigned long time = gettime();
@@ -90,25 +93,25 @@ int main(void)
 
         imu_calc();
 
-        checkrx(10);
+        rxUpdate(10);
 
         batteryUpdate(10);
-    
-        
+
+
         if(aux[CHAN_5] ==0)
         {
             serialProcess(50);
         }
 
-        
+
         osd_process(50);
 
         ledUpdate(30);
 
         keyUpdate(100);
-        
+
         flymodeUpdate(50);
-        
+
         while(gettime() - time < 1000);
     }
 
@@ -116,18 +119,18 @@ int main(void)
 
 void HardFault_Handler(void)
 {
-	failloop(5);
+    failloop(5);
 }
-void MemManage_Handler(void) 
+void MemManage_Handler(void)
 {
-	failloop(5);
+    failloop(5);
 }
-void BusFault_Handler(void) 
+void BusFault_Handler(void)
 {
-	failloop(5);
+    failloop(5);
 }
-void UsageFault_Handler(void) 
+void UsageFault_Handler(void)
 {
-	failloop(5);
+    failloop(5);
 }
 

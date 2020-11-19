@@ -92,21 +92,11 @@
 #define MAX_RATE 860.0          //Roll & Pitch axis
 #define MAX_RATEYAW 500.0       //Yaw axis (used in acro and leveling modes)
 
-// *************EXPO from 0.00 to 1.00 , 0 = no exp
-// *************positive = less sensitive near center
-#define ACRO_EXPO_ROLL 0.80
-#define ACRO_EXPO_PITCH 0.80
-#define ACRO_EXPO_YAW 0.60
-
-#define ANGLE_EXPO_ROLL 0.55
-#define ANGLE_EXPO_PITCH 0.0
-#define ANGLE_EXPO_YAW 0.55
 
 // *************max angle for level mode
 #define LEVEL_MAX_ANGLE 65.0f
 
-// ************* low rates multiplier if rates are assigned to a channel
-#define LOW_RATES_MULTI 0.5f
+
 
 // *************transmitter stick adjustable deadband for roll/pitch/yaw
 // *************.01f = 1% of stick range - comment out to disable

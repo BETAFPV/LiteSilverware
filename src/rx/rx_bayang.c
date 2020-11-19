@@ -6,8 +6,7 @@
 #include "xn297.h"
 #include "util.h"
 #include "flash.h"
-#include "serial_uart.h"
-
+#include "config.h"
 
 #define TX_POWER 7
 #define RX_MODE_NORMAL RXMODE_NORMAL
@@ -24,7 +23,7 @@
 // how many times to hop ahead if no reception
 #define HOPPING_NUMBER 4
 
-extern uint8_t openLogBuff[20];
+
 float rx[4];
 
 extern uint16_t chan[4];
@@ -32,19 +31,12 @@ extern uint16_t chan[4];
 char auxT[4];
 
 char aux[AUXNUMBER];
-char lastaux[AUXNUMBER];
-char auxchange[AUXNUMBER];
-float aux_analog[AUXNUMBER];
-float lastaux_analog[AUXNUMBER];
-char aux_analogchange[AUXNUMBER];
 extern unsigned char osd_mode;
 extern unsigned char flymode;
 unsigned char aux6;
 unsigned char aux7;
 unsigned char aux8;
-extern unsigned char vtx_index ;
-uint8_t crash = 0;
-extern float attitude[3];
+int init_rx=0;
 
 char lasttrim[4];
 
@@ -63,6 +55,10 @@ unsigned long autobindtime = 0;
 int autobind_inhibit = 0;
 int packet_period = PACKET_PERIOD;
 
+
+#ifdef USE_RX_BAYANG
+
+
 void writeregs(uint8_t data[], uint8_t size)
 {
     spi_cson();
@@ -75,7 +71,7 @@ void writeregs(uint8_t data[], uint8_t size)
 
 
 
-void rx_init(void)
+void bayang_init(void)
 {
     // always on (CH_ON) channel set 1
     aux[AUXNUMBER - 2] = 1;
@@ -85,9 +81,6 @@ void rx_init(void)
     static uint8_t demodcal[2] = { 0x39, B00000001 };
     writeregs(demodcal, sizeof(demodcal));
 
-// powerup defaults
-//static uint8_t rfcal2[7] = { 0x3a , 0x45 , 0x21 , 0xef , 0xac , 0x3a , 0x50};
-//writeregs( rfcal2 , sizeof(rfcal2) );
 
     static uint8_t rfcal2[7] = { 0x3a, 0x45, 0x21, 0xef, 0x2c, 0x5a, 0x50};
     writeregs(rfcal2, sizeof(rfcal2));
@@ -149,10 +142,6 @@ void rx_init(void)
         xn_writereg(0x25, rfchannel[rf_chan]);    // Set channel frequency
         rxmode = RX_MODE_NORMAL;
 
-        aux6 = aux[LEVELMODE];
-        aux7 = aux[RACEMODE];
-        aux8 = aux[HORIZON];  
-        
         if (telemetry_enabled) packet_period = PACKET_PERIOD_TELEMETRY;
     }
     else
@@ -198,12 +187,6 @@ float packettodata(int *data)
     return (((data[0] & 0x0003) * 256 + data[1]) - 512) * 0.001953125;
 }
 
-float bytetodata(int byte)
-{
-    //return (byte - 128) * 0.0078125; // -1 to 1
-    return byte * 0.00390625; // 0 to 1
-}
-
 
 static int decodepacket(void)
 {
@@ -224,7 +207,7 @@ static int decodepacket(void)
                 ((rxdata[8] & 0x0003) * 256 +
                  rxdata[9]) * 0.000976562f;
 
- 
+
             aux[CH_INV] = (rxdata[3] & 0x80)?1:0; // inverted flag   //6 chan
             aux[CH_VID] = (rxdata[2] & 0x10) ? 1 : 0;                //7 chan
             aux[CH_PIC] = (rxdata[2] & 0x20) ? 1 : 0;		             //8 chan
@@ -241,35 +224,6 @@ static int decodepacket(void)
             chan[1] = aux[LEVELMODE]*600;
             chan[2] = aux[RACEMODE]*600;
             chan[3] = aux[HORIZON]*1800;
-            
-            
-//            if (aux[LEVELMODE])
-//            {
-//                if (aux[RACEMODE] && !aux[HORIZON])
-//                {
-//                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-//                    if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-//                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-//                }
-//                else if (aux[HORIZON])
-//                {
-//                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-//                    if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-//                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-//                }
-//                else
-//                {
-//                    if (ANGLE_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ANGLE_EXPO_ROLL);
-//                    if (ANGLE_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ANGLE_EXPO_PITCH);
-//                    if (ANGLE_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ANGLE_EXPO_YAW);
-//                }
-//            }
-//            else
-//            {
-//                if (ACRO_EXPO_ROLL > 0.01) rx[0] = rcexpo(rx[0], ACRO_EXPO_ROLL);
-//                if (ACRO_EXPO_PITCH > 0.01) rx[1] = rcexpo(rx[1], ACRO_EXPO_PITCH);
-//                if (ACRO_EXPO_YAW > 0.01) rx[2] = rcexpo(rx[2], ACRO_EXPO_YAW);
-//            }
 
             return 1;   // valid packet
         }
@@ -298,15 +252,11 @@ int failsafe = 1;
 unsigned int skipchannel = 0;
 int lastrxchan;
 int timingfail = 0;
-static int init_rx=0;
 
 
-void checkrx(uint16_t period)
+
+void bayang_check(void)
 {
-//    static uint32_t LastRunTime=0;
-//    if((sysTickUptime-LastRunTime)<period)return;
-//    LastRunTime=sysTickUptime;
-
     int packetreceived = checkpacket();
     int pass = 0;
     if (packetreceived)
@@ -356,20 +306,20 @@ void checkrx(uint16_t period)
                 flash_save();
                 extern unsigned long lastlooptime;
                 lastlooptime = gettime();
-                
+
                 aux6 = aux[LEVELMODE];
                 aux7 = aux[RACEMODE];
                 aux8 = aux[HORIZON];
             }
         }
         else
-        {           
+        {
             if(init_rx<100)
             {
                 init_rx++;
                 aux6 = aux[LEVELMODE];
                 aux7 = aux[RACEMODE];
-                aux8 = aux[HORIZON];               
+                aux8 = aux[HORIZON];
             }
             unsigned long temptime = gettime();
 
@@ -427,9 +377,7 @@ void checkrx(uint16_t period)
     {
         unsigned int temp = time - lastrxtime;
 
-        if (temp > 1000
-                && (temp - (PACKET_OFFSET)) / ((int) packet_period) >=
-                (skipchannel + 1))
+        if (temp > 1000 && (temp - (PACKET_OFFSET)) / ((int) packet_period) >=(skipchannel + 1))
         {
             nextchannel();
 
@@ -459,95 +407,7 @@ void checkrx(uint16_t period)
     }
 }
 
-
-void flymodeUpdate(uint16_t period)
-{
-    static uint32_t LastRunTime=0;
-    if((sysTickUptime-LastRunTime)<period)return;
-    LastRunTime=sysTickUptime;
-
-    if (osd_mode)
-    {
-        if (aux[LEVELMODE])
-        {
-            if (aux[RACEMODE])
-            {
-                if (aux[HORIZON])
-                {
-                    flymode = 2;
-                }
-                else
-                {
-                    flymode = 3;
-                }
-            }
-            else
-            {
-                if (aux[HORIZON])
-                {
-                    flymode = 4;
-                }
-                else
-                {
-                    flymode = 0;
-                }
-            }
-        }
-        else
-        {
-            flymode = 1;
-        }
-
-    }
-    else
-    {
-        if (!aux[LEVELMODE])
-        {
-            flymode=0;
-        }
-        else if(aux[LEVELMODE] == 1)
-        {
-            flymode=4;
-        }
-        else
-        {
-            flymode=1;
-        }
-        if (aux7 != aux[RACEMODE] && (init_rx >=100))
-        {
-            aux7 = aux[RACEMODE];
-            vtx_index++;
-            if (vtx_index > 15 || vtx_index <8)
-                vtx_index = 8;
-
-            openLogBuff[0] = 0xAA;
-            openLogBuff[1] = 0x55;
-            openLogBuff[2] = 0x07;
-            openLogBuff[3] = 0x01;
-            openLogBuff[4] = vtx_index;
-            openLogBuff[5] = CRC8(openLogBuff,5);
-            openLogBuff[6] = 0;
-            openLogBuff[7] = 0;
-            openLogBuff[8] = 0;
-            openLogBuff[9] = 0;
-            openLogBuff[10] = 0;
-            openLogBuff[11] = 0;
-            openLogBuff[12] = 0;
-
-            UART2_DMA_Send();
-
-            delay_ms(100);
-            flash_save();
-        }
-
-
-        if(flymode==0 && (attitude[0] > (65 + 10) || attitude[0] < -(65 + 10) || attitude[1] > (65 + 10) || attitude[1] <-(65 + 10)))
-        {
-            crash = 1;
-        }
-    }
-}
-
+#endif
 
 
 

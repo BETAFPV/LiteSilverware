@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 #define BETA_FILTERING
 
 #ifdef BETA_FILTERING  //*** ABOVE 100 ADJUST IN INCRIMENTS OF 20, BELOW 100 ADJUST IN INCRIMENTS OF 10, nothing coded beyond 500hz
@@ -25,6 +20,10 @@
 
 
 
+#define USE_RX_BAYANG
 
+//#define USE_RX_SBUS
+
+//#define USE_RX_DSMX
 
 

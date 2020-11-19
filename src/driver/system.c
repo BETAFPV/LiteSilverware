@@ -20,7 +20,8 @@
 #include  "usbd_usr.h"
 #include "usb_dcd.h"
 #include "usbd_cdc_vcp.h"
-
+#include "rx.h"
+#include "rx_dsmx.h"
 
 USB_CORE_HANDLE  USB_Device_dev ;
 
@@ -33,17 +34,17 @@ extern float vreffilt;
 void flashErase( void) {
 
     FLASH_Unlock();
-    
-	int test = FLASH_ErasePage( 0X08000000 );
+
+    int test = FLASH_ErasePage( 0X08000000 );
     test = FLASH_ErasePage( 0X08007C00 );
-	if ( test != FLASH_COMPLETE ) FLASH_Lock();
+    if ( test != FLASH_COMPLETE ) FLASH_Lock();
     else return ;
 
     FLASH_ProgramWord(0x8000000, 0);
     FLASH_ProgramWord(0x8000000 +2, 0);
     FLASH_ProgramWord(0x8000000 + 4, 0);
-    FLASH_ProgramWord(0x8000000 + 6, 0);  
-    FLASH_ProgramWord(0x8000000 + 8, 0);  
+    FLASH_ProgramWord(0x8000000 + 6, 0);
+    FLASH_ProgramWord(0x8000000 + 8, 0);
 
     FLASH_Lock();
 }
@@ -52,7 +53,7 @@ void flashErase( void) {
 #define KEY12 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_12)
 
 #define ApplicationAddress 0x1FFFC400
-  
+
 typedef void (*pFunction)(void);
 
 
@@ -64,14 +65,14 @@ uint8_t systemInit(void)
     //overclock 64M
     setclock();
 #endif
-    
-    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;	
+
+    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGCOMPEN;
     SYSCFG->CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
-    
+
     //gpio
     gpio_init();
     delay(1000);
-    
+
     if ((GPIOA->IDR & GPIO_Pin_1) == (uint32_t)Bit_RESET)
     {
         delay(1000);
@@ -89,22 +90,27 @@ uint8_t systemInit(void)
             Jump_To_Boot();
         }
     }
-    
+
     USBD_Init(&USB_Device_dev,
-            &USR_desc, 
-            &USBD_CDC_cb, 
-            &USR_cb);
-    
-    
+              &USR_desc,
+              &USBD_CDC_cb,
+              &USR_cb);
+
+
     //sysTick 1ms
     sysTick_init();
 
     delay_ms(10);
 
+#ifdef USE_RX_DSMX
+    dsm_bind();
+#endif
+
+
     flash_hard_coded_pid_identifier();
     flash_load();
-    
-    
+
+
     //softspi
     spi_init();
 
@@ -176,8 +182,6 @@ uint8_t systemInit(void)
 
     led_init();
 
-
-    //rx
     rx_init();
 
 
