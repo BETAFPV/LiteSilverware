@@ -389,6 +389,7 @@ void bayang_check(void)
     {
         //  failsafe
         failsafe = 1;
+        rx_ready = 0;
         if(ledcommand !=2)
             ledcommand = 3;
 

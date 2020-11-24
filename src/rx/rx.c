@@ -24,55 +24,30 @@ extern float attitude[3];
 extern int init_rx;
 extern uint8_t openLogBuff[20];
 
-
+rxUpdate *rxCheck;
 
 void rx_init(void)
 {
 #ifdef USE_RX_BAYANG
     bayang_init();
+    rxCheck = bayang_check;
 #endif
 
 
 #ifdef USE_RX_SBUS
     sbus_init();
+    rxCheck =  sbus_check;
 #endif
 
 
 #ifdef USE_RX_DSMX
     dsm_init();
+    rxCheck = dsm_check;
 #endif
 
 }
 
 
-
-
-void rxUpdate(uint16_t period)
-{
-    static uint32_t LastRunTime=0;
-    if((sysTickUptime-LastRunTime)<period)return;
-    LastRunTime=sysTickUptime;
-
-#ifdef USE_RX_BAYANG
-
-    bayang_check();
-
-#endif
-
-#ifdef USE_RX_SBUS
-
-    sbus_check();
-
-#endif
-
-
-#ifdef USE_RX_DSMX
-
-    dsm_check();
-
-#endif
-
-}
 
 void flymodeUpdate(uint16_t period)
 {

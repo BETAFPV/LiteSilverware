@@ -134,7 +134,7 @@ void rgb_send( int data )
 {
     if( !rgb_dma_phase )	rgb_dma_phase = 3;
 }
-
+int rx_num=0;
 
 void ledUpdate(uint16_t period)
 {
@@ -169,7 +169,7 @@ void ledUpdate(uint16_t period)
 
     if(low_vol)
     {
-        rgb_ledflash ( RGB( 255, 0, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok red led
+        rgb_ledflash ( RGB( 255, 0, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok red led             
     }
     else
     {
@@ -178,7 +178,38 @@ void ledUpdate(uint16_t period)
             switch(ledcommand)
             {
             case 2:
-                rgb_ledflash(RGB( 0, 255, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok green led
+//                rgb_ledflash(RGB( 0, 255, 0 ), RGB( 0, 0, 0 ),500000, 8); //ok green led 
+                if(rx_num<20)
+                {
+                    rx_num++;
+                    rgb_led_set_all( RGB( 0,160,0 ));
+                }
+                else if(rx_num < 30) {
+                    rgb_led_set_all(0);
+                    rx_num++;
+                }
+                else if(rx_num < 50) {
+                    rx_num++;
+                    rgb_led_set_all( RGB( 0,160,0 ));
+                }
+                else if(rx_num < 60)
+                {
+                    rgb_led_set_all(0);
+                    rx_num++;
+                }
+                else if(rx_num < 80) {
+                    rx_num++;
+                    rgb_led_set_all( RGB( 0,160,0 ));
+                }
+                else if(rx_num < 140)
+                {
+                    rgb_led_set_all(0);
+                    rx_num++;
+                }
+                else
+                {
+                    rx_num = 0;
+                }
                 break;
 
 

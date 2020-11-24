@@ -43,9 +43,8 @@ unsigned int lastlooptime;
 uint16_t year,month,day;
 uint8_t mdk_hour,mdk_min,mdk_sec;
 
-extern uint8_t  USB_Tx_State;
-extern char aux[];
-uint8_t usb_in_use=0;
+
+
 
 void failloop(int val)
 {
@@ -62,7 +61,6 @@ void failloop(int val)
         delay(800000);
     }
 }
-
 
 
 int main(void)
@@ -93,16 +91,11 @@ int main(void)
 
         imu_calc();
 
-        rxUpdate(10);
+        rxCheck();
 
         batteryUpdate(10);
 
-
-        if(aux[CHAN_5] ==0)
-        {
-            serialProcess(50);
-        }
-
+        usbUpdate(50);
 
         osd_process(50);
 

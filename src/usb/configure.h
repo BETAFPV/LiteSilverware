@@ -17,9 +17,9 @@
 #include "usbd_cdc_vcp.h"
 
 
-void serialProcess(uint16_t period);
+void serialProcess(void);
 
-
+void usbUpdate(uint16_t period);
 
 typedef struct Mavlink_Messages_t {
 

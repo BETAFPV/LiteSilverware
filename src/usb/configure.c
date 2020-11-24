@@ -48,7 +48,6 @@ mavlink_status_t status;
 uint16_t chan[4]= {0};
 
 extern float rx[];
-extern float aux[];
 extern unsigned char rx_select;
 extern float lowvol;
 //uint8_t max_angle = 65;
@@ -73,12 +72,14 @@ extern float rcRate[3];
 extern float superExpo[3];
 extern float Expo[3];
 
-void serialProcess(uint16_t period)
-{
-    static uint32_t LastRunTime=0;
-    if((sysTickUptime-LastRunTime)<period)return;
-    LastRunTime=sysTickUptime;
+extern uint8_t  USB_Tx_State;
+extern char aux[];
 
+
+
+
+void serialProcess(void)
+{
     uint8_t rxN;
     uint8_t sensors;
 
@@ -239,6 +240,24 @@ void serialProcess(uint16_t period)
 
 }
 
-
+void usbUpdate(uint16_t period)
+{
+    static uint32_t LastRunTime=0;
+    if((sysTickUptime-LastRunTime)<period)return;
+    LastRunTime=sysTickUptime;
+    
+    if(aux[CHAN_5])
+    {
+        if(USB_Tx_State == 0)
+        {
+            serialProcess(); 
+        }      
+    }
+    else
+    {
+        serialProcess();        
+    }
+    
+}
 
 
