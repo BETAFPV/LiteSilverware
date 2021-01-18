@@ -100,9 +100,9 @@ int main(void)
         osd_process(50);
 
         ledUpdate(30);
-
+#ifdef USE_RX_BAYANG
         keyUpdate(100);
-
+#endif
         flymodeUpdate(50);
 
         while(gettime() - time < 1000);

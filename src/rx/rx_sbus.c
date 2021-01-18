@@ -8,51 +8,46 @@
 
 extern int rxmode;
 
-#define RX_BUFF_SIZE 26                         //SPEK_FRAME_SIZE 16  
-uint8_t rx_buffer[RX_BUFF_SIZE];    //spekFrame[SPEK_FRAME_SIZE]
-uint8_t rx_start = 0;
-uint8_t rx_end = 0;
-uint16_t rx_time[RX_BUFF_SIZE];
-
-int framestarted = -1;
-uint8_t framestart = 0;
-
 int failsafe=1;
-extern int rxmode;
-extern int rx_ready;
+
+struct sbus_dat {
+    uint32_t start : 8;
+    uint32_t chan1 : 11;
+    uint32_t chan2 : 11;
+    uint32_t chan3 : 11;
+    uint32_t chan4 : 11;
+    uint32_t chan5 : 11;
+    uint32_t chan6 : 11;
+    uint32_t chan7 : 11;
+    uint32_t chan8 : 11;
+    uint32_t chan9 : 11;
+    uint32_t chan10 : 11;
+    uint32_t chan11 : 11;
+    uint32_t chan12 : 11;
+    uint32_t chan13 : 11;
+    uint32_t chan14 : 11;
+    uint32_t chan15 : 11;
+    uint32_t chan16 : 11;
+} __attribute__ ((__packed__));
+
+union 
+{
+	uint8_t  raw[25];
+    struct sbus_dat msg;
+}sbus;
+
+RCDATA_t sbusData;
+
 extern int ledcommand;
-unsigned long time_lastrx;
-unsigned long time_siglost = 0;
-uint8_t last_rx_end = 0;
-int last_byte = 0;
-unsigned long time_lastframe;
-int frame_received = 0;
-int rx_state = 0;
-extern int bind_safety;
-uint8_t data[25];
-int channels[9];
-
-sbusFrameData_t sbusFrameData;
-static bool rxIsInFailsafeMode = true;
-extern char aux[16];
-extern float rx[4];
+extern float rx[];
+extern char aux[];
 extern uint16_t chan[4];
+extern int rx_ready;
 
-#define SBUS_TIME_NEEDED_PER_FRAME    3000
-#define SBUS_FRAME_BEGIN_BYTE 0x0F
-
-uint16_t val[18];  // 通道值
-uint8_t  rc_flag = 0;
-int failsafe_siglost = 0;
-
-
-
+uint8_t flag=12;
 
 void sbus_init(void)
 {
-    // make sure there is some time to program the board
-    if ( gettime() < 2000000 ) return;
-
     GPIO_InitTypeDef  GPIO_InitStructure;
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
@@ -68,7 +63,7 @@ void sbus_init(void)
 
     USART_InitTypeDef USART_InitStructure;
 
-    USART_InitStructure.USART_BaudRate = SERIAL_BAUDRATE;
+    USART_InitStructure.USART_BaudRate = 100000;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_2;
     USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -79,7 +74,7 @@ void sbus_init(void)
     USART_Init(USART1, &USART_InitStructure);
 
 
-    if (SBUS_INVERT) USART_InvPinCmd(USART1, USART_InvPin_Rx, ENABLE ); //USART_InvPin_Tx
+    USART_InvPinCmd(USART1, USART_InvPin_Rx, ENABLE ); //USART_InvPin_Tx
 
 
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
@@ -93,186 +88,200 @@ void sbus_init(void)
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
-    framestarted = 0;
-}
-
-uint8_t sbusChannelsDecode(const sbusChannels_t *channels)
-{
-    val[0] = channels->chan0;
-    val[1] = channels->chan1;
-    val[2] = channels->chan2;
-    val[3] = channels->chan3;
-    val[4] = channels->chan4;
-    val[5] = channels->chan5;
-    val[6] = channels->chan6;
-    val[7] = channels->chan7;
-    val[8] = channels->chan8;
-    val[9] = channels->chan9;
-    val[10] = channels->chan10;
-    val[11] = channels->chan11;
-    val[12] = channels->chan12;
-    val[13] = channels->chan13;
-    val[14] = channels->chan14;
-    val[15] = channels->chan15;
-
-    if (channels->flags & SBUS_FLAG_CHANNEL_17)
-    {
-        val[16] = SBUS_DIGITAL_CHANNEL_MAX;
-    }
-    else
-    {
-        val[16] = SBUS_DIGITAL_CHANNEL_MIN;
-    }
-
-    if (channels->flags & SBUS_FLAG_CHANNEL_18)
-    {
-        val[17] = SBUS_DIGITAL_CHANNEL_MAX;
-    }
-    else
-    {
-        val[17] = SBUS_DIGITAL_CHANNEL_MIN;
-    }
-
-    if (channels->flags & SBUS_FLAG_FAILSAFE_ACTIVE)
-    {
-        // internal failsafe enabled and rx failsafe flag set
-        // RX *should* still be sending valid channel data (repeated), so use it.
-        return RX_FRAME_COMPLETE | RX_FRAME_FAILSAFE;
-    }
-
-    if (channels->flags & SBUS_FLAG_SIGNAL_LOSS)
-    {
-        // The received data is a repeat of the last valid data so can be considered complete.
-        return RX_FRAME_COMPLETE | RX_FRAME_DROPPED;
-    }
-
-    return RX_FRAME_COMPLETE;
+    rxmode = !RXMODE_BIND;
 }
 
 
 
-void sbus_check(void)
-{
-    bool signalReceived = false;
 
-    if (!sbusFrameData.done)
-    {
-        return ;
-    }
-    sbusFrameData.done = false;
+//void sbus_check(void)
+//{
+//    bool signalReceived = false;
 
-
-    const uint8_t frameStatus = sbusChannelsDecode(&sbusFrameData.frame.frame.channels);
-
-
-//    if (!(frameStatus & (RX_FRAME_FAILSAFE | RX_FRAME_DROPPED))) {
-//        lastRcFrameTimeUs = sbusTimeLast;
+//    if (!sbusFrameData.done)
+//    {
+//        return ;
 //    }
+//    sbusFrameData.done = false;
 
-    rxIsInFailsafeMode = (frameStatus & RX_FRAME_FAILSAFE) != 0;
-    bool rxFrameDropped = (frameStatus & RX_FRAME_DROPPED) != 0;
-    signalReceived = !(rxIsInFailsafeMode || rxFrameDropped);
 
-    if (signalReceived)
+//    const uint8_t frameStatus = sbusChannelsDecode(&sbusFrameData.frame.frame.channels);
+
+
+////    if (!(frameStatus & (RX_FRAME_FAILSAFE | RX_FRAME_DROPPED))) {
+////        lastRcFrameTimeUs = sbusTimeLast;
+////    }
+
+//    rxIsInFailsafeMode = (frameStatus & RX_FRAME_FAILSAFE) != 0;
+//    bool rxFrameDropped = (frameStatus & RX_FRAME_DROPPED) != 0;
+//    signalReceived = !(rxIsInFailsafeMode || rxFrameDropped);
+
+//    if (signalReceived)
+//    {
+
+//        rx[0] = (val[0] - 993) * 0.00122026f;
+//        rx[1] = (val[1] - 993) * 0.00122026f;
+//        rx[2] = (val[3] - 993) * 0.00122026f;
+
+//        rx[3] = (val[2] - 173) * 0.000610128f;
+
+//        if (rx[3] > 1) rx[3] = 1;
+//        if (rx[3] < 0) rx[3] = 0;
+
+//        chan[0] = val[4];
+//        chan[1] = val[5];
+//        chan[2] = val[6];
+//        chan[3] = val[7];
+
+//        aux[CHAN_5] = (val[4] > 500) ? ((val[4] < 1500) ? 1 : 2) : 0;
+//        aux[CHAN_6] = (val[5] > 500) ? ((val[5] < 1500) ? 1 : 2) : 0;
+//        aux[CHAN_7] = (val[6] > 500) ? ((val[6] < 1500) ? 1 : 2) : 0;
+//        aux[CHAN_8] = (val[7] > 500) ? ((val[7] < 1500) ? 1 : 2) : 0;
+
+
+//        bind_safety++;
+//        if (bind_safety > 100)
+//        {
+//            rx_ready = 1;
+//            failsafe = 0;
+//            rxmode = !RXMODE_BIND;
+//            bind_safety = 101;
+//            if(ledcommand != 5)
+//                ledcommand = 4;
+//        }
+//        time_siglost = gettime();
+//        failsafe_siglost = 0;
+//    }
+//    else
+//    {
+//        if (gettime() - time_siglost > 1000000)
+//        {
+//            failsafe_siglost = 1;
+
+//            rx[0] = 0;
+//            rx[1] = 0;
+//            rx[2] = 0;
+//            rx[3] = 0;
+
+//            if(ledcommand !=2)
+//                ledcommand = 3;
+//        }
+
+//        failsafe = failsafe_siglost;
+
+//    }
+//}
+
+
+void sbus_check()
+{
+    if(flag ==12)
     {
-
-        rx[0] = (val[0] - 993) * 0.00122026f;
-        rx[1] = (val[1] - 993) * 0.00122026f;
-        rx[2] = (val[3] - 993) * 0.00122026f;
-
-        rx[3] = (val[2] - 173) * 0.000610128f;
-
-        if (rx[3] > 1) rx[3] = 1;
-        if (rx[3] < 0) rx[3] = 0;
-
-        chan[0] = val[4];
-        chan[1] = val[5];
-        chan[2] = val[6];
-        chan[3] = val[7];
-
-        aux[CHAN_5] = (val[4] > 500) ? ((val[4] < 1500) ? 1 : 2) : 0;
-        aux[CHAN_6] = (val[5] > 500) ? ((val[5] < 1500) ? 1 : 2) : 0;
-        aux[CHAN_7] = (val[6] > 500) ? ((val[6] < 1500) ? 1 : 2) : 0;
-        aux[CHAN_8] = (val[7] > 500) ? ((val[7] < 1500) ? 1 : 2) : 0;
-
-
-        bind_safety++;
-        if (bind_safety > 100)
-        {
-            rx_ready = 1;
-            failsafe = 0;
-            rxmode = !RXMODE_BIND;
-            bind_safety = 101;
-            if(ledcommand != 5)
-                ledcommand = 4;
-        }
-        time_siglost = gettime();
-        failsafe_siglost = 0;
+        rxmode = 0;
+        failsafe = 1;
+        if(ledcommand !=2)
+            ledcommand = 3;
     }
     else
     {
-        if (gettime() - time_siglost > 1000000)
-        {
-            failsafe_siglost = 1;
+        rxmode = 1;
+        failsafe = 0;
+        rx_ready =1;
+        if(ledcommand != 5)
+            ledcommand = 4;
+    }
+    //一帧数据解析完成
+    rx[0] = (sbusData.roll - 1500) * 0.002f;
+    rx[1] = (sbusData.pitch - 1500) * 0.002f;
+    rx[2] = (sbusData.yaw - 1500) * 0.002f;
 
-            rx[0] = 0;
-            rx[1] = 0;
-            rx[2] = 0;
-            rx[3] = 0;
+    rx[3] = (sbusData.throttle - 1000) * 0.001f;
 
-            if(ledcommand !=2)
-                ledcommand = 3;
-        }
+    if (rx[3] > 1) rx[3] = 1;
+    if (rx[3] < 0) rx[3] = 0;
 
-        failsafe = failsafe_siglost;
+    chan[0] = sbusData.aux1;
+    chan[1] = sbusData.aux2;
+    chan[2] = sbusData.aux3;
+    chan[3] = sbusData.aux4;
+
+    aux[CHAN_5] = (sbusData.aux1 > 1000) ? ((sbusData.aux1 < 1600) ? 1 : 2) : 0;
+    aux[CHAN_6] = (sbusData.aux2 > 1000) ? ((sbusData.aux2 < 1600) ? 1 : 2) : 0;
+    aux[CHAN_7] = (sbusData.aux3 > 1000) ? ((sbusData.aux3 < 1600) ? 1 : 2) : 0;
+    aux[CHAN_8] = (sbusData.aux4 > 1000) ? ((sbusData.aux4 < 1600) ? 1 : 2) : 0;
+}
+
+
+/**********************************************************************************************************
+*函 数 名: Sbus_Decode
+*功能说明: sbus协议解析
+*形    参: 输入数据
+*返 回 值: 无
+**********************************************************************************************************/
+static void Sbus_Decode(uint8_t data)
+{  
+    static uint32_t lastTime;
+    static uint32_t dataCnt = 0;
+    
+    if(millis() < 2000)
+        return;
+    
+    uint32_t deltaT = millis() - lastTime;
+    lastTime = millis();
+    
+    //数据间隔大于3ms则可以认为新的一帧开始了
+    if(deltaT > 3)
+    {
+        dataCnt = 0;
+    }
+    
+    //接收数据
+    sbus.raw[dataCnt++] = data;    
+    
+    //每帧数据长度为25
+    if(dataCnt == 25)
+    {
+        //判断帧头帧尾是否正确
+        if(sbus.raw[0] != 0x0F || sbus.raw[24] != 0)
+            return;
+        
+        //每个通道数据占据11个字节，这里使用了字节对齐的方式来进行解析
+        //转换摇杆数据量程为[1000:2000]
+        sbusData.roll     = sbus.msg.chan1 * 0.625f + 880;  
+        sbusData.pitch    = sbus.msg.chan2 * 0.625f + 880;
+        sbusData.throttle = sbus.msg.chan3 * 0.625f + 880;  
+        sbusData.yaw      = sbus.msg.chan4 * 0.625f + 880;  
+        sbusData.aux1     = sbus.msg.chan5 * 0.625f + 880;  
+        sbusData.aux2     = sbus.msg.chan6 * 0.625f + 880;  
+        sbusData.aux3     = sbus.msg.chan7 * 0.625f + 880;  
+        sbusData.aux4     = sbus.msg.chan8 * 0.625f + 880;  
+        sbusData.aux5     = sbus.msg.chan9 * 0.625f + 880;  
+        sbusData.aux6     = sbus.msg.chan10 * 0.625f + 880;  
+        sbusData.aux7     = sbus.msg.chan11 * 0.625f + 880;  
+        sbusData.aux8     = sbus.msg.chan12 * 0.625f + 880;  
+        sbusData.aux8     = sbus.msg.chan13 * 0.625f + 880;  
+        sbusData.aux10    = sbus.msg.chan14 * 0.625f + 880;  
+        sbusData.aux11    = sbus.msg.chan15 * 0.625f + 880;  
+        sbusData.aux12    = sbus.msg.chan16 * 0.625f + 880;        
+        
+        flag = sbus.raw[23];
+        
 
     }
 }
 
-
-void UART1_IRQHandler(void)
+//Receive ISR callback
+void USART1_IRQHandler(void)
 {
-    if (USART_GetFlagStatus(USART1, USART_IT_RXNE)  != RESET)
-    {
-        USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-
-
-        uint8_t c =  USART_ReceiveData(USART1);;
-        const uint32_t nowUs = gettime();
-
-        const int32_t sbusFrameTime = cmpTimeUs(nowUs, sbusFrameData.startAtUs);
-
-
-        if (sbusFrameTime > (long)(SBUS_TIME_NEEDED_PER_FRAME + 500))
-        {
-            sbusFrameData.position = 0;
-        }
-        if (sbusFrameData.position == 0)
-        {
-            if (c != SBUS_FRAME_BEGIN_BYTE)
-            {
-                return;
-            }
-            sbusFrameData.startAtUs = nowUs;
-        }
-
-        if (sbusFrameData.position < SBUS_FRAME_SIZE)
-        {
-            sbusFrameData.frame.bytes[sbusFrameData.position++] = (uint8_t)c;
-            if (sbusFrameData.position < SBUS_FRAME_SIZE)
-            {
-                sbusFrameData.done = false;
-            }
-            else
-            {
-                sbusFrameData.done = true;
-            }
-        }
-    }
-    if(USART_GetFlagStatus(USART2,USART_FLAG_ORE) == SET)
-    {
-        USART_ClearFlag(USART2,USART_FLAG_ORE);
-    }
+    uint8_t com_data;
+	
+	if(USART_GetITStatus(USART1,USART_IT_RXNE)!=RESET) 
+	{
+		USART_ClearITPendingBit(USART1,USART_IT_RXNE); 
+        
+        com_data = USART_ReceiveData(USART1);
+        Sbus_Decode(com_data);
+	}
 
 }
 

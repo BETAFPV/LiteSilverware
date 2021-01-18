@@ -5,12 +5,6 @@
 #include "defines.h"
 
 
-static int key_cnt = 0;
-extern int rx_ready;
-extern int ledcommand;
-extern int rxmode;
-
-
 void gpio_init(void)
 {
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -32,6 +26,15 @@ void gpio_init(void)
     GPIO_SetBits(GPIOA, GPIO_Pin_1);
 
 }
+
+#ifdef USE_RX_BAYANG
+
+
+
+static int key_cnt = 0;
+extern int rx_ready;
+extern int ledcommand;
+extern int rxmode;
 
 
 
@@ -66,7 +69,7 @@ void keyUpdate(uint16_t period)
     }
 }
 
-
+#endif
 
 
 

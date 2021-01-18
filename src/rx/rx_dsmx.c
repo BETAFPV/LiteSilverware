@@ -235,7 +235,7 @@ void dsm_check(void)
 }
 
 
-void UART1_IRQHandler(void)
+void USART1_IRQHandler(void)
 {
 
     if (USART_GetFlagStatus(USART1, USART_IT_RXNE)  != RESET)
