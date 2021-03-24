@@ -14,6 +14,7 @@
 #include "configure.h"
 #include "defines.h"
 #include "rx.h"
+#include "config.h"
 
 
 

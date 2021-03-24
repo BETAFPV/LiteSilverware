@@ -78,7 +78,7 @@ uint8_t systemInit(void)
     {
         delay(1000);
         
-        if(((GPIOA->IDR & GPIO_Pin_1) == (uint32_t)Bit_RESET) &&( KEY11 ==0 || KEY12 == 0))
+        if(((GPIOA->IDR & GPIO_Pin_1) == (uint32_t)Bit_RESET) &&( KEY12 ==0))
         {
             flashErase();
 

@@ -3,7 +3,7 @@
 #include "xn297.h"
 #include "rx_bayang.h"
 #include "defines.h"
-
+#include "config.h"
 
 void gpio_init(void)
 {
@@ -29,14 +29,10 @@ void gpio_init(void)
 
 #ifdef USE_RX_BAYANG
 
-
-
 static int key_cnt = 0;
 extern int rx_ready;
 extern int ledcommand;
 extern int rxmode;
-
-
 
 void keyUpdate(uint16_t period)
 {
